@@ -1,4 +1,4 @@
-const DiaSemana = {
+const DiaSemana = Object.freeze({
     LUNES: 0,
     MARTES: 1,
     MIERCOLES: 2,
@@ -6,4 +6,4 @@ const DiaSemana = {
     VIERNES: 4,
     SABADO: 5,
     DOMINGO: 6
-}
+})
