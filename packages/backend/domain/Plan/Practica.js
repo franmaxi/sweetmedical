@@ -1,4 +1,4 @@
-class Practica {
+export class Practica {
     constructor(codigo, nombre, duracionTurnoEnMins, costo) {
         this.id = null //todo
         this.codigo = codigo

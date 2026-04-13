@@ -10,7 +10,7 @@ class Medico {
         this.disponibilidades = []
     }
 
-    definirDiponibilidad(...disponibilidad){
+    definirDisponibilidad(...disponibilidad){
         this.disponibilidades.push(...disponibilidad)
     }
 

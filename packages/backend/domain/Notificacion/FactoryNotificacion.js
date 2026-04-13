@@ -1,3 +1,6 @@
+import { EstadoTurno } from '../Enumerados/EstadoTurno.js'
+import { Notificacion } from './Notificacion.js'
+
 class FactoryNotificacion {
     crearSegunEstadoTurno(turno){
         if(turno.estado === EstadoTurno.RESERVADO){
