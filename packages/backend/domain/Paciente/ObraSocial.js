@@ -1,5 +1,5 @@
 export class ObraSocial{
-    constructor(nombre){
+    constructor( {nombre} ){
         this.id = null; //todo
         this.nombre = nombre;
         this.planes = [];

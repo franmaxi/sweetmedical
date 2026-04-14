@@ -1,5 +1,5 @@
 class Medico {
-    constructor(usuario, matricula, nombre, especialidades, practicas, sedes){
+    constructor( {usuario, matricula, nombre, especialidades, practicas, sedes} ){
         this.id = null; //todo
         this.usuario = usuario
         this.matricula = matricula

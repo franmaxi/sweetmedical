@@ -5,25 +5,26 @@ class FactoryNotificacion {
     crearSegunEstadoTurno(turno){
         if(turno.estado === EstadoTurno.RESERVADO){
             return new Notificacion(
-                turno.medico.usuario, 
-                null, // lo envia el sistema, TODO para ver como se gestiona
-                "mensaje placeholder", // TODO mensaje personalizado
-                
+                {   destinatario: turno.medico.usuario, 
+                    remitente: null, 
+                    mensaje: "mensaje placeholder" } 
+                // ponemos null porque lo envia el sistema, TODO para ver como se gestiona
+                // TODO mensaje personalizado
             )
         }
         if(turno.estado === EstadoTurno.CONFIRMADO){
             return new Notificacion(
-                turno.paciente.usuario, 
-                null, // lo envia el sistema, TODO para ver como se gestiona
-                "mensaje placeholder", // TODO mensaje personalizado
+                {   destinatario: turno.paciente.usuario, 
+                    remitente: null, 
+                    mensaje: "mensaje placeholder" }
             )
         }
         if(turno.estado === EstadoTurno.CANCELADO){
             const usuarioContrario = this.obtenerUsuarioContrario(turno)
             return new Notificacion(
-                usuarioContrario, 
-                null, // lo envia el sistema, TODO para ver como se gestiona
-                "mensaje placeholder", // TODO mensaje personalizado
+                {   destinatario: usuarioContrario, 
+                    remitente: null, 
+                    mensaje: "mensaje placeholder" }
             )
         }
     }
@@ -34,15 +35,18 @@ class FactoryNotificacion {
     crearRecordatorioDiaPrevio(turno){
         const listaNotificaciones = []
         const notificacionMedico = new Notificacion(
-            turno.medico.usuario, 
-            null, // lo envia el sistema, TODO para ver como se gestiona
-            "mensaje placeholder medico", // TODO mensaje personalizado
+            {   destinatario: turno.medico.usuario, 
+                remitente: null, 
+                mensaje: "mensaje placeholder" }
         )
         const notificacionPaciente = new Notificacion(
-            turno.paciente.usuario, 
-            null, // lo envia el sistema, TODO para ver como se gestiona
-            "mensaje placeholder paciente", // TODO mensaje personalizado
+            {   destinatario: turno.paciente.usuario, 
+                remitente: null, 
+                mensaje: "mensaje placeholder" }
         )
+        listaNotificaciones.push(notificacionMedico)
+        listaNotificaciones.push(notificacionPaciente)
+        return listaNotificaciones
     }
 
     

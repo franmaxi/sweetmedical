@@ -1,10 +1,10 @@
 import { CambioEstadoTurno } from "./CambioEstadoTurno";
 
 export class Turno{
-    constructor(medico,
+    constructor( {medico,
         paciente,fechaHora,
         sede,practica, especialidad,estado,
-        costo
+        costo} 
     ){ 
         this.id = null; //todo
         this.medico = medico;

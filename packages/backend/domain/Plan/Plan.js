@@ -1,5 +1,5 @@
 export class Plan{
-    constructor(nombre){
+    constructor( {nombre} ){
         this.id = null //todo
         this.nombre = nombre;
         this.coberturaEspecialidad = [];
