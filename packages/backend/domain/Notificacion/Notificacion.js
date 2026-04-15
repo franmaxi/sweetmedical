@@ -13,4 +13,6 @@ export class Notificacion {
         this.leida = true
         this.fechaHoraLeida = Date.now()
     }
+
+    
 }

@@ -19,14 +19,22 @@ export class Turno{
     }
 
     actualizarEstado(nuevoEstado, usuario, motivo){
-        const itemHistorial = new CambioEstadoTurno(this.estado, this, usuario,motivo)
+        const itemHistorial = new CambioEstadoTurno({
+            estado: this.estado,
+            turno: this,
+            usuario: usuario,
+            motivo: motivo
+        })
         this.historialEstados.push(itemHistorial);
         this.estado = nuevoEstado;
-
         // cuando nosotros actualizamos, dejamos el estado anterior, quien genero el cambio y porque.
     }
-
     ultimoHistorialEstado(){
         return this.historialEstados.at(-1)
+    }
+
+    esTipoTurno(){
+    // Lo podemos llegar a necesitar para generar un mensaje preciso.
+    //TODO
     }
 }
