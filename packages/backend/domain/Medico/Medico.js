@@ -1,14 +1,44 @@
+import { Usuario } from "../Usuario.js";
+
+
 class Medico {
-    constructor( {usuario, matricula, nombre, especialidades, practicas, sedes} ){
+    constructor( {usuario, matricula, nombre} ){
+        this.validarUsuario(usuario)
+        this.validarMatricula(matricula)
+        this.validarNombre(nombre)
+
         this.id = null; //todo
         this.usuario = usuario
         this.matricula = matricula
         this.nombre = nombre
-        this.especialidades = especialidades
-        this.practicas = practicas
-        this.sedes = sedes
+        this.especialidades = []
+        this.practicas = []
+        this.sedes = []
         this.disponibilidades = []
     }
+
+
+    validarUsuario(usuario){
+        if (!usuario instanceof Usuario) { 
+            throw new TypeError('El usuario debe ser un objeto válido')
+        }
+    }
+    
+    validarMatricula(matricula){
+        if (typeof matricula !== 'string' || matricula.trim() === '') {
+            throw new TypeError('La matrícula debe ser un string no vacío')
+        }
+    }
+
+    validarNombre(nombre){
+        if (typeof nombre !== 'string' || nombre.trim() === '') {
+            throw new TypeError('El nombre del médico debe ser un string no vacío')
+        }
+    }
+
+
+    //---FIN VALIDACIONES---//
+
 
     definirDisponibilidad(...disponibilidad){
         this.disponibilidades.push(...disponibilidad)

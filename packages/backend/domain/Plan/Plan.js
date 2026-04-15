@@ -1,9 +1,17 @@
 export class Plan{
     constructor( {nombre} ){
+        this.validarNombre(nombre)
+
         this.id = null //todo
         this.nombre = nombre;
         this.coberturaEspecialidad = [];
         this.coberturaPractica = [];
+    }
+
+    validarNombre(nombre){
+        if (typeof nombre !== 'string' || nombre.trim() === '') {
+            throw new TypeError('El nombre del plan debe ser un string no vacío')
+        }
     }
 
     obtenerCobertura(especialidad){

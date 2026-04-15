@@ -1,6 +1,12 @@
+import { Usuario } from "../Usuario";
+
 export class Notificacion {
 
     constructor( {destinatario, remitente, mensaje} ) {
+        this.validarUsuario(destinatario, 'destinatario')
+        this.validarUsuario(remitente, 'remitente')
+        this.validarMensaje(mensaje)
+
         this.id = null; //todo revisar como se asigna el id para persistir
         this.destinatario = destinatario;
         this.remitente = remitente;
@@ -8,6 +14,21 @@ export class Notificacion {
         this.fechaHoraCreacion =  Date.now();
         this.leida = false
     }
+
+    validarUsuario(usuario, campo){
+        if (!usuario instanceof Usuario) {
+            throw new TypeError(`El ${campo} debe ser un objeto usuario válido`)
+        }
+    }
+
+    validarMensaje(mensaje){
+        if (typeof mensaje !== 'string' || mensaje.trim() === '') {
+            throw new TypeError('El mensaje debe ser un string no vacío')
+        }  
+    }
+
+
+    //----------------------------------------------------------------------------
 
     marcarComoLeida(){
         this.leida = true
