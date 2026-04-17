@@ -31,7 +31,8 @@ export class Turno{
         this.costo = costo;
     }
 
-    //----VALIDACIONES----//
+    // Validacion Constructor
+    
     validarMedico(medico){
         if (!medico instanceof Medico) { // Preguntar si esta bien que sea un objeto.
             throw new TypeError('El Medico debe ser un objeto válido')

@@ -15,6 +15,13 @@ export class Notificacion {
         this.leida = false
     }
 
+    marcarComoLeida(){
+        this.leida = true
+        this.fechaHoraLeida = Date.now()
+    }
+
+    // Validacion Constructor
+
     validarUsuario(usuario, campo){
         if (!usuario instanceof Usuario) {
             throw new TypeError(`El ${campo} debe ser un objeto usuario válido`)
@@ -27,13 +34,4 @@ export class Notificacion {
         }  
     }
 
-
-    //----------------------------------------------------------------------------
-
-    marcarComoLeida(){
-        this.leida = true
-        this.fechaHoraLeida = Date.now()
-    }
-
-    
 }

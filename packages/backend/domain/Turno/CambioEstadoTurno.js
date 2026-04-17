@@ -16,6 +16,8 @@ export class CambioEstadoTurno{
         this.motivo = motivo;
     }
 
+    // Validacion Constructor
+
     validarEstado(estado){  
         if(!Object.values(EstadoTurno).includes(estado)){
             throw new TypeError('El estado debe ser un valor válido')

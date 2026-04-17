@@ -1,0 +1,19 @@
+{
+  "notificaciones": {
+    "turno": {
+      "reservado": {
+        "medico": "Hola {{nombre}}, te informamos que el {{fechaHora}} tenés agendado un turno con {{paciente}}"
+      },
+      "confirmado": {
+        "paciente": "Hola {{nombre}}, su turno el {{fechaHora}} ha sido confirmado, con el Dr. {{medico}}"
+      },
+      "cancelado": {
+        "destinatario": "Hola {{nombre}}, su turno el {{fechaHora}} ha sido cancelado. Motivo: {{motivo}}"
+      }
+    },
+    "recordatorio": {
+      "medico": "Hola {{nombre}}, mañana {{fechaHora}} tiene un turno con {{paciente}}",
+      "paciente": "Hola {{nombre}}, mañana {{fechaHora}} tiene un turno con el Dr. {{medico}}"
+    }
+  }
+}

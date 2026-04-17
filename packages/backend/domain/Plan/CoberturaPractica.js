@@ -9,6 +9,8 @@ export class CoberturaPractica{
         this.nivel = nivel;
     }
 
+    // Validacion Constructor
+
     validarPractica(practica){
         if(!practica instanceof Practica){
             throw new TypeError('La práctica debe ser un objeto válido')

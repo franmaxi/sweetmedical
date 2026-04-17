@@ -17,6 +17,16 @@ class Medico {
         this.disponibilidades = []
     }
 
+    definirDisponibilidad(...disponibilidad){
+        this.disponibilidades.push(...disponibilidad)
+    }
+
+    eliminarDisponibilidad(disponibilidad){
+        //TODO
+    }
+
+
+    // Validaciones Constructor
 
     validarUsuario(usuario){
         if (!usuario instanceof Usuario) { 
@@ -35,17 +45,4 @@ class Medico {
             throw new TypeError('El nombre del médico debe ser un string no vacío')
         }
     }
-
-
-    //---FIN VALIDACIONES---//
-
-
-    definirDisponibilidad(...disponibilidad){
-        this.disponibilidades.push(...disponibilidad)
-    }
-
-    eliminarDisponibilidad(disponibilidad){
-        //TODO
-    }
-
 }

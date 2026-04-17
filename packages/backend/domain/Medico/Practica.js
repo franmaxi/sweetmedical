@@ -12,6 +12,8 @@ export class Practica {
         this.costo = costo
     }
 
+    // Validaciones Constructor
+
     validarCodigo(codigo){
         if (typeof codigo !== 'string' || codigo.trim() === '') {
             throw new TypeError('El código de la práctica debe ser un string no vacío')

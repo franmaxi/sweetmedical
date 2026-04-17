@@ -8,11 +8,13 @@ export class Sede {
         this.direccion = direccion
     }
 
-        validarString(string, nombreCampo){
-         if (typeof string !== 'string' || string.trim() === '') {
-             throw new TypeError(`El ${nombreCampo} debe ser un string no vacío`)
-         }
+    // Validacion Constructor
+
+    validarString(string, nombreCampo){
+        if (typeof string !== 'string' || string.trim() === '') {
+            throw new TypeError(`El ${nombreCampo} debe ser un string no vacío`)
         }
+    }
 
 
 }

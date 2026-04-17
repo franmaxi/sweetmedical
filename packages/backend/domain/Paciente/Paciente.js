@@ -17,6 +17,8 @@ export class Paciente {
         this.plan = plan;
     }
 
+    // Validacion Constructor
+    
     validarUsuario(usuario){
         if (!usuario instanceof Usuario) {
             throw new TypeError('El usuario debe ser un objeto usuario válido')

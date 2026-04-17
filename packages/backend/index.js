@@ -12,14 +12,12 @@ app.use(
   }),
 );
 
-app.get("/hello", (req, res) => {
-  res.json({ message: "hello world" });
-});
-
-app.get("/health", (req, res) => {
+app.get("/health", (_, res) => {
   res.status(200);
   res.json({ message: "Servidor en funcionamiento" });
 });
+
+//consultar sobre la instanciación de atributos en null en el constructor
 
 app.listen(process.env.SERVER_PORT, () => {
   console.log(`Backend escuchando en puerto ${process.env.SERVER_PORT}`);

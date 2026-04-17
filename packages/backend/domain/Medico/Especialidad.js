@@ -10,6 +10,10 @@ export class Especialidad{
         this.costoConsulta = costoConsulta;
     }
 
+
+    
+    // Validaciones Constructor
+
     validarNombre(nombre){
         if (typeof nombre !== 'string' || nombre.trim() === '') {
             throw new TypeError('El nombre de la especialidad debe ser un string no vacío')

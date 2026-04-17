@@ -6,6 +6,9 @@ export class ObraSocial{
         this.nombre = nombre;
         this.planes = [];
     }
+
+    // Validacion Constructor
+
     validarNombre(nombre){
         if (!nombre || typeof nombre !== 'string') {
             throw new TypeError('El nombre debe ser una cadena de texto válida')

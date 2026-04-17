@@ -8,12 +8,6 @@ export class Plan{
         this.coberturaPractica = [];
     }
 
-    validarNombre(nombre){
-        if (typeof nombre !== 'string' || nombre.trim() === '') {
-            throw new TypeError('El nombre del plan debe ser un string no vacío')
-        }
-    }
-
     obtenerCobertura(especialidad){
         const cobertura = this.coberturaEspecialidad.find(c => c.especialidad === especialidad); //tiene q devolver un unico elemento
         return cobertura.nivel;
@@ -23,4 +17,14 @@ export class Plan{
         const cobertura = this.coberturaPractica.find(c => c.practica === practica);  //tiene q devolver un unico elemento
         return cobertura.nivel;
     }
+    
+    // Validacion Constructor
+
+    validarNombre(nombre){
+        if (typeof nombre !== 'string' || nombre.trim() === '') {
+            throw new TypeError('El nombre del plan debe ser un string no vacío')
+        }
+    }
+
+    
 }

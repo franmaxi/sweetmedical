@@ -11,6 +11,10 @@ class DisponibilidadHoraria {
         this.horaHasta = horaHasta
     }
 
+
+    
+    // Validaciones Constructor
+
     validarDiaSemana(diaSemana){
         const valoresDiaSemana = Object.values(DiaSemana)
         if(!valoresDiaSemana.includes(diaSemana)){
