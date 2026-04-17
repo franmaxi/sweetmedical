@@ -1,8 +1,8 @@
 import { EstadoTurno } from '../Enumerados/EstadoTurno.js'
 import { Notificacion } from './Notificacion.js'
-import i18next from '../i18n/i18n.js'
+import i18next from '../../i18n/i18n.js'
 
-class FactoryNotificacion {
+export class FactoryNotificacion {
     
     crearSegunEstadoTurno(turno){   
         switch(turno.estado){

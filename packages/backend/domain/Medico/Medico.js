@@ -1,7 +1,7 @@
 import { Usuario } from "../Usuario.js";
 
 
-class Medico {
+export class Medico {
     constructor( {usuario, matricula, nombre} ){
         this.validarUsuario(usuario)
         this.validarMatricula(matricula)
