@@ -17,32 +17,31 @@ export class FactoryNotificacion {
                         paciente:  turno.paciente.nombre,
                     })
                 })
-                case EstadoTurno.CONFIRMADO:
-                    return new Notificacion({
-                        destinatario: turno.paciente.usuario, 
-                        remitente: null,
-                        mensaje: i18next.t('notificaciones.turno.confirmado.paciente', {
-                            lng:       turno.paciente.usuario.idioma,
-                            nombre:    turno.paciente.nombre,
-                            fechaHora: turno.fechaHora,
-                            medico:    turno.medico.nombre,
-                        })
-                    })
-                    case EstadoTurno.CANCELADO:
-                    const usuarioContrario = this.obtenerContrario(turno)
-                    const motivoCancelacion = this.obtenerUltimoHistorialEstado(turno).motivo
-                    return new Notificacion({
-                    destinatario: usuarioContrario, 
-                    remitente: null, 
-                    mensaje: i18next.t('notificaciones.turno.cancelado.destinatario', {
-                        lng:       usuarioContrario.usuario.idioma,
-                        nombre:    usuarioContrario.nombre,
+            case EstadoTurno.CONFIRMADO:
+                return new Notificacion({
+                    destinatario: turno.paciente.usuario, 
+                    remitente: null,
+                    mensaje: i18next.t('notificaciones.turno.confirmado.paciente', {
+                        lng:       turno.paciente.usuario.idioma,
+                        nombre:    turno.paciente.nombre,
                         fechaHora: turno.fechaHora,
-                        motivo:    motivoCancelacion,
-                    }) 
-                })
-                default:
-
+                        medico:    turno.medico.nombre,
+                    })
+            })
+            case EstadoTurno.CANCELADO:
+                const usuarioContrario = this.obtenerContrario(turno)
+                const motivoCancelacion = this.obtenerUltimoHistorialEstado(turno).motivo
+                return new Notificacion({
+                destinatario: usuarioContrario, 
+                remitente: null, 
+                mensaje: i18next.t('notificaciones.turno.cancelado.destinatario', {
+                    lng:       usuarioContrario.usuario.idioma,
+                    nombre:    usuarioContrario.nombre,
+                    fechaHora: turno.fechaHora,
+                    motivo:    motivoCancelacion,
+                }) 
+            })
+            default:
         }
     }
     // Esto devuelve una lista de dos notificaciones, porque se debe enviar tanto al paciente como al medico

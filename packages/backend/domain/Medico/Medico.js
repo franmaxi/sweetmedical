@@ -21,8 +21,8 @@ export class Medico {
         this.disponibilidades.push(...disponibilidad)
     }
 
-    eliminarDisponibilidad(disponibilidad){
-        //TODO
+    eliminarDisponibilidad(disponibilidad){ 
+        this.disponibilidades = this.disponibilidades.filter(d => d !== disponibilidad) 
     }
 
 

@@ -28,7 +28,7 @@ export class Practica {
     
     validarNumeroMayorA0(numero, nombreCampo){
         if (typeof numero !== 'number' || numero <= 0) {
-            throw new TypeError(`El ${nombreCampo} debe ser un número positivo`)
+            throw new TypeError(`${nombreCampo} debe ser un número positivo`)
         }
     }
 
