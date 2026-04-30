@@ -1,0 +1,19 @@
+{
+  "notificaciones": {
+    "turno": {
+      "reservado": {
+        "medico": "Hello {{nombre}}, we inform you that on {{fechaHora}} you have an appointment scheduled with {{paciente}}"
+      },
+      "confirmado": {
+        "paciente": "Hello {{nombre}}, your appointment on {{fechaHora}} has been confirmed with Dr. {{medico}}"
+      },
+      "cancelado": {
+        "destinatario": "Hello {{nombre}}, your appointment on {{fechaHora}} has been canceled. Reason: {{motivo}}"
+      }
+    },
+    "recordatorio": {
+      "medico": "Hello {{nombre}}, tomorrow at {{fechaHora}} you have an appointment with {{paciente}}",
+      "paciente": "Hello {{nombre}}, tomorrow at {{fechaHora}} you have an appointment with Dr. {{medico}}"
+    }
+  }
+}
