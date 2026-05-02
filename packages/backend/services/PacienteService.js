@@ -8,9 +8,6 @@ import {
     UnprocessableEntityError,
 } from "../errors/AppErrors.js";
 
-// todo
-
-
 export class Paciente {
     constructor({
         pacienteRepository = new pacienteRepository(),
@@ -67,8 +64,7 @@ export class Paciente {
             password: datosMedicos.password
         })
 
-        /
-smpc 
+        // consideramos que los planes estan precargados en el sistema, si no esta cargado no existe
         const plan = this.planRepository.obtenerPorId(datosPaciente.planId)
         if(!plan) throw new NotFoundError(`No se encontró un plan con el id ${datosPaciente.planId}`)
 

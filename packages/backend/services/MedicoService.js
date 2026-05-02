@@ -1,12 +1,12 @@
 import { Medico } from "../domain/Medico/Medico.js";
-import {Usuario} from "../domain/Usuario.js"
+import { Usuario } from "../domain/Usuario.js"
+import { MedicoRepository } from "../repositories/MedicoRepository.js";
+import { UsuarioRepository } from "../repositories/UsuarioRepository.js";
 import {
     BadRequestError,
     NotFoundError,
     UnprocessableEntityError,
 } from "../errors/AppErrors.js";
-import { MedicoRepository } from "../repositories/MedicoRepository.js";
-import { UsuarioRepository } from "../repositories/UsuarioRepository.js";
 
 export class MedicoService{
     constructor({
@@ -19,7 +19,7 @@ export class MedicoService{
 
     obtenerTodos({numeroPagina = 1, limitePorPagina = 10, filtros = {} } = {}){
         this.validarPaginacion(numeroPagina,limitePorPagina)
-        //TODO Agregar filtros para medico 
+        //TODO Agregar filtros para medico (especialidad/practica/sede/etc.)
         const {medicos,totalMedicos} = this.medicoRepository.obtenerPaginados(
             numeroPagina,
             limitePorPagina
@@ -36,7 +36,6 @@ export class MedicoService{
 
     obtenerPorId(id){
         this.validarEnteroPositivo(id, "Id")
-
         const medico = this.medicoRepository.obtenerPorId(id)
 
         if (!medico) {
@@ -51,18 +50,19 @@ export class MedicoService{
             nombreUsuario: datosMedicos.nombreUsuario,
             password: datosMedicos.password
         })
-        const medicoActualizado = new Medico({
+        const medico = new Medico({
             usuario: usuario,    
             matricula : datosMedicos.matricula,
             nombre : datosMedicos.nombre
         })
-        this.usuarioRepository.guardar(usuario)
-        return this.medicoRepository.guardar(medico)
+        this.usuarioRepository.guardar(usuario) //TODO ver si es necesario guardar usuarioRepository por guardar en cascada
+        return this.medicoRepository.guardar(medico) 
     }
     
-    actualizar(id,datosMedico){
+    actualizar(id, datosMedico){
         this.validarEnteroPositivo(id,"Id")
-        this.validarDatosMedico(datosMedico)
+        this.validarDatosMedico(datosMedico) 
+        // TODO los datos de actualizar deben tener todos los datos posibles del medico, osea sede, especialidad, practica, disponibilidad, etc.
 
         const medicoExistente = this.obtenerPorId(id)
         const usuarioExistente = this.obtenerUsuarioPorId(id)
@@ -72,13 +72,14 @@ export class MedicoService{
             password: datosMedicos.password
         })
         usuarioActualizado.id = usuarioExistente.id
-        this.usuarioRepository.guardar(usuario)
+        this.usuarioRepository.guardar(usuario) //TODO ver si es necesario guardar usuarioRepository por guardar en cascada
 
         const medicoActualizado = new Medico({
             usuario: usuario,    
             matricula : datosMedicos.matricula,
             nombre : datosMedicos.nombre
         })
+
         medicoActualizado.id = medicoExistente.id
         return this.medicoRepository.guardar(medicoActualizado)
     }
@@ -89,7 +90,8 @@ export class MedicoService{
         const usuario = this.obtenerUsuarioPorId(id)
         medico.eliminado = true
         usuario.eliminado = true
-        this.usuarioRepository.guardar(usuario)
+        //TODO ver la logica de que pasa con los distintos turnos que tiene el medico.
+        this.usuarioRepository.guardar(usuario) //TODO ver si es necesario guardar usuarioRepository por guardar en cascada
         return this.medicoRepository.guardar(medico)
     }
 
