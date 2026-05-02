@@ -5,8 +5,10 @@ export class Usuario {
         
         this.idioma = 'es' //idioma por defecto, la idea es que al registrarlo copie el idioma del navegador, pero que tenga la posibilidad de cambiarlo posteriormente
         this.id = null //todo
+        
         this.nombreUsuario = nombreUsuario
         this.password = password
+        this.eliminado = false
         
     }
     

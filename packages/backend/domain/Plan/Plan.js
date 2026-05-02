@@ -8,12 +8,12 @@ export class Plan{
         this.coberturaPractica = [];
     }
 
-    obtenerCobertura(especialidad){
+    obtenerCoberturaEspecialidad(especialidad){
         const cobertura = this.coberturaEspecialidad.find(c => c.especialidad === especialidad); //tiene q devolver un unico elemento
         return cobertura.nivel;
         // puede que tengamos que verificar los ids en vez de la especialidad directa segun como se trabaje con la persistencia
     }
-    obtenerCobertura(practica){
+    obtenerCoberturaPractica(practica){
         const cobertura = this.coberturaPractica.find(c => c.practica === practica);  //tiene q devolver un unico elemento
         return cobertura.nivel;
     }

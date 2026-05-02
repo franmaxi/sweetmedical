@@ -15,14 +15,36 @@ export class Medico {
         this.practicas = []
         this.sedes = []
         this.disponibilidades = []
+        this.eliminado = false
     }
 
-    definirDisponibilidad(...disponibilidad){
-        this.disponibilidades.push(...disponibilidad)
+    definirDisponibilidad(...disponibilidadesNuevas){
+        
+        disponibilidadesNuevas.array.forEach(n => {
+            // verificamos si esta en una sede que pertenezca al medico - Ya verifico por id
+            const sedesId = this.sedes.map(s => s.id)
+            const perteneceASede = sedesId.includes(n.sede.id)
+            if (!perteneceASede) {
+                throw new BadRequestError('La disponiblidad esta establecida en una sede que no pertenece al medico, Sede: ' + n.sede.nombre)
+            }
+            
+            const hayConflicto = this.disponibilidades.some(m => m.seSolapan(n))
+            if(hayConflicto){
+                throw new ConflictError('Se solapa la disponibilidad: Dia '+ n.diaSemana + 'Hora inicio: ' + n.horaDesde + '  Hora Final: ' + n.horaHasta)
+            }
+
+            this.disponibilidades.push(n)
+        });
+
     }
+
 
     eliminarDisponibilidad(disponibilidad){ 
-        this.disponibilidades = this.disponibilidades.filter(d => d !== disponibilidad) 
+        const indice = this.disponibilidades.findIndex(n=> n.id==disponibilidad.id)
+
+        if (indice !== -1) {
+            this.disponibilidades.splice(indice,1)
+        }
     }
 
 

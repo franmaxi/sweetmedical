@@ -1,17 +1,17 @@
 import DiaSemana from "../Enumerados/DiaSemana.js";
 class DisponibilidadHoraria {
-    constructor( {diaSemana, horaDesde, horaHasta} ) {
+    constructor( {diaSemana, horaDesde, horaHasta, sede} ) {
         this.validarDiaSemana(diaSemana)
         this.validarHora(horaDesde)
         this.validarHora(horaHasta)
         this.validarRangoHoras(horaDesde, horaHasta)
 
+        this.id = null;
         this.diaSemana = diaSemana
         this.horaDesde = horaDesde
         this.horaHasta = horaHasta
+        this.sede = sede
     }
-
-
     
     // Validaciones Constructor
 
@@ -23,7 +23,7 @@ class DisponibilidadHoraria {
     }
 
     validarHora(hora){
-       // validar que sea un string en formato HH:mm y que esté entre 00:00 y 23:59
+       // validar que sea un string en formato HH:mm y que este entre 00:00 y 23:59
        if (typeof hora !== 'string') {
             throw new TypeError('La hora debe ser una cadena de texto en formato HH:mm')
         }
@@ -47,8 +47,13 @@ class DisponibilidadHoraria {
         const [horas, minutos] = hora.split(':').map(Number)
         return horas * 60 + minutos
     }
-        
-
-
+    
+    estaSolapada(dispo){
+        if(this.diaSemana !== dispo.diaSemana){
+            return false
+        }
+        return convertirHoraEnMinutos(this.horaDesde) < convertirHoraEnMinutos(dispo.horaHasta) && 
+        convertirHoraEnMinutos(this.horaHasta) > convertirHoraEnMinutos(dispo.horaDesde)
+    }
 }
 

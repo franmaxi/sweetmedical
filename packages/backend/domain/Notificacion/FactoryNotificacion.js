@@ -36,7 +36,7 @@ export class FactoryNotificacion {
                 remitente: null, 
                 mensaje: i18next.t('notificaciones.turno.cancelado.destinatario', {
                     lng:       usuarioContrario.usuario.idioma,
-                    nombre:    usuarioContrario.nombre,
+                    nombre:    usuarioContrario.nombreUsuario,
                     fechaHora: turno.fechaHora,
                     motivo:    motivoCancelacion,
                 }) 

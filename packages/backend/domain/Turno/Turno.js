@@ -86,6 +86,7 @@ export class Turno{
 
 
     actualizarEstado(nuevoEstado, usuario, motivo){
+        if(this.estado !== EstadoTurno.CANCELADO || this.estado !== EstadoTurno.REALIZADO){
         const itemHistorial = new CambioEstadoTurno({
             estado: this.estado,
             turno: this,
@@ -94,17 +95,14 @@ export class Turno{
         })
         this.historialEstados.push(itemHistorial);
         this.estado = nuevoEstado;
-        // cuando nosotros actualizamos, dejamos el estado anterior, quien genero el cambio y porque.
     }
+    //TODO else throw new BusinessException
+}
     ultimoHistorialEstado(){
         return this.historialEstados.at(-1)
     }
 
     esTipoTurno(){
-    // Lo podemos llegar a necesitar para generar un mensaje preciso.
-    //TODO
+        return this.practica ? 'practica' : 'especialidad';
     }
-
-
-
 }

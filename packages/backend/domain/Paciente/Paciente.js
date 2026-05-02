@@ -15,6 +15,7 @@ export class Paciente {
         this.nombre = nombre;
         this.obraSocial = obraSocial;
         this.plan = plan;
+        this.eliminado = false
     }
 
     // Validacion Constructor
