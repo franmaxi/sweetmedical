@@ -24,7 +24,7 @@ export class Turno{
         this.paciente = paciente;
         this.fechaHora = fechaHora;
         this.sede = sede;
-        this.practica = practica;
+        this.practica = practica; // sería una lista cuando se crea el turno, y cuando se reserva un unico valor
         this.especialidad = especialidad;
         this.estado = estado;
         this.historialEstados = [];

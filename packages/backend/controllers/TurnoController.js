@@ -124,7 +124,6 @@ delete = async (req, res, next) => {
     this.validarEnteroPositivo(id, "id");
     return id;
 };
-
  extraerYValidarBodyTurno(body) {
     if (!body || typeof body !== 'object' || Array.isArray(body)) {
         throw new BadRequestError("El cuerpo de la solicitud debe ser un objeto JSON válido.");
@@ -171,7 +170,6 @@ delete = async (req, res, next) => {
         pacienteId: this.parsearId(body.pacienteId)
     };
 }
-
  extraerBodyCancelacion(body) {
     if (!body?.usuario) {
         throw new BadRequestError("El campo 'usuario' es obligatorio para cancelar un turno.");
@@ -182,7 +180,6 @@ delete = async (req, res, next) => {
         motivo: body.motivo ?? "cancelación sin motivo especificado"
     };  
 }
-
     extraerFiltros(query) {
         const filtros = {};
 
@@ -222,5 +219,4 @@ delete = async (req, res, next) => {
             throw new BadRequestError(`El campo '${nombreCampo}' debe ser un entero positivo.`);
         }
     }
-
 }

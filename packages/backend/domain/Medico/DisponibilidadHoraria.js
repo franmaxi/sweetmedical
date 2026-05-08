@@ -10,6 +10,8 @@ class DisponibilidadHoraria {
         this.diaSemana = diaSemana
         this.horaDesde = horaDesde
         this.horaHasta = horaHasta
+        this.especialidades = []
+        this.practicas = []
         this.sede = sede
     }
     

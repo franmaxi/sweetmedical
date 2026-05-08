@@ -82,6 +82,15 @@ export class Paciente {
         return this.pacienteRepository.guardar(paciente)
     }   
 
+    Actualizar(id, datosPaciente) {
+        this.validarEnteroPositivo(id, "Id")
+        this.validarDatosPaciente(datosPaciente)
+        const pacienteExistente = this.pacienteRepository.obtenerPorId(id)
+        if (!pacienteExistente) {
+            throw new NotFoundError(`No se encontró un paciente con el id ${id}`)
+        }
+    }
+
 
     
     validarDatosPaciente(datos) {
