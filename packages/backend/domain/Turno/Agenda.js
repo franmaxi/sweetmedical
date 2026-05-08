@@ -18,7 +18,10 @@ export class Agenda {
     // yo genero turnos de 15 minutos (mcd), a las 5:45 no puedo ofrecer la especialidad 2
 
     // Cuidado con los ultimos turnos del horario, en los ultimos 10 minutos no podemos ofrecer turnos de algo que dura 30 minutos
-    generarTurnos(medico, desde, hasta) {
+    generarTurnos(medico, fechaInicial, fechaFinal) {
+        // SE CALCULA UNA SOLA SEMANA
+        // fechaInicial y fechaFinal son tipo date, las fechas de inicio del calculo de turnos y de fin/limite de calculo de turno
+
         // 1 -> mes siguiente -> generas todo mes 2, mes 1 no tiene turnos
         // 2 -> generar el mes 3, pero mes 2 tiene turnos
         // semana 1, genero 2,3,4,5
@@ -26,20 +29,22 @@ export class Agenda {
         // semana 3, genera 7
         // semana 4, genera 8
         const turnosGenerados = []
-
+        
         // Generamos por semana  -  2 semanas de antelacion minimo 
+        // fecha inicial = Date.now + 2 semanas
+
         // TODO en el properties deberia estar: antelación minima, dia hora del cron y duración minima turnos.
         if(!medico.disponibilidad || medico.disponibilidad.length === 0){
             return turnosGenerados
         }
         medico.disponibilidad.array.forEach(dispo => {
-            const turnos = generarTurnoPorDisponibilidad(dispo)
+            // aca calculamos fecha del dia.
+            
+            const turnos = generarTurnoPorDisponibilidad(medico, dispo, fechaInicial)
             turnosGenerados.push(...turnos)
 
         });
-        return turnosGenerados
-        const disponibilidad
-        for(1) {}
+        
         const nuevoTurno = new Turno()
         // sede - medico - estado - 
         const listaPracticasDisponibles = disponibilidad.practicas
@@ -47,28 +52,54 @@ export class Agenda {
         
     }
 
+    calcularFechaDisponibilidad() {
+        
+    }
 
     // dispo tiene 2 especialidades de 30 y 60 minutos
     // mcd es de 30 minutos -> los turnos los genero de a 30 minutos -> 2 horas = 4 turnos totales
 
-    generarTurnosPorDisponibilidad(disponibilidad){
-        const listaDuracionesPracticas = []
-        const listaDuracionesExpecialidades = []
+    /* 
+        Consideracion que tuvimos
+        turnos de 2 horas
+        de 23 a 2am
+        para el sistema tenemos una dispo de 23 a 24 y otra de 0 a 2
+        30 mins, 11.45 no existe
+    */
+
+
+    // cuando un turno se cancela:
+    // el turno viejo se "archiva", se copian datos clave como medico y fecha y hora. 
+    // Con los datos buscamos la disponibilidad para generar el un nuevo turno
+    // Esto permite hacer la validación que la dispo siga existiendo.
+
+
+    generarTurnosPorDisponibilidad(medico, disponibilidad){
+        const turnosGenerados = [] 
         const duraciones = [
-            ...disponibilidad.practi
+            ...disponibilidad.practicas.map(p => p.duracion),
+            ...disponibilidad.especialidades.map(e => e.duracion)
         ]
+        // duracion de HH:mm
+        const duracionTurnos = this.calcularMCD(duraciones)
+        const cantTurnos = disponibilidad.obtenerDiferenciaEnMinutos() / duracionTurnos
         
-        
-
-        const duracionTurnos = this.calcularMCD()
-
-        
-
         for (let index = 0; index < cantTurnos; index++) {
-            const element = array[index];
-            
+            // calculo fecha
+            // tomar el dia inicial, sumarle la hora de inicio, sumarle duraionTurnos * i
+            // TODO verificar practicas y especialidades para que su duracion no se pase del tiempo restante
+            const nuevoTurno = new Turno({
+                medico: medico,
+                fechaHora: "", // dispo_hora_inicio + (index*duracionTurnos)
+                sede: disponibilidad.sede,
+                practica: disponibilidad.practicas,
+                especialidad: disponibilidad.especialidades
+            })
+            turnosGenerados.push(nuevoTurno)
         }
+        return turnosGenerados
     }
+
 
     calcularMCD(numeros) {
         if (!numeros || numeros.length === 0) return 1;
@@ -77,12 +108,6 @@ export class Agenda {
     }
 
 
-    generarTurnosPara(especialidad, medico) {
-        //TODO
-    }
-    generarTurnosPara(practica, medico) {
-        //TODO
-    }
     refrescarTurnosSegun(practica, medico) {
         //TODO
     }

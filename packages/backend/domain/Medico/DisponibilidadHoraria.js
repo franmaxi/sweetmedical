@@ -8,7 +8,7 @@ class DisponibilidadHoraria {
 
         this.id = null;
         this.diaSemana = diaSemana
-        this.horaDesde = horaDesde
+        this.horaDesde = horaDesde // es del tipo string con "HH:mm"
         this.horaHasta = horaHasta
         this.especialidades = []
         this.practicas = []
@@ -56,6 +56,10 @@ class DisponibilidadHoraria {
         }
         return convertirHoraEnMinutos(this.horaDesde) < convertirHoraEnMinutos(dispo.horaHasta) && 
         convertirHoraEnMinutos(this.horaHasta) > convertirHoraEnMinutos(dispo.horaDesde)
+    }
+    
+    obtenerDiferenciaEnMinutos(){
+       return this.convertirHoraEnMinutos(this.horaHasta) - this.convertirHoraEnMinutos(this.horaDesde)
     }
 }
 
