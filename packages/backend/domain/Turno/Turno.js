@@ -8,11 +8,11 @@ import { EstadoTurno } from "../Enumerados/EstadoTurno.js";
 export class Turno{
     constructor( {medico, fechaHora, sede, practica, especialidad} 
     ){ 
-        //this.validarMedico(medico);
-        //this.validarFechaHora(fechaHora);
-        //this.validarSede(sede);
-        //this.validarPractica(practica);
-        //this.validarEspecialidad(especialidad);
+        this.validarMedico(medico);
+        this.validarFechaHora(fechaHora);
+        this.validarSede(sede);
+        this.validarPractica(practica);
+        this.validarEspecialidad(especialidad);
 
         this.id = null; //todo
         this.medico = medico;
