@@ -1,4 +1,4 @@
-import { Turno } from "./Turno"
+import { Turno } from "./Turno.js"
 
 export class Agenda {
 
@@ -34,26 +34,32 @@ export class Agenda {
         // fecha inicial = Date.now + 2 semanas
 
         // TODO en el properties deberia estar: antelación minima, dia hora del cron y duración minima turnos.
-        if(!medico.disponibilidad || medico.disponibilidad.length === 0){
+        if(!medico?.disponibilidades || medico.disponibilidades.length === 0){
             return turnosGenerados
         }
-        medico.disponibilidad.array.forEach(dispo => {
-            // aca calculamos fecha del dia.
-            
-            const turnos = generarTurnoPorDisponibilidad(medico, dispo, fechaInicial)
+
+        const inicio = new Date(fechaInicial)
+        const fin = new Date(fechaFinal)
+
+        if (isNaN(inicio) || isNaN(fin)) { 
+            throw new TypeError('Las fechas inicial y final deben ser objetos Date válidos');
+        }
+
+        if (inicio >= fin) {
+            throw new RangeError('La fecha inicial debe ser menor o igualque la final')
+        }
+        medico.disponibilidades.forEach(dispo => {            
+            const turnos = this.generarTurnosPorDisponibilidad(medico, dispo, inicio, fin)
             turnosGenerados.push(...turnos)
 
         });
         
-        const nuevoTurno = new Turno()
-        // sede - medico - estado - 
-        const listaPracticasDisponibles = disponibilidad.practicas
-        listaPracticasDisponibles.revisar()
+        return turnosGenerados
         
     }
 
     calcularFechaDisponibilidad() {
-        
+
     }
 
     // dispo tiene 2 especialidades de 30 y 60 minutos
@@ -74,31 +80,54 @@ export class Agenda {
     // Esto permite hacer la validación que la dispo siga existiendo.
 
 
-    generarTurnosPorDisponibilidad(medico, disponibilidad){
+    generarTurnosPorDisponibilidad(medico, disponibilidad, inicio, fin){
         const turnosGenerados = [] 
         const duraciones = [
-            ...disponibilidad.practicas.map(p => p.duracion),
-            ...disponibilidad.especialidades.map(e => e.duracion)
+            ...disponibilidad.practicas.map(p => p.duracionTurnoEnMins),
+            ...disponibilidad.especialidades.map(e => e.duracionTurnoEnMins)
         ]
         // duracion de HH:mm
         const duracionTurnos = this.calcularMCD(duraciones)
+
+        const diaDesde = new Date(inicio)
+        diaDesde.setHours(0,0,0,0)
+        
+        const diaHasta = new Date(fin)
+        diaHasta.setHours(23,59,59,999)
         const cantTurnos = disponibilidad.obtenerDiferenciaEnMinutos() / duracionTurnos
         
-        for (let index = 0; index < cantTurnos; index++) {
-            // calculo fecha
-            // tomar el dia inicial, sumarle la hora de inicio, sumarle duraionTurnos * i
-            // TODO verificar practicas y especialidades para que su duracion no se pase del tiempo restante
-            const nuevoTurno = new Turno({
-                medico: medico,
-                fechaHora: "", // dispo_hora_inicio + (index*duracionTurnos)
-                sede: disponibilidad.sede,
-                practica: disponibilidad.practicas,
-                especialidad: disponibilidad.especialidades
-            })
-            turnosGenerados.push(nuevoTurno)
-        }
-        return turnosGenerados
-    }
+        // recorro cada dia entre el inicio y el fin
+        for (let fecha = new Date(); fecha <= diaHasta; fecha.setDate(fecha.getDate() + 1)) {
+
+            if(fecha.getDay() !== disponibilidad.diaSemana) continue;
+
+            const [horaDesde, minutoDesde] = disponibilidad.horaDesde.split(':').map(Number)
+            const [horaHasta, minutoHasta] = disponibilidad.horaHasta.split(':').map(Number)
+
+            const inicioSlot = new Date(fecha)
+            inicioSlot.setHours(horaDesde, minutoDesde, 0, 0)
+
+            const finSlot = new Date(fecha)
+            finSlot.setHours(horaHasta, minutoHasta, 0, 0)
+
+            for(
+                let turnoInicio = new Date(inicioSlot);
+                turnoInicio.getTime() + duracionTurnos * 60000 <= finSlot.getTime();
+                turnoInicio = new Date(turnoInicio.getTime() + duracionTurnos * 60000)
+            ) {
+            
+                // TODO verificar practicas y especialidades para que su duracion no se pase del tiempo restante
+                const nuevoTurno = new Turno({
+                    medico: medico,
+                    fechaHora: new Date(turnoInicio), // dispo_hora_inicio + (index*duracionTurnos)
+                    sede: disponibilidad.sede,
+                    practica: [...(disponibilidad.practicas ?? [])], 
+                    especialidad: [...(disponibilidad.especialidades ?? [])]
+                })
+                turnosGenerados.push(nuevoTurno)
+            }
+        return turnosGenerados;
+    }}
 
 
     calcularMCD(numeros) {

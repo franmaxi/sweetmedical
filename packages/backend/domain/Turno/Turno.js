@@ -22,7 +22,7 @@ export class Turno{
         this.paciente = null;
         this.fechaHora = fechaHora; //DateTime
         this.sede = sede;
-        this.practica = practica; // sería una lista cuando se crea el turno, y cuando se reserva un unico valor
+        this.practica = [practica]; // sería una lista cuando se crea el turno, y cuando se reserva un unico valor
         this.especialidad = especialidad;
         this.estado = EstadoTurno.DISPONIBLE;
         this.historialEstados = [];
