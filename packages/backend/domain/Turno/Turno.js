@@ -1,4 +1,4 @@
-import { CambioEstadoTurno } from "./CambioEstadoTurno";
+import { CambioEstadoTurno } from "./CambioEstadoTurno.js";
 import { Medico } from "../Medico/Medico.js";
 import { Paciente } from "../Paciente/Paciente.js";
 import { Especialidad } from "../Medico/Especialidad.js";
@@ -8,22 +8,19 @@ import { EstadoTurno } from "../Enumerados/EstadoTurno.js";
 export class Turno{
     constructor( {medico, fechaHora, sede, practica, especialidad} 
     ){ 
-        this.validarMedico(medico);
-        //this.validarPaciente(paciente);
-        this.validarFechaHora(fechaHora);
-        this.validarSede(sede);
-        this.validarPractica(practica);
-        this.validarEspecialidad(especialidad);
-        //this.validarEstado(estado);
-        this.validarCosto(costo);
+        //this.validarMedico(medico);
+        //this.validarFechaHora(fechaHora);
+        //this.validarSede(sede);
+        //this.validarPractica(practica);
+        //this.validarEspecialidad(especialidad);
 
         this.id = null; //todo
         this.medico = medico;
         this.paciente = null;
         this.fechaHora = fechaHora; //DateTime
         this.sede = sede;
-        this.practica = [practica]; // sería una lista cuando se crea el turno, y cuando se reserva un unico valor
-        this.especialidad = especialidad;
+        this.practica = practica; // sería una lista cuando se crea el turno, y cuando se reserva un unico valor
+        this.especialidad = especialidad; // sería una lista cuando se crea el turno, y cuando se reserva un unico valor
         this.estado = EstadoTurno.DISPONIBLE;
         this.historialEstados = [];
         this.costo = null;
@@ -32,13 +29,13 @@ export class Turno{
     // Validacion Constructor
     
     validarMedico(medico){
-        if (!medico instanceof Medico) { // Preguntar si esta bien que sea un objeto.
+        if (!(medico instanceof Medico)) { // Preguntar si esta bien que sea un objeto.
             throw new TypeError('El Medico debe ser un objeto válido')
         }
     }    
 
     validarPaciente(paciente){
-        if (!paciente instanceof Paciente) { // Preguntar si esta bien que sea un objeto.
+        if (!(paciente instanceof Paciente)) { // Preguntar si esta bien que sea un objeto.
             throw new TypeError('El Paciente debe ser un objeto válido')
         }
     }
@@ -51,19 +48,19 @@ export class Turno{
     }
 
     validarSede(sede){
-        if (!sede instanceof Sede) { // Preguntar si esta bien que sea un objeto.
+        if (!(sede instanceof Sede)) { // Preguntar si esta bien que sea un objeto.
             throw new TypeError('La sede debe ser un objeto válido')
         }
     }
 
     validarPractica(practica){
-        if (!practica instanceof Practica) { // Preguntar si esta bien que sea un objeto.
+        if (!(practica instanceof Practica)) { // Preguntar si esta bien que sea un objeto.
             throw new TypeError('La práctica debe ser una cadena de texto válida')
         }
     }
     
     validarEspecialidad(especialidad){
-        if (!especialidad instanceof Especialidad) { // Preguntar si esta bien que sea un objeto.
+        if (!(especialidad instanceof Especialidad)) { // Preguntar si esta bien que sea un objeto.
             throw new TypeError('La especialidad debe ser una cadena de texto válida')
         }
     }

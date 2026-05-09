@@ -1,5 +1,6 @@
-import DiaSemana from "../Enumerados/DiaSemana.js";
-class DisponibilidadHoraria {
+import { DiaSemana } from "../Enumerados/DiaSemana.js";
+
+export class DisponibilidadHoraria {
     constructor( {diaSemana, horaDesde, horaHasta, sede} ) {
         this.validarDiaSemana(diaSemana)
         this.validarHora(horaDesde)
@@ -54,8 +55,8 @@ class DisponibilidadHoraria {
         if(this.diaSemana !== dispo.diaSemana){
             return false
         }
-        return convertirHoraEnMinutos(this.horaDesde) < convertirHoraEnMinutos(dispo.horaHasta) && 
-        convertirHoraEnMinutos(this.horaHasta) > convertirHoraEnMinutos(dispo.horaDesde)
+        return this.convertirHoraEnMinutos(this.horaDesde) < this.convertirHoraEnMinutos(dispo.horaHasta) && 
+        this.convertirHoraEnMinutos(this.horaHasta) > this.convertirHoraEnMinutos(dispo.horaDesde)
     }
     
     obtenerDiferenciaEnMinutos(){

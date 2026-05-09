@@ -1,4 +1,5 @@
 import { Turno } from "./Turno.js"
+import { DiaSemana } from "../Enumerados/DiaSemana.js"
 
 export class Agenda {
 
@@ -58,10 +59,6 @@ export class Agenda {
         
     }
 
-    calcularFechaDisponibilidad() {
-
-    }
-
     // dispo tiene 2 especialidades de 30 y 60 minutos
     // mcd es de 30 minutos -> los turnos los genero de a 30 minutos -> 2 horas = 4 turnos totales
 
@@ -82,22 +79,28 @@ export class Agenda {
 
     generarTurnosPorDisponibilidad(medico, disponibilidad, inicio, fin){
         const turnosGenerados = [] 
-        const duraciones = [
-            ...disponibilidad.practicas.map(p => p.duracionTurnoEnMins),
-            ...disponibilidad.especialidades.map(e => e.duracionTurnoEnMins)
-        ]
+        const duracionesUnicas = [
+            ...new Set([
+                ...disponibilidad.practicas.map(p => p.duracionTurnoEnMins),
+                ...disponibilidad.especialidades.map(e => e.duracionTurnoEnMins)
+            ])
+        ].sort((a,b) => a-b) 
+        // ordenar duraciones
+        // matriz
+        const matrizOpcionesTurno = this.obtenerMatrizEspecialidadPracticaDuracion(disponibilidad.especialidades, disponibilidad.practicas, duracionesUnicas)
         // duracion de HH:mm
-        const duracionTurnos = this.calcularMCD(duraciones)
+        const duracionTurnos = this.calcularMCD(duracionesUnicas)
 
         const diaDesde = new Date(inicio)
         diaDesde.setHours(0,0,0,0)
         
         const diaHasta = new Date(fin)
         diaHasta.setHours(23,59,59,999)
-        const cantTurnos = disponibilidad.obtenerDiferenciaEnMinutos() / duracionTurnos
+
+        //const cantTurnos = disponibilidad.obtenerDiferenciaEnMinutos() / duracionTurnos
         
         // recorro cada dia entre el inicio y el fin
-        for (let fecha = new Date(); fecha <= diaHasta; fecha.setDate(fecha.getDate() + 1)) {
+        for (let fecha = new Date(diaDesde); fecha <= diaHasta; fecha.setDate(fecha.getDate() + 1)) {
 
             if(fecha.getDay() !== disponibilidad.diaSemana) continue;
 
@@ -110,32 +113,70 @@ export class Agenda {
             const finSlot = new Date(fecha)
             finSlot.setHours(horaHasta, minutoHasta, 0, 0)
 
+            // en el for de abajo podriamos usar la variable cantidad turnos, y tener un contador de turno actual
             for(
                 let turnoInicio = new Date(inicioSlot);
                 turnoInicio.getTime() + duracionTurnos * 60000 <= finSlot.getTime();
                 turnoInicio = new Date(turnoInicio.getTime() + duracionTurnos * 60000)
             ) {
-            
-                // TODO verificar practicas y especialidades para que su duracion no se pase del tiempo restante
+                const minutosRestantes = (finSlot.getTime() - turnoInicio.getTime()) / 60000
+                const indexMatriz = this.obtenerMasCercanoMenor(minutosRestantes, duracionesUnicas)
+                const opcionesTurno = matrizOpcionesTurno.get(indexMatriz)
+
                 const nuevoTurno = new Turno({
                     medico: medico,
                     fechaHora: new Date(turnoInicio), // dispo_hora_inicio + (index*duracionTurnos)
                     sede: disponibilidad.sede,
-                    practica: [...(disponibilidad.practicas ?? [])], 
-                    especialidad: [...(disponibilidad.especialidades ?? [])]
+                    practica: opcionesTurno.practicas,
+                    especialidad: opcionesTurno.especialidades
+                    //practica: [...(disponibilidad.practicas ?? [])], 
+                    //especialidad: [...(disponibilidad.especialidades ?? [])]
                 })
                 turnosGenerados.push(nuevoTurno)
             }
+        } 
         return turnosGenerados;
-    }}
+    }
 
+    obtenerMatrizEspecialidadPracticaDuracion(especialidades, practicas, duracionesUnicas){
+        // duracionTurnos viene ordenada
+        const matrizOpciones = new Map()
+        const duracionesDistintas = duracionesUnicas.length
+        for (let i = 0; i < duracionesDistintas; i++) {
+            matrizOpciones.set(
+                duracionesUnicas[i], 
+                {
+                    practicas: practicas.filter( (p) => p.duracionTurnoEnMins <= duracionesUnicas[i] ),
+                    especialidades: especialidades.filter ((e) => e.duracionTurnoEnMins <= duracionesUnicas[i])
+                } 
+            )
+        }
+        return matrizOpciones
+    }
 
+    
+    
     calcularMCD(numeros) {
         if (!numeros || numeros.length === 0) return 1;
         const mcd = (a, b) => b === 0 ? a : mcd(b, a % b);
         return numeros.reduce((acc, num) => mcd(acc, num));
     }
 
+    obtenerMasCercanoMenor(numero, array) {
+        // busca de un array el numero mas cercano al pedido que sea menor, consideramos lista ordenada
+        let resultado = undefined;
+        for (const n of array) {
+            if (n <= numero) {
+                resultado = n;
+            } else { // como está ordenado, ya no hace falta seguir
+                break;
+            }
+        }
+        if (resultado === undefined) {
+            throw new Error(`No existe un número menor o igual a: ${numero}`)
+        }
+        return resultado;
+    }
 
     refrescarTurnosSegun(practica, medico) {
         //TODO
