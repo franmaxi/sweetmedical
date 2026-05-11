@@ -154,8 +154,6 @@ export class Agenda {
         return matrizOpciones
     }
 
-    
-    
     calcularMCD(numeros) {
         if (!numeros || numeros.length === 0) return 1;
         const mcd = (a, b) => b === 0 ? a : mcd(b, a % b);

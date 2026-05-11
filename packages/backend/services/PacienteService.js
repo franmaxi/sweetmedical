@@ -43,17 +43,15 @@ export class Paciente {
     
     // }
 
-    // obtenerPorId(id) {
-    //     this.validarEnteroPositivo(id, "Id")
-
-    //     const paciente = this.pacienteRepository.obtenerPorId(id)
-
-    //     if (!paciente) {
-    //         throw new NotFoundError(`No se encontró un paciente con el id ${id}`)
-    //     }
-        
-    //     return paciente
-    // }
+    obtenerPorId(id) {
+        this.validarEnteroPositivo(id, "Id")
+        const paciente = this.pacienteRepository.obtenerPorId(id)
+        if (!paciente) {
+            throw new NotFoundError(`No se encontró un paciente con el id ${id}`)
+        }
+     
+        return paciente
+    }
 
     crear(datosPaciente) {
 
@@ -82,7 +80,7 @@ export class Paciente {
         return this.pacienteRepository.guardar(paciente)
     }   
 
-    Actualizar(id, datosPaciente) {
+    actualizar(id, datosPaciente) {
         this.validarEnteroPositivo(id, "Id")
         this.validarDatosPaciente(datosPaciente)
         const pacienteExistente = this.pacienteRepository.obtenerPorId(id)
@@ -91,8 +89,6 @@ export class Paciente {
         }
     }
 
-
-    
     validarDatosPaciente(datos) {
         if (!datos || typeof datos !== "object") {
             throw new BadRequestError("Los datos del paciente son requeridos")

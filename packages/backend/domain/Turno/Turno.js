@@ -24,6 +24,7 @@ export class Turno{
         this.estado = EstadoTurno.DISPONIBLE;
         this.historialEstados = [];
         this.costo = null;
+        this.eleccionTurno = null // Es la practica/especidalidad que se eligio
     }
 
     // Validacion Constructor
