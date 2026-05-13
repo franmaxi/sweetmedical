@@ -119,7 +119,7 @@ delete = async (req, res, next) => {
 
 //--------------------- auxiliares ---------------------
 
- parsearId(id) {
+ parsearId(idParam) {
     const id = Number(idParam);
     this.validarEnteroPositivo(id, "id");
     return id;

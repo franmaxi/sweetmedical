@@ -1,4 +1,5 @@
 import { PacienteService } from "../services/PacienteService.js";
+import {BadRequestError} from "../errors/AppErrors.js"
 
 export class PacienteController {
 
@@ -8,22 +9,22 @@ export class PacienteController {
         this.pacienteService = pacienteService;
     }
 
-    create = async (req,res) => {
+    create = async (req,res, next) => {
         try {
             const datosPaciente = this.extraerYValidarBodyPaciente(req.body);
-            const pacienteCreado = await this.pacienteService.create(datosPaciente)
+            const pacienteCreado = await this.pacienteService.crear(datosPaciente)
             
             return res.status(201).json({ status: "success", data: pacienteCreado })
         } catch (error) {
-            return this.manejarError(res, error);
+            return next(error)
         }
     }
 
-    findAll = async (req, res,next) => {
+    findAll = async (req,res,next) => {
         try{
             const paginacion = this.extraerPaginacion(req.query)
             const filtros = this.extraerFiltros(req.query)
-            const resultado = this.pacienteService.obtenerTodos({
+            const resultado = await this.pacienteService.obtenerTodos({
                 ...paginacion,
                 filtros
             })
@@ -46,37 +47,37 @@ export class PacienteController {
 
 
 
-    findById = async (req, res) => {
+    findById = async (req, res,next) => {
        try {
             const id = this.parsearId(req.params.id)
-            const paciente = this.paciente.obtenerPorId(id)
+            const paciente = await this.pacienteService.obtenerPorId(id)
 
             return res.status(200).json({ status: "success", data: paciente })
        } catch (error) {
-            return this.manejarError(res, error)
+            return next(error)
         }
     }
 
-    update = async (req, res) => {
+    update = async (req, res, next) => {
         try {
             const id = this.parsearId(req.params.id)
             const datosPaciente = this.extraerYValidarBodyPaciente(req.body)
-            const pacienteActualizado = this.pacienteService.actualizar(id, datosPaciente)
+            const pacienteActualizado = await this.pacienteService.actualizar(id, datosPaciente)
 
             return res.status(200).json({ status: "success", data: pacienteActualizado })
         } catch (error) {
-            return this.manejarError(res, error)
+            return next(error)
         }
     }
 
-    delete = async (req, res) => {
+    delete = async (req, res, next) => {
         try {
             const id = this.parsearId(req.params.id)
-            const pacienteEliminado = this.pacienteService.eliminar(id)
+            const pacienteEliminado = await this.pacienteService.eliminar(id)
 
             return res.status(200).json({ status: "success", data: pacienteEliminado })
         } catch (error) {
-            return this.manejarError(res, error)
+            return next(error)
         }
     }
 
@@ -98,9 +99,9 @@ export class PacienteController {
         }
 
         const camposPermitidos = [
-            "DNI",
-            "Nombre",
-            "Plan"]
+            "dni",
+            "nombre",
+            "plan"]
         const camposBody = Object.keys(body)
         const camposNoPermitidos = camposBody.filter((campo) => !camposPermitidos.includes(campo))
 
@@ -132,7 +133,7 @@ export class PacienteController {
 
     
         if(query.pacienteId !== undefined) {
-            filtros.pacienteId = Number(query.pacineteId);
+            filtros.pacienteId = Number(query.pacienteId);
         }
         
         if(query.plan !== undefined) {
@@ -142,6 +143,14 @@ export class PacienteController {
         return filtros;
     }
     
+    extraerPaginacion(query) {
+        const numeroPagina = query?.page === undefined ? 1 : Number(query.page)
+        const limitePorPagina = query?.limit === undefined ? 10 : Number(query.limit)
 
+        this.validarEnteroPositivo(numeroPagina, "page")
+        this.validarEnteroPositivo(limitePorPagina, "limit")
+
+        return { numeroPagina, limitePorPagina }
+    }
 
 }

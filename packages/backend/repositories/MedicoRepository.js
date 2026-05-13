@@ -7,10 +7,14 @@ export class MedicoRepository{
     
     #populate(query) {
         return query
-            .populate("usuario")
+            //.populate("usuario") 
+            // Dijimos que no vamos a embeber el usuario, 
+            // Es innecesario: siempre q se busque conocer un medico, no necesitamos conocer su usuario con el id basta. 
+            // Por eso está el UsuarioRepository
             .populate("especialidades") 
             .populate("practicas")
             .populate("sedes")
+            //las disponibilidades no las embebemos??
     }
 
     async findAll() {

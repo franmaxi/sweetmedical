@@ -12,7 +12,7 @@ export class MedicoController{
     findAll = async (req, res,next) => {
         try{
             const paginacion = this.extraerPaginacion(req.query)
-            const resultado = this.medicoService.obtenerTodos({...paginacion})
+            const resultado = await this.medicoService.obtenerTodos({...paginacion})
             return res.status(200).json({
                 status : "success",
                 data : resultado.medicos,
@@ -33,7 +33,7 @@ export class MedicoController{
         try{
     
             const datosMedico = this.extraerYValidarBodyMedico(req.body)
-            const medicoCreado = this.medicoService.crear(datosMedico)
+            const medicoCreado = await this.medicoService.crear(datosMedico)
             return res.status(201).json({
                 status: "success",
                 data : medicoCreado
@@ -47,7 +47,7 @@ export class MedicoController{
     delete = async (req,res,next) => {
         try{
             const id = this.parsearId(req.params.id)
-            const medicoEliminado = this.medicoService.eliminar(id)
+            const medicoEliminado = await this.medicoService.eliminar(id)
             return res.status(200).json({
                 status : "success",
                 data : medicoEliminado
@@ -62,7 +62,7 @@ export class MedicoController{
         try {
             const id = this.parsearId(req.params.id)
             const datosMedico = this.extraerYValidarBodyMedico(req.body)
-            const medicoActualizado = this.medicoService.actualizar(id,datosMedico)
+            const medicoActualizado = await this.medicoService.actualizar(id,datosMedico)
             return res.status(200).json({
                 status: "success",
                 data : medicoActualizado
@@ -75,7 +75,7 @@ export class MedicoController{
     findById = async (req,res,next) => {
         try {
             const id = this.parsearId(req.params.id)
-            const medico = this.medicoService.obtenerPorId(id)
+            const medico = await this.medicoService.obtenerPorId(id)
             return res.status(200).json({
                 status: "success",
                 data: medico
@@ -107,5 +107,9 @@ export class MedicoController{
         this.validarEnteroPositivo(id, "id")
 
         return id
+    }
+
+    extraerYValidarBodyMedico(body) {
+        //TODO
     }
 }

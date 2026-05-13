@@ -1,4 +1,4 @@
-import { Paciente} from "../domain/Paciente.js";
+import { Paciente} from "../domain/Paciente/Paciente.js";
 import { PacienteRepository } from "../repositories/PacienteRepository.js";
 import { Usuario } from "../domain/Usuario.js";
 import { UsuarioRepository } from "../repositories/UsuarioRepository.js";
@@ -8,40 +8,38 @@ import {
     UnprocessableEntityError,
 } from "../errors/AppErrors.js";
 
-export class Paciente {
+export class PacienteService {
     constructor({
-        pacienteRepository = new pacienteRepository(),
-        usuarioRepository = new usuarioRepository(),
-        planRepository = new planRepository(),
-        obraSocialRepository = new obraSocialRepository(),
+        pacienteRepository = new PacienteRepository(),
+        usuarioRepository = new UsuarioRepository(),
+        //planRepository = new PlanRepository(), //TODO no vamos a tener plan ni obra social repositories
+        //obraSocialRepository = new ObraSocialRepository(),
     } = {}) {
         this.pacienteRepository = pacienteRepository
-        this.usuarioRepository = medicoRepository
-        this.planRepository = planRepository
-        this.obraSocialRepository = obraSocialRepository
+        this.usuarioRepository = usuarioRepository
+        //this.planRepository = planRepository
+        //this.obraSocialRepository = obraSocialRepository
     }
-    //TODO Deberiamos preguntar si es necesario, poder consultar los ppacientes
-    // obtenerTodos({ numeroPagina = 1, limitePorPagina = 10, filtro = {} } = {}) {
-    //     this.validarPaginacion(numeroPagina, limitePorPagina)
+   
+    obtenerTodos({ numeroPagina = 1, limitePorPagina = 10, filtro = {} } = {}) {
+        this.validarPaginacion(numeroPagina, limitePorPagina)
 
-    //     const { pacientes, totalPacientes } = this.pacienteRepository.obtenerPaginados(
-    //         numeroPagina, 
-    //         limitePorPagina, 
-    //         filtros
-    //     )
+        const { pacientes, totalPacientes } = this.pacienteRepository.obtenerPaginados(
+            numeroPagina, 
+            limitePorPagina, 
+            filtros
+        )
         
-    //     const totalPaginas = totalPacientes === 0  ? 0 : Math.ceil(totalPacientes / limitePorPagina)
+        const totalPaginas = totalPacientes === 0  ? 0 : Math.ceil(totalPacientes / limitePorPagina)
 
-    //     return {
-    //         pacientes,
-    //         numeroPagina,
-    //         limitePorPagina,
-    //         totalPacientes,
-    //         totalPaginas
-    //     }
-
-    
-    // }
+        return {
+            pacientes,
+            numeroPagina,
+            limitePorPagina,
+            totalPacientes,
+            totalPaginas
+        }
+    }
 
     obtenerPorId(id) {
         this.validarEnteroPositivo(id, "Id")
@@ -97,7 +95,7 @@ export class Paciente {
         const {dni, nombre, obraSocialId, planId} = datos
 
         if (!Number.isInteger(dni)) {
-            throw new UnprocessableEntityError("medicoId inválido")
+            throw new UnprocessableEntityError("dni inválido")
         }   
 
         if (typeof nombre !== "string" || nombre.trim() === "") {
@@ -105,11 +103,11 @@ export class Paciente {
         }
 
         if (!Number.isInteger(obraSocialId)) {
-            throw new UnprocessableEntityError("sedeId inválido")
+            throw new UnprocessableEntityError("obraSocialId inválido")
         }
 
         if (!Number.isInteger(planId)) {
-            throw new UnprocessableEntityError("Plan inválido")
+            throw new UnprocessableEntityError("planId inválido")
         }
     }
 

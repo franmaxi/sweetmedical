@@ -1,4 +1,3 @@
-import { BadRequestError } from "../errors/AppErrors.js"
 import {NotificacionService} from "../services/NotificacionService.js"
 import {
     BadRequestError,
@@ -18,7 +17,7 @@ export class NotificacionController{
         try {
             const paginacion = this.extraerPaginacion(req.query)
             const filtros = this.extraerFiltros(req.query)
-            const resultado = this.productoService.obtenerTodos({ ...paginacion, filtros })
+            const resultado = await this.notificacionService.obtenerTodos({ ...paginacion, filtros})
 
             return res.status(200).json({
                 status: "success",
@@ -40,7 +39,7 @@ export class NotificacionController{
     findById = async (req,res,next) => {
         try {
             const id = this.parsearId(req.params.id)
-            const notificacion = this.notificacionService.obtenerPorId(id)
+            const notificacion = await this.notificacionService.obtenerPorId(id)
             return res.status(200).json({
                 status: "success",
                 data: notificacion

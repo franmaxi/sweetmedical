@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
-import { Medico } from '../domain/Medico/medico.js';
+import { Medico } from '../domain/Medico/Medico.js';
+import { disponibilidadSchema } from './disponilidadSchema.js'
 
 const medicoSchema = new mongoose.Schema({
     usuario:{

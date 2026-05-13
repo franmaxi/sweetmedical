@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { DiaSemana } from '../domain/Enumerados/diaSemana.js';
+import { DiaSemana } from '../domain/Enumerados/DiaSemana.js';
 import { DisponibilidadHoraria } from '../domain/Medico/DisponibilidadHoraria.js';
 
 export const disponibilidadSchema = new mongoose.Schema({

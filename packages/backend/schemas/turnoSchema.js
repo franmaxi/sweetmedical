@@ -1,11 +1,11 @@
 import mongoose from 'mongoose';
-import { Turno } from '../domain/Turno/turno.js';
+import { Turno } from '../domain/Turno/Turno.js';
 import { EstadoTurno } from '../domain/Enumerados/EstadoTurno.js';
 
 const historialEstadoSchema = new mongoose.Schema({
     estado:{ type: String, enum:Object.values(EstadoTurno), required: true},
     fechaHoraIngreso: {type: Date, required: true},
-    usuario:{type: Schema.Types.ObjectId, ref:"Usuario"},
+    usuario: { type: mongoose.Schema.Types.ObjectId, ref: "Usuario" }, // TODO daba error asi: usuario:{type: Schema.Types.ObjectId, ref:"Usuario"},
     motivo: {type: String}
 }, {_id : false})
 

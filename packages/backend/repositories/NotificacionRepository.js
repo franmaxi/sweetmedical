@@ -1,8 +1,8 @@
-import { NotificacionModel } from "../schemas/notificacionSchema.js";
+//import { NotificacionModel } from "../schemas/notificacionSchema.js";
 
 export class NotificacionRepository{
     constructor(){
-        this.model = NotificacionModel
+        //this.model = NotificacionModel
     }
 
     

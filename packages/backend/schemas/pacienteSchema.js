@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { Paciente } from '../domain/Paciente/paciente.js';
+import { Paciente } from '../domain/Paciente/Paciente.js';
 
 const pacienteSchema = new mongoose.Schema({
     usuario:{

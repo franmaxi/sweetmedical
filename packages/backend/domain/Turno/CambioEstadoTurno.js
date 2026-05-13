@@ -1,6 +1,6 @@
 import { EstadoTurno } from "../Enumerados/EstadoTurno.js";
-import { Turno } from "./domain/Turno/Turno.js";
-import { Usuario } from "../domain/Usuario.js";
+import { Turno } from "./Turno.js";
+import { Usuario } from "../Usuario.js";
 
 export class CambioEstadoTurno{
     constructor( {estado,turno,usuario,motivo} ){

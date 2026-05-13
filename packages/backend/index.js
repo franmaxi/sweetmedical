@@ -1,24 +1,21 @@
-import "dotenv/config";
-import express from "express";
-import cors from "cors";
+import "dotenv/config"; // Importante que esté arriba de todo
+import app from "./app.js";
+import { MongoDBClient } from "./config/database.js";
 
-const app = express();
-app.use(express.json());
-app.use(
-  cors({
-    origin: process.env.ALLOWED_ORIGINS
-      ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
-      : true,
-  }),
-);
+const PORT = process.env.SERVER_PORT || 3000;
 
-app.get("/health", (_, res) => {
-  res.status(200);
-  res.json({ message: "Servidor en funcionamiento" });
-});
+const start = async () => {
+  try {
+    console.log("Conectando a MongoDB...");
+    await MongoDBClient.connect();
+    
+    app.listen(PORT, () => {
+      console.log(`🚀 Backend escuchando en puerto ${PORT}`);
+    });
+  } catch (error) {
+    console.error("Error al iniciar la aplicación:", error);
+    process.exit(1);
+  }
+};
 
-//consultar sobre la instanciación de atributos en null en el constructor
-
-app.listen(process.env.SERVER_PORT, () => {
-  console.log(`Backend escuchando en puerto ${process.env.SERVER_PORT}`);
-});
+start();

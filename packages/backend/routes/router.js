@@ -11,6 +11,6 @@ router.use('/medicos', MedicoRouter)
 router.use('/pacientes', PacienteRouter)
 router.use('/turnos', TurnoRouter)
 router.use('/notificaciones', NotificacionRouter)
-router.use('/', )
+// router.use('/', )
 
 export default router

@@ -6,7 +6,9 @@ import {
     UnprocessableEntityError,
 } from "../errors/AppErrors.js";
 
-import { TurnoRepository } from "../repositories/TurnoRepository.js";
+import { TurnoRepository } from "../repositories/TurnoRespository.js";
+import { MedicoRepository} from "../repositories/MedicoRepository.js"
+import { PacienteRepository } from "../repositories/PacienteRepository.js";
 // TODO
 
 
