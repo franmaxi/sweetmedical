@@ -17,12 +17,13 @@ export class MedicoService{
         this.usuarioRepository = usuarioRepository;
     }
 
-    obtenerTodos({numeroPagina = 1, limitePorPagina = 10, filtros = {} } = {}){
+    async obtenerTodos({numeroPagina = 1, limitePorPagina = 10, filtros = {} } = {}){
         this.validarPaginacion(numeroPagina,limitePorPagina)
         //TODO Agregar filtros para medico (especialidad/practica/sede/etc.)
-        const {medicos,totalMedicos} = this.medicoRepository.obtenerPaginados(
+        const {medicos,totalMedicos} = await this.medicoRepository.obtenerPaginados(
             numeroPagina,
-            limitePorPagina
+            limitePorPagina,
+            filtros
         ) 
         const totalPaginas = totalMedicos === 0 ? 0 : Math.ceil(totalMedicos/limitePorPagina)
         return {
@@ -34,9 +35,9 @@ export class MedicoService{
         }
     }
 
-    obtenerPorId(id){
+    async obtenerPorId(id){
         this.validarEnteroPositivo(id, "Id")
-        const medico = this.medicoRepository.obtenerPorId(id)
+        const medico = await this.medicoRepository.obtenerPorId(id)
 
         if (!medico) {
             throw new NotFoundError("Medico no encontrado")
@@ -44,22 +45,22 @@ export class MedicoService{
         return medico
     }
 
-    crear(datosMedico){
+    async crear(datosMedico){
         this.validarDatosMedico(datosMedico)
         const usuario = new Usuario({
-            nombreUsuario: datosMedicos.nombreUsuario,
-            password: datosMedicos.password
+            nombreUsuario: datosMedico.nombreUsuario,
+            password: datosMedico.password
         })
+        const usuarioGuardado = await this.usuarioRepository.save(usuario)
         const medico = new Medico({
-            usuario: usuario,    
-            matricula : datosMedicos.matricula,
-            nombre : datosMedicos.nombre
+            usuario: usuarioGuardado._id,    
+            matricula : datosMedico.matricula,
+            nombre : datosMedico.nombre
         })
-        this.usuarioRepository.guardar(usuario) //TODO ver si es necesario guardar usuarioRepository por guardar en cascada
-        return this.medicoRepository.guardar(medico) 
+        return await this.medicoRepository.save(medico) 
     }
     
-    actualizar(id, datosMedico){
+    async actualizar(id, datosMedico){
         this.validarEnteroPositivo(id,"Id")
         this.validarDatosMedico(datosMedico) 
         // TODO los datos de actualizar deben tener todos los datos posibles del medico, osea sede, especialidad, practica, disponibilidad, etc.
@@ -68,32 +69,35 @@ export class MedicoService{
         const usuarioExistente = this.obtenerUsuarioPorId(id)
 
         const usuarioActualizado = new Usuario({
-            nombreUsuario: datosMedicos.nombreUsuario,
-            password: datosMedicos.password
+            nombreUsuario: datosMedico.nombreUsuario,
+            password: datosMedico.password
         })
         usuarioActualizado.id = usuarioExistente.id
-        this.usuarioRepository.guardar(usuario) //TODO ver si es necesario guardar usuarioRepository por guardar en cascada
+        this.usuarioRepository.save(usuarioActualizado) //TODO ver si es necesario guardar usuarioRepository por guardar en cascada
 
         const medicoActualizado = new Medico({
-            usuario: usuario,    
-            matricula : datosMedicos.matricula,
-            nombre : datosMedicos.nombre
+            usuario: usuarioActualizado,    
+            matricula : datosMedico.matricula,
+            nombre : datosMedico.nombre
         })
 
         medicoActualizado.id = medicoExistente.id
-        return this.medicoRepository.guardar(medicoActualizado)
+        return await this.medicoRepository.save(medicoActualizado)
     }
     
-    eliminar(id){
+    async eliminar(id){
         this.validarEnteroPositivo(id,"Id")
         const medico = this.obtenerPorId(id)
         const usuario = this.obtenerUsuarioPorId(id)
         medico.eliminado = true
         usuario.eliminado = true
         //TODO ver la logica de que pasa con los distintos turnos que tiene el medico.
-        this.usuarioRepository.guardar(usuario) //TODO ver si es necesario guardar usuarioRepository por guardar en cascada
-        return this.medicoRepository.guardar(medico)
+        this.usuarioRepository.save(usuario) //TODO ver si es necesario guardar usuarioRepository por guardar en cascada
+        return await this.medicoRepository.save(medico)
     }
+
+
+    //Metodos auxiliares
 
     validarDatosMedico(datosMedico){
         if (!datosMedico || typeof datosMedico !== "object" || Array.isArray(datosMedico)) {

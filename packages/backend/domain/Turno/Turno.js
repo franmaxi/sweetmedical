@@ -2,6 +2,7 @@ import { CambioEstadoTurno } from "./CambioEstadoTurno.js";
 import { Medico } from "../Medico/Medico.js";
 import { Paciente } from "../Paciente/Paciente.js";
 import { Especialidad } from "../Medico/Especialidad.js";
+import { Practica } from "../Medico/Practica.js";
 import { Sede } from "../Sede.js";
 import { EstadoTurno } from "../Enumerados/EstadoTurno.js";
 

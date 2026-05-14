@@ -1,14 +1,16 @@
-import { Usuario } from "../Usuario.js";
-
+import {
+    BadRequestError,
+    ConflictError
+} from "../../errors/AppErrors.js";
 
 export class Medico {
-    constructor( {usuario, matricula, nombre} ){
-        this.validarUsuario(usuario)
+    constructor( {usuarioId, matricula, nombre} ){
+        this.validarUsuario(usuarioId)
         this.validarMatricula(matricula)
         this.validarNombre(nombre)
 
         this.id = null; //todo
-        this.usuario = usuario
+        this.usuarioId = usuarioId
         this.matricula = matricula
         this.nombre = nombre
         this.especialidades = []
@@ -70,7 +72,7 @@ export class Medico {
         const especialidadesConflicto = especialidadesIdDispo.every( id => especialidadesId.includes(id) )
         
         if (!especialidadesConflicto) {
-            throw new BadRequestError('Las especialidades de la disponibilidad no coinciden con las del médico, Especialidades Disponibilidad: ' + n.especialidades + ' Especialidades Médico: ' + this.especialidades)
+            throw new BadRequestError('Las especialidades de la disponibilidad no coinciden con las del médico, Especialidades Disponibilidad: ' + especialidades + ' Especialidades Médico: ' + this.especialidades)
         }
     }
 
@@ -80,11 +82,11 @@ export class Medico {
         }
         
         const practicasId = this.practicas.map(p=> p.id)
-        const practicasIdDIspo = n.practicas.map(pd=>pd.id)
+        const practicasIdDIspo = practicas.map(pd=>pd.id)
             
         const practicasConflicto = practicasIdDIspo.every( id => practicasId.includes(id))
         if (practicasConflicto) {
-            throw new BadRequestError('Las practicas de la disponibilidad no coinciden con las del médico, Practicas Disponibilidad: ' + n.practicas + ' Especialidades Médico: ' + this.practicas)
+            throw new BadRequestError('Las practicas de la disponibilidad no coinciden con las del médico, Practicas Disponibilidad: ' + practicas + ' Practicas Médico: ' + this.practicas)
         }
         
     }
@@ -92,9 +94,9 @@ export class Medico {
 
     // Validaciones Constructor
 
-    validarUsuario(usuario){
-        if (!usuario instanceof Usuario) { 
-            throw new TypeError('El usuario debe ser un objeto válido')
+    validarUsuarioId(usuarioId){
+        if (typeof usuarioId !== 'object' ) { 
+            throw new TypeError('El usuarioId debe ser un object, se mandó: ' + typeof usuario)
         }
     }
     

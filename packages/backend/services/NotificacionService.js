@@ -1,10 +1,8 @@
-import { Notificacion } from "../domain/Notificacion/Notificacion.js";
 import { NotificacionRepository} from "../repositories/NotificacionRepository.js"
 import { UsuarioRepository} from "../repositories/UsuarioRepository.js"
 import {
     BadRequestError,
     NotFoundError,
-    UnprocessableEntityError,
 } from "../errors/AppErrors.js";
 
 export class NotificacionService{
@@ -16,10 +14,10 @@ export class NotificacionService{
         this.usuarioRepository = usuarioRepository
     }
 
-    obtenerTodas({ numeroPagina = 1, limitePorPagina = 10, filtros = {} } = {}){
+    async obtenerTodas({ numeroPagina = 1, limitePorPagina = 10, filtros = {} } = {}){
         this.validarFiltros(filtros)
 
-        const {notificaciones, totalNotificaciones} = this.usuarioRepository.obtenerPaginados(
+        const {notificaciones, totalNotificaciones} = await this.usuarioRepository.obtenerPaginados(
             numeroPagina,
             limitePorPagina,
             filtros
@@ -35,10 +33,10 @@ export class NotificacionService{
         }
     }
 
-    obtenerPorId(id){
+    async obtenerPorId(id){
         this.validarEnteroPositivo(id, "Id")
 
-        const notificacion = this.notificacionRepository.obtenerPorId(id)
+        const notificacion = await this.notificacionRepository.obtenerPorId(id)
 
         if(!notificacion){
             throw new NotFoundError("Notificacion no encontrado")

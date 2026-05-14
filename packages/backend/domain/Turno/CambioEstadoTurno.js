@@ -24,12 +24,12 @@ export class CambioEstadoTurno{
         }
     }
     validarTurno(turno){  
-        if (!turno instanceof Turno) { 
+        if (!(turno instanceof Turno)) { 
             throw new TypeError('El turno debe ser una objeto Turno válido')
     }
     }
     validarUsuario(usuario){  
-        if (!usuario instanceof Usuario) { // Preguntar si esta bien que sea un objeto.
+        if (!(usuario instanceof Usuario)) { // Preguntar si esta bien que sea un objeto.
             throw new TypeError('El usuario debe ser un objeto válido')
     }
     }

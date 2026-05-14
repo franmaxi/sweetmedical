@@ -12,7 +12,7 @@ export class CoberturaPractica{
     // Validacion Constructor
 
     validarPractica(practica){
-        if(!practica instanceof Practica){
+        if(!(practica instanceof Practica)){
             throw new TypeError('La práctica debe ser un objeto válido')
         }
     }

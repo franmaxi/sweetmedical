@@ -1,4 +1,5 @@
 import { TurnoService } from '../services/TurnoService.js';
+import {BadRequestError} from "../errors/AppErrors.js";
 
 export class TurnoController {
     constructor( {turnoService = new TurnoService()} = {}) {
@@ -68,7 +69,7 @@ reservar = async(req, res, next) =>  {
     try {
         //TODO faltaria agregar la fecha, especialidad/practic
         const turnoId = this.parsearId(req.params.id);
-        const { pacienteID } = this.extraerBodyReserva(req.body);
+        const { pacienteId } = this.extraerBodyReserva(req.body);
 
         const turno = await this.turnoService.reservar(turnoId, pacienteId);
 

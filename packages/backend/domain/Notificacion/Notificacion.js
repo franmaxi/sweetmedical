@@ -23,7 +23,7 @@ export class Notificacion {
     // Validacion Constructor
 
     validarUsuario(usuario, campo){
-        if (!usuario instanceof Usuario) {
+        if (!(usuario instanceof Usuario)) {
             throw new TypeError(`El ${campo} debe ser un objeto usuario válido`)
         }
     }

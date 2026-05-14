@@ -1,4 +1,4 @@
-import "dotenv/config"; // Importante que esté arriba de todo
+import "dotenv/config";
 import app from "./app.js";
 import { MongoDBClient } from "./config/database.js";
 

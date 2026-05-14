@@ -12,7 +12,7 @@ export class CoberturaEspecialidad{
     // Validacion Constructor
 
     validarEspecialidad(especialidad){
-        if(!especialidad instanceof Especialidad){
+        if (!(especialidad instanceof Especialidad)){
             throw new TypeError('La especialidad debe ser un objeto válido')
         }
     }

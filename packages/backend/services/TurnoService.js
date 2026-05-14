@@ -9,8 +9,7 @@ import {
 import { TurnoRepository } from "../repositories/TurnoRespository.js";
 import { MedicoRepository} from "../repositories/MedicoRepository.js"
 import { PacienteRepository } from "../repositories/PacienteRepository.js";
-// TODO
-
+import { EstadoTurno } from "../domain/Enumerados/EstadoTurno.js";
 
 export class TurnoService {
     constructor({
@@ -23,10 +22,10 @@ export class TurnoService {
         this.pacienteRepository = pacienteRepository
     }
 
-    obtenerTodos({ numeroPagina = 1, limitePorPagina = 10, filtro = {} } = {}) {
+    async obtenerTodos({ numeroPagina = 1, limitePorPagina = 10, filtros = {} } = {}) {
         this.validarPaginacion(numeroPagina, limitePorPagina)
 
-        const { turnos, totalTurnos } = this.turnoRepository.obtenerPaginados(
+        const { turnos, totalTurnos } = await this.turnoRepository.obtenerPaginados(
             numeroPagina, 
             limitePorPagina, 
             filtros
@@ -45,10 +44,10 @@ export class TurnoService {
     
     }
 
-    obtenerPorId(id) {
+    async obtenerPorId(id) {
         this.validarEnteroPositivo(id, "Id")
 
-        const turno = this.turnoRepository.obtenerPorId(id)
+        const turno = await this.turnoRepository.obtenerPorId(id)
 
         if (!turno) {
             throw new NotFoundError(`No se encontró un turno con el id ${id}`)
@@ -57,15 +56,15 @@ export class TurnoService {
         return turno
     }
 
-    crear(datosTurno) {
+    async crear(datosTurno) {
         this.validarDatosTurno(datosTurno)
-        const medico = this.medicoRepository.obtenerPorId(datosTurno.medicoId)
+        const medico = await this.medicoRepository.obtenerPorId(datosTurno.medicoId)
         if(!medico) throw new NotFoundError(`No se encontró un médico con el id ${datosTurno.medicoId}`)
 
-        const sede = this.sedeRepository.obtenerPorId(datosTurno.sedeId)
+        const sede = await this.sedeRepository.obtenerPorId(datosTurno.sedeId)
         if(!sede) throw new NotFoundError(`No se encontró una sede con el id ${datosTurno.sedeId}`)
 
-        const especialidad = datosTurno.especialidadId ? this.especialidadRepository.obtenerPorId(datosTurno.especialidadId) : null
+        const especialidad = datosTurno.especialidadId ? await this.especialidadRepository.obtenerPorId(datosTurno.especialidadId) : null
 
         const turno = new Turno({
             medico,
@@ -78,21 +77,21 @@ export class TurnoService {
             costo: datosTurno.costo
         })
 
-        return this.turnoRepository.guardar(turno)
+        return await this.turnoRepository.guardar(turno)
     }   
 
-    reservar(turnoId, pacienteId) {
+    async reservar(turnoId, pacienteId) {
         this.validarEnteroPositivo(turnoId, "turnoId")
         this.validarEnteroPositivo(pacienteId, "pacienteId")
 
         const turnoDB = this.obtenerPorId(turnoId)
-        const paciente = this.pacienteRepository.obtenerPorId(pacienteId)
+        const paciente = await this.pacienteRepository.obtenerPorId(pacienteId)
 
         if (!paciente) {
             throw new NotFoundError(`No se encontró un paciente con el id ${pacienteId}`)
         }
 
-        const turno = mapToDomain(turnoDB)
+        const turno = mapToDomain(turnoDB) //TODO
 
         if (turno.estado !== EstadoTurno.DISPONIBLE) {
             throw new UnprocessableEntityError(`El turno con id ${turnoId} no está disponible para reservar`)
@@ -102,10 +101,10 @@ export class TurnoService {
 
         turno.actualizarEstado(EstadoTurno.RESERVADO, pacienteId, "Reserva de turno")
 
-        return this.turnoRepository.guardar(turno)
+        return await this.turnoRepository.guardar(turno)
     }
 
-    cancelar(turnoId, usuario, motivo) {
+    async cancelar(turnoId, usuario, motivo) {
         this.validarEnteroPositivo(turnoId, "turnoId")
 
         if(!usuario) {
@@ -120,10 +119,10 @@ export class TurnoService {
         
         //TODO al cancelar un turno, deberia crearse un nuevo turno para el mismo rango horario que se liberó.
 
-        return this.turnoRepository.guardar(turno)
+        return await this.turnoRepository.guardar(turno)
     }
 
-    eliminar(turnoId) {
+    async eliminar(turnoId) {
         this.validarEnteroPositivo(turnoId, "turnoId")
         
         const turno = this.obtenerPorId(turnoId)

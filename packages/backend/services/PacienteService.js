@@ -21,10 +21,10 @@ export class PacienteService {
         //this.obraSocialRepository = obraSocialRepository
     }
    
-    obtenerTodos({ numeroPagina = 1, limitePorPagina = 10, filtro = {} } = {}) {
+    async obtenerTodos({ numeroPagina = 1, limitePorPagina = 10, filtros = {} } = {}) {
         this.validarPaginacion(numeroPagina, limitePorPagina)
 
-        const { pacientes, totalPacientes } = this.pacienteRepository.obtenerPaginados(
+        const { pacientes, totalPacientes } = await this.pacienteRepository.obtenerPaginados(
             numeroPagina, 
             limitePorPagina, 
             filtros
@@ -41,9 +41,9 @@ export class PacienteService {
         }
     }
 
-    obtenerPorId(id) {
+    async obtenerPorId(id) {
         this.validarEnteroPositivo(id, "Id")
-        const paciente = this.pacienteRepository.obtenerPorId(id)
+        const paciente = await this.pacienteRepository.obtenerPorId(id)
         if (!paciente) {
             throw new NotFoundError(`No se encontró un paciente con el id ${id}`)
         }
@@ -51,48 +51,64 @@ export class PacienteService {
         return paciente
     }
 
-    crear(datosPaciente) {
+    async crear(datosPaciente) {
 
         this.validarDatosPaciente(datosPaciente)
 
         const usuario = new Usuario({
-            nombreUsuario: datosMedicos.nombreUsuario,
-            password: datosMedicos.password
+            nombreUsuario: datosPaciente.nombreUsuario,
+            password: datosPaciente.password
         })
 
+        const usuarioGuardado = await this.usuarioRepository.save(usuario)
         // consideramos que los planes estan precargados en el sistema, si no esta cargado no existe
-        const plan = this.planRepository.obtenerPorId(datosPaciente.planId)
+        const plan = await this.planRepository.findById(datosPaciente.planId)
         if(!plan) throw new NotFoundError(`No se encontró un plan con el id ${datosPaciente.planId}`)
 
-        const obraSocial = this.obraSocialRepository.obtenerPorId(datosPaciente.obraSocialId)
+        const obraSocial = await this.obraSocialRepository.findById(datosPaciente.obraSocialId)
         if(!obraSocial) throw new NotFoundError(`No se encontró una obraSocial con el id ${datosPaciente.obraSocialId}`)
 
         const paciente= new Paciente({
             dni: datosPaciente.dni,
             nombre: datosPaciente.nombre,
+            usuario: usuarioGuardado._id,
             obraSocial: obraSocial,
             plan: plan,
         })
         
         this.usuarioRepository.guardar(usuario)
-        return this.pacienteRepository.guardar(paciente)
+        return await this.pacienteRepository.guardar(paciente)
     }   
 
-    actualizar(id, datosPaciente) {
+    async actualizar(id, datosPaciente) {
         this.validarEnteroPositivo(id, "Id")
         this.validarDatosPaciente(datosPaciente)
-        const pacienteExistente = this.pacienteRepository.obtenerPorId(id)
+        const pacienteExistente = await this.pacienteRepository.findById(id)
         if (!pacienteExistente) {
             throw new NotFoundError(`No se encontró un paciente con el id ${id}`)
         }
+        const pacienteActualizado = await this.pacienteRepository.actualizar(id,datosPaciente)
+        return pacienteActualizado
     }
+
+    async eliminar(id){
+        this.validarEnteroPositivo(id, "Id")
+        const pacienteExistente = await this.pacienteRepository.findById(id)
+        if (!pacienteExistente) {
+            throw new NotFoundError(`No se encontró un paciente con el id ${id}`)
+        }
+        const pacienteEliminado = await this.pacienteRepository.eliminar(id)
+        return pacienteEliminado
+    }
+
+    // Metodos Auxiliares
 
     validarDatosPaciente(datos) {
         if (!datos || typeof datos !== "object") {
             throw new BadRequestError("Los datos del paciente son requeridos")
         }
 
-        const {dni, nombre, obraSocialId, planId} = datos
+        const {dni, nombre, obraSocialId, planId, nombreUsuario, password} = datos
 
         if (!Number.isInteger(dni)) {
             throw new UnprocessableEntityError("dni inválido")
@@ -108,6 +124,12 @@ export class PacienteService {
 
         if (!Number.isInteger(planId)) {
             throw new UnprocessableEntityError("planId inválido")
+        }
+        if (typeof nombreUsuario !== "string" || nombre.trim() === "") {
+            throw new UnprocessableEntityError("nombreUsuario inválido")
+        }
+        if (typeof password !== "string" || nombre.trim() === "") {
+            throw new UnprocessableEntityError("password inválido")
         }
     }
 

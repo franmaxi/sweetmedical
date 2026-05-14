@@ -83,6 +83,7 @@ export class PacienteController {
 
 
 
+    //  Metodos Auxiliares
 
     parsearId(idParam) {
         const id = Number(idParam)
@@ -101,7 +102,10 @@ export class PacienteController {
         const camposPermitidos = [
             "dni",
             "nombre",
-            "plan"]
+            "obraSocialId",
+            "planId",
+            "nombreUsuario",
+            "password"]
         const camposBody = Object.keys(body)
         const camposNoPermitidos = camposBody.filter((campo) => !camposPermitidos.includes(campo))
 
@@ -118,7 +122,10 @@ export class PacienteController {
         return {
             dni: body.dni,
             nombre: body.nombre,
-            plan: body.plan,
+            obraSocialId: body.obraSocialId,
+            planId: body.planId,
+            nombreUsuario: body.nombreUsuario,
+            password: body.password
         }
     }
 

@@ -7,18 +7,31 @@ export class MedicoRepository{
     
     #populate(query) {
         return query
-            //.populate("usuario") 
-            // Dijimos que no vamos a embeber el usuario, 
-            // Es innecesario: siempre q se busque conocer un medico, no necesitamos conocer su usuario con el id basta. 
-            // Por eso está el UsuarioRepository
             .populate("especialidades") 
             .populate("practicas")
             .populate("sedes")
-            //las disponibilidades no las embebemos??
+            .populate("disponibilidades")
     }
 
     async findAll() {
         return await this.#populate(this.model.find())
+    }
+
+    async  obtenerPaginados(pagina, limite, filtros = {}) {
+        const salto = (pagina-1) * limite
+
+        let medicos = await this.findByFilters(filtros).skip(salto).limit(limite)
+
+        const total = await this.model.countDocuments({
+            eliminado: false
+        })
+
+        return {
+            medicos: medicos,
+            totalMedicos: total,
+            pagina,
+            totalPages: Math.ceil(total/limite)
+        }
     }
 
     async findById(id) {

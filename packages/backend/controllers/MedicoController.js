@@ -110,6 +110,34 @@ export class MedicoController{
     }
 
     extraerYValidarBodyMedico(body) {
-        //TODO
+        const {nombre,matricula,nombreUsuario,password} = body
+        const errores = {}
+
+        this.validarCampoRequerido(nombre,"nombre",errores)
+        this.validarCampoRequerido(matricula,"matricula",errores)
+        this.validarCampoRequerido(nombreUsuario,"nombreUsuario",errores)
+        this.validarCampoRequerido(password,"password",errores)
+
+        if(Object.keys(errores).length > 0){
+            throw new BadRequestError("Errores en el cuerpo",errores)
+        }
+
+        return {
+            nombre,
+            matricula,
+            nombreUsuario,
+            password
+        }
+    }
+
+    validarCampoRequerido(valor, nombreCampo, errores) {
+        if (valor === undefined || valor === null) {
+            errores[nombreCampo] = "Campo requerido"
+            return
+        }
+
+        if (typeof valor === "string" && valor.trim() === "") {
+            errores[nombreCampo] = "Campo requerido"
+        }
     }
 }

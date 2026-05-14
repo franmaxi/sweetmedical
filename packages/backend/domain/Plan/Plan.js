@@ -25,6 +25,4 @@ export class Plan{
             throw new TypeError('El nombre del plan debe ser un string no vacío')
         }
     }
-
-    
 }

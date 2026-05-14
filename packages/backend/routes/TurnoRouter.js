@@ -12,7 +12,7 @@ router.route('/')
 
 router.route('/:id')
 	.get((req, res, next) => turnoController.findById(req, res, next))
-	.delete((req, res, next) => pacienteController.delete(req, res, next))
+	.delete((req, res, next) => turnoController.delete(req, res, next))
 
     //TODO cancelar y reservar un turno, sería un put?
 export default router

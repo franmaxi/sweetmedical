@@ -21,7 +21,7 @@ export class Paciente {
     // Validacion Constructor
     
     validarUsuario(usuario){
-        if (!usuario instanceof Usuario) {
+        if (!(usuario instanceof Usuario)) {
             throw new TypeError('El usuario debe ser un objeto usuario válido')
         }
     }
@@ -40,13 +40,13 @@ export class Paciente {
     }
     
     validarObraSocial(obraSocial){
-        if (!obraSocial instanceof ObraSocial) {
+        if (!(obraSocial instanceof ObraSocial)) {
             throw new TypeError('La obra social debe ser un objeto válido')
         }
     }
     
     validarPlan(plan){
-        if (!plan instanceof Plan) {
+        if (!(plan instanceof Plan)) {
             throw new TypeError('El plan debe ser un objeto válido')
         }
     }
