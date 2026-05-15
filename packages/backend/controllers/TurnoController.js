@@ -125,6 +125,7 @@ delete = async (req, res, next) => {
     this.validarEnteroPositivo(id, "id");
     return id;
 };
+
  extraerYValidarBodyTurno(body) {
     if (!body || typeof body !== 'object' || Array.isArray(body)) {
         throw new BadRequestError("El cuerpo de la solicitud debe ser un objeto JSON válido.");

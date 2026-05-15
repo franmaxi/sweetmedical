@@ -1,0 +1,32 @@
+import mongoose from 'mongoose';
+import { Practica } from '../domain/Medico/Practica.js';
+
+const practicaSchema = new mongoose.Schema({
+    codigo: {
+        type: String,
+        required: true,
+        unique: true,
+        trim: true
+    },
+    nombre: {
+        type: String,
+        required: true,
+        trim: true
+    },
+    duracionTurnoEnMins: {
+        type: Number,
+        required: true
+    },
+    costo: {
+        type: Number,
+        required: true
+    }
+}, {
+    timestamps: true,
+    versionKey: false,
+    collection: 'practicas'
+});
+
+practicaSchema.loadClass(Practica);
+
+export const PracticaModel = mongoose.model('Practica', practicaSchema);

@@ -1,0 +1,26 @@
+import mongoose from 'mongoose';
+import { Sede } from '../domain/Turno/Sede.js';
+
+const sedelSchema = new mongoose.Schema({
+    nombre:{
+        type: String,
+        required: true,
+        trim:true
+    },
+
+    direccion: [{
+        type: String,
+        required: true,
+        trim:true   
+    }],
+    
+},{
+    timestamps: true,
+    versionKey: false,
+    collection: 'sedes'
+});
+
+sedeSchema.loadClass(Sede);
+
+export const SedeModel = mongoose.model('Sede', sedeSchema);
+

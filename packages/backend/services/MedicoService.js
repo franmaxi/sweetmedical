@@ -44,14 +44,30 @@ export class MedicoService{
         }
         return medico
     }
+    
+    async obtenerUsuarioPorId(id){
+        this.validarEnteroPositivo(id, "Id")
+        const usuario = await this.usuarioRepository.obtenerPorId(id)
+
+        if (!usuario) {
+            throw new NotFoundError("Usuario no encontrado")
+        }
+        return usuario
+    }
 
     async crear(datosMedico){
         this.validarDatosMedico(datosMedico)
-        const usuario = new Usuario({
+        if(existeMatricula(datosMedico.matricula))
+        {
+            throw new ConflictError("Ya existe un médico con esa matrícula")
+        }
+        if (this.usuarioService.existeNombreUsuario(datosMedico.nombreUsuario)){
+            throw new ConflictError("Ya existe un usuario con ese nombre de usuario")
+        }
+        const usuarioCreado = await this.usuarioService.crear({
             nombreUsuario: datosMedico.nombreUsuario,
             password: datosMedico.password
-        })
-        const usuarioGuardado = await this.usuarioRepository.save(usuario)
+        })        
         const medico = new Medico({
             usuario: usuarioGuardado._id,    
             matricula : datosMedico.matricula,
@@ -63,26 +79,38 @@ export class MedicoService{
     async actualizar(id, datosMedico){
         this.validarEnteroPositivo(id,"Id")
         this.validarDatosMedico(datosMedico) 
-        // TODO los datos de actualizar deben tener todos los datos posibles del medico, osea sede, especialidad, practica, disponibilidad, etc.
+        const medicoExistente = await this.obtenerPorId(id)
+        const usuarioExistente =  await this.obtenerUsuarioPorId(id)
 
-        const medicoExistente = this.obtenerPorId(id)
-        const usuarioExistente = this.obtenerUsuarioPorId(id)
-
-        const usuarioActualizado = new Usuario({
-            nombreUsuario: datosMedico.nombreUsuario,
-            password: datosMedico.password
-        })
-        usuarioActualizado.id = usuarioExistente.id
-        this.usuarioRepository.save(usuarioActualizado) //TODO ver si es necesario guardar usuarioRepository por guardar en cascada
-
-        const medicoActualizado = new Medico({
-            usuario: usuarioActualizado,    
-            matricula : datosMedico.matricula,
-            nombre : datosMedico.nombre
-        })
-
-        medicoActualizado.id = medicoExistente.id
-        return await this.medicoRepository.save(medicoActualizado)
+        if (await this.usuarioService.existeNombreUsuario(datosMedico.nombreUsuario)){
+            throw new ConflictError("Ya existe un usuario con ese nombre de usuario")
+        }
+        usuarioExistente.nombreUsuario = datosMedico.nombreUsuario
+        usuarioExistente.password = datosMedico.password
+        await this.usuarioRepository.save(usuarioExistente) 
+        if(await this.existeMatricula(datosMedico.matricula))
+        {
+            throw new ConflictError("Ya existe un médico con esa matrícula")
+        }
+    
+        for (const especialidadId of datosMedico.especialidadIds) {
+            if (!await this.especialidadService.validarExistenciaPorId(especialidadId)) {
+                throw new NotFoundError(`Especialidad ${especialidadId} no encontrada`)
+            }
+        }
+        for (const practicaId of datosMedico.practicaIds) {
+            if (!await this.practicaService.validarExistenciaPorId(practicaId)) {
+                throw new NotFoundError(`Practica ${practicaId} no encontrada`)
+            }
+}
+        
+        medicoExistente.matricula = datosMedico.matricula
+        medicoExistente.nombre = datosMedico.nombre
+        medicoExistente.especialidades = datosMedico.especialidadIds
+        medicoExistente.practicas = datosMedico.practicaIds 
+        medicoExistente.sedes = datosMedico.sedes
+        medicoExistente.disponibilidades = datosMedico.disponibilidades
+        return await this.medicoRepository.save(medicoExistente)
     }
     
     async eliminar(id){
@@ -92,13 +120,31 @@ export class MedicoService{
         medico.eliminado = true
         usuario.eliminado = true
         //TODO ver la logica de que pasa con los distintos turnos que tiene el medico.
-        this.usuarioRepository.save(usuario) //TODO ver si es necesario guardar usuarioRepository por guardar en cascada
+         await this.usuarioRepository.save(usuario) //TODO ver si es necesario guardar usuarioRepository por guardar en cascada
         return await this.medicoRepository.save(medico)
     }
-
-
-    //Metodos auxiliares
-
+    async existeMatricula(matricula) {
+        const medico = await this.medicoRepository.obtenerPorMatricula(matricula)
+        return medico !== null
+    }
+    validarDatosServicios({ especialidadIds, practicaIds }) {
+        if (!Array.isArray(especialidadIds) || !Array.isArray(practicaIds)) {
+            throw new BadRequestError("especialidadIds y practicaIds deben ser listas")
+        }
+        if (especialidadIds.length === 0 && practicaIds.length === 0) {
+            throw new UnprocessableEntityError("Debe enviar al menos una especialidad o práctica")
+        }
+        for (const id of especialidadIds) {
+            if (typeof id !== "string" || id.trim() === "") {
+                throw new UnprocessableEntityError("Cada especialidadId debe ser un string no vacío")
+            }
+        }
+        for (const id of practicaIds) {
+            if (typeof id !== "string" || id.trim() === "") {
+                throw new UnprocessableEntityError("Cada practicaId debe ser un string no vacío")
+            }
+        }
+    }
     validarDatosMedico(datosMedico){
         if (!datosMedico || typeof datosMedico !== "object" || Array.isArray(datosMedico)) {
             throw new BadRequestError("Los datos del medico son invalidos")

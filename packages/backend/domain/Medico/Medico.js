@@ -43,8 +43,30 @@ export class Medico {
             this.disponibilidades.splice(indice,1)
         }
     }
-
-
+    agregarEspecialidad(id){
+        this.especialidades.push(id)
+    }
+    agregarPractica(id){
+        this.practicas.push(id)
+    }
+    eliminarEspecialidad(id){
+        const indice = this.especialidades.findIndex(
+            especialidadId => especialidadId.toString() === id.toString()
+        )
+        if(indice === -1){
+            throw new NotFoundError("La especialidad no pertenece a este médico")
+        }
+        this.especialidades.splice(indice, 1)
+    }
+    eliminarPractica(id){
+        const indice = this.practicas.findIndex(
+            practicaId => practicaId.toString() === id.toString()
+        )
+        if(indice === -1){
+            throw new NotFoundError("La practica no pertenece a este médico")
+        }
+        this.practicas.splice(indice, 1)
+    }
     validarDisponibilidad(disponibilidad){
         // Validamos la sede
         const sedesId = this.sedes.map(s => s.id)

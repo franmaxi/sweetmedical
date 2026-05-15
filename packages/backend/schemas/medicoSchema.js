@@ -1,16 +1,18 @@
 import mongoose from 'mongoose';
 import { Medico } from '../domain/Medico/Medico.js';
-import { disponibilidadSchema } from './disponilidadSchema.js'
+import { disponibilidadSchema } from './disponibilidadSchema.js'
 
 const medicoSchema = new mongoose.Schema({
     usuario:{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Usuario',
+        unique: true,
         required: true
     },
     matricula:{
         type: String,
         required: true,
+        unique: true,
         trim:true
     },
     nombre:{

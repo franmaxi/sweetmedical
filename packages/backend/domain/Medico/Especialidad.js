@@ -4,7 +4,7 @@ export class Especialidad{
         this.validarDuracionTurnoEnMins(duracionTurnoEnMins)
         this.validarCostoConsulta(costoConsulta)
 
-        this.id = null //todo
+        this.id = null //TODO
         this.nombre = nombre;
         this.duracionTurnoEnMins = duracionTurnoEnMins;
         this.costoConsulta = costoConsulta;

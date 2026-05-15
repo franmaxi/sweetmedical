@@ -78,7 +78,7 @@ export class PacienteService {
         
         this.usuarioRepository.guardar(usuario)
         return await this.pacienteRepository.guardar(paciente)
-    }   
+    }
 
     async actualizar(id, datosPaciente) {
         this.validarEnteroPositivo(id, "Id")

@@ -53,4 +53,7 @@ export class MedicoRepository{
     async delete(id) {
         return await this.#populate(this.model.findByIdAndDelete(id))
     }
+    async obtenerPorMatricula(matricula) {
+    return await MedicoModel.findOne({ matricula, eliminado: false })
+}
 }

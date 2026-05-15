@@ -103,7 +103,6 @@ export class MedicoController{
     
     parsearId(idParam) {
         const id = Number(idParam)
-
         this.validarEnteroPositivo(id, "id")
 
         return id
@@ -121,12 +120,41 @@ export class MedicoController{
         if(Object.keys(errores).length > 0){
             throw new BadRequestError("Errores en el cuerpo",errores)
         }
-
         return {
-            nombre,
             matricula,
+            nombre,
             nombreUsuario,
             password
+        }
+    }
+    extraerYValidarBodyMedicoUpdate(body){
+        const {nombre,matricula,nombreUsuario,
+               password,especialidades,practicas,
+               sedes,disponibilidades} = body
+        const errores = {}
+
+        this.validarCampoRequerido(nombre,"nombre",errores)
+        this.validarCampoRequerido(matricula,"matricula",errores)
+        this.validarCampoRequerido(nombreUsuario,"nombreUsuario",errores)
+        this.validarCampoRequerido(password,"password",errores)
+        this.validarArray(especialidades,"especialidades",errores)
+        this.validarArray(practicas,"practicas",errores)
+        this.validarArray(sedes,"sedes",errores)
+        this.validarArray(disponibilidades,"disponibilidades",errores)
+
+
+        if(Object.keys(errores).length > 0){
+            throw new BadRequestError("Errores en el cuerpo",errores)
+        }
+        return {
+            matricula,
+            nombre,
+            nombreUsuario,
+            password,
+            especialidadIds,
+            practicaIds,
+            sedes,
+            disponibilidades
         }
     }
 
@@ -140,4 +168,13 @@ export class MedicoController{
             errores[nombreCampo] = "Campo requerido"
         }
     }
+    validarArray(array, nombreCampo, errores) {
+    if (array === undefined || array === null) {
+        errores[nombreCampo] = "Campo requerido"
+        return
+    }
+    if (!Array.isArray(array)) {
+        errores[nombreCampo] = "Debe ser una lista"
+    }
+}
 }
