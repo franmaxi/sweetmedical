@@ -1,5 +1,5 @@
-import { BadRequestError } from "../../../errors/AppErrors"
-import { NivelCobertura } from "../../Enumerados/NivelCobertura"
+import { BadRequestError } from "../../../errors/AppErrors.js"
+import { NivelCobertura } from "../../Enumerados/NivelCobertura.js"
 export class Practica {
     constructor( {codigo,practicaGenerica, nombre, duracionTurnoEnMins, costo} ) {
         this.validarEnteroPositivo(practicaGenerica,"id")
@@ -25,19 +25,19 @@ export class Practica {
 
     validarCodigo(codigo){
         if (typeof codigo !== 'string' || codigo.trim() === '') {
-            throw new TypeError('El código de la práctica debe ser un string no vacío')
+            throw new BadRequestError('El código de la práctica debe ser un string no vacío')
         }
     }
 
     validarNombre(nombre){
         if (typeof nombre !== 'string' || nombre.trim() === '') {
-            throw new TypeError('El nombre de la práctica debe ser un string no vacío')
+            throw new BadRequestError('El nombre de la práctica debe ser un string no vacío')
         }
     }
     
     validarNumeroMayorA0(numero, nombreCampo){
         if (typeof numero !== 'number' || numero <= 0) {
-            throw new TypeError(`${nombreCampo} debe ser un número positivo`)
+            throw new BadRequestError(`${nombreCampo} debe ser un número positivo`)
         }
     }
     calcularCostoSegunCobertura(nivelCobertura){

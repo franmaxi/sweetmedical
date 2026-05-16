@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { practicaGenerica } from '../domain/Medico/PracticaGenerica.js';
+import { PracticaGenerica } from '../domain/Medico/Servicios/PracticaGenerica.js';
 
 const practicaGenericaSchema = new mongoose.Schema({
     
@@ -21,6 +21,6 @@ const practicaGenericaSchema = new mongoose.Schema({
     collection: 'practicasGenericas'
 });
 
-practicaGenericaSchema.loadClass(practicaGenerica);
+practicaGenericaSchema.loadClass(PracticaGenerica);
 
 export const PracticaGenericaModel = mongoose.model('PracticaGenerica', practicaGenericaSchema);

@@ -27,12 +27,12 @@ export class PracticaGenericaRepository {
     }
 
     async findOneByNombre(nombre) {
-        const practicaGenerica = await model.findOne({ nombre: nombre });
+        const practicaGenerica = await this.model.findOne({ nombre: nombre });
         return practicaGenerica;
     }
 
     async findByCodigo(codigo) {
-        const practicaGenerica = await model.findOne({ codigo: codigo });
+        const practicaGenerica = await this.model.findOne({ codigo: codigo });
         return practicaGenerica;
     }
 

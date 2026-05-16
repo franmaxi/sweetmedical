@@ -1,5 +1,6 @@
 import { Turno } from "./Turno.js"
 import { DiaSemana } from "../Enumerados/DiaSemana.js"
+import { BadRequestError, UnprocessableEntityError } from "../../errors/AppErrors.js"
 
 export class Agenda {
 
@@ -43,7 +44,7 @@ export class Agenda {
         const fin = new Date(fechaFinal)
 
         if (isNaN(inicio) || isNaN(fin)) { 
-            throw new TypeError('Las fechas inicial y final deben ser objetos Date válidos');
+            throw new BadRequestError('Las fechas inicial y final deben ser objetos Date válidos');
         }
 
         if (inicio >= fin) {
@@ -171,7 +172,7 @@ export class Agenda {
             }
         }
         if (resultado === undefined) {
-            throw new Error(`No existe un número menor o igual a: ${numero}`)
+            throw new UnprocessableEntityError(`No existe un número menor o igual a: ${numero}`)
         }
         return resultado;
     }

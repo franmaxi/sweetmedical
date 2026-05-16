@@ -27,7 +27,7 @@ export class EspecialidadGenericaRepository{
     }
 
     async findOneByNombre(nombre) {
-        const especialidadGenerica = await model.findOne({ nombre: nombre });
+        const especialidadGenerica = await this.model.findOne({ nombre: nombre });
         return especialidadGenerica;
     }
     

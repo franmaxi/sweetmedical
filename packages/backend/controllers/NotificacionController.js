@@ -21,12 +21,12 @@ export class NotificacionController{
 
             return res.status(200).json({
                 status: "success",
-                data: resultado.productos,
+                data: resultado.notificaciones,
                 paginacion: {
                     numeroPagina: resultado.numeroPagina,
                     limitePorPagina: resultado.limitePorPagina,
                     totalPaginas: resultado.totalPaginas,
-                    totalProductos: resultado.totalProductos
+                    totalNotificaciones: resultado.totalNotificaciones
                 }
             })
         } catch (error) {

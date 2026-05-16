@@ -112,6 +112,7 @@ export class MedicoService{
         medicoExistente.practicas = datosMedico.practicaIds 
         medicoExistente.sedes = datosMedico.sedes
         medicoExistente.disponibilidades = datosMedico.disponibilidades
+        //TODO Verificar las nuevas disponibilidades..
         return await this.medicoRepository.save(medicoExistente)
     }
     

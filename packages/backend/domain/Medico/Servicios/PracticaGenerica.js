@@ -1,8 +1,9 @@
+import { BadRequestError } from "../../../errors/AppErrors.js"
 export class PracticaGenerica{
     
-    constructor(nombre,codigo){
-        this.validarNombre(nombre, "nombre")
-        this.validarNombre(codigo, "codigo")
+    constructor({nombre,codigo}){
+        this.validarString(nombre, "nombre")
+        this.validarString(codigo, "codigo")
 
 
         this.id = null
@@ -12,7 +13,7 @@ export class PracticaGenerica{
     
     validarString(nombre, parametro){
         if (typeof nombre !== 'string' || nombre.trim() === '') {
-            throw new TypeError(`El ${parametro} de la especialidad debe ser un string no vacío`)
+            throw new BadRequestError(`El ${parametro} de la especialidad debe ser un string no vacío`)
         }
     }
 }

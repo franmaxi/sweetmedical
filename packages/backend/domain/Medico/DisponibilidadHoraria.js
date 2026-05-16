@@ -1,4 +1,7 @@
+import { BadRequestError } from "../../errors/AppErrors.js";
+import { UnprocessableEntityError } from "../../errors/AppErrors.js";
 import { DiaSemana } from "../Enumerados/DiaSemana.js";
+
 
 export class DisponibilidadHoraria {
     constructor( {diaSemana, horaDesde, horaHasta, sede} ) {
@@ -22,19 +25,19 @@ export class DisponibilidadHoraria {
     validarDiaSemana(diaSemana){
         const valoresDiaSemana = Object.values(DiaSemana)
         if(!valoresDiaSemana.includes(diaSemana)){
-            throw new TypeError(`El dia de la semana debe ser uno de los siguientes: ${valoresDiaSemana.join(', ')}`)
+            throw new UnprocessableEntityError(`El dia de la semana debe ser uno de los siguientes: ${valoresDiaSemana.join(', ')}`)
         }
     }
 
     validarHora(hora){
        // validar que sea un string en formato HH:mm y que este entre 00:00 y 23:59
        if (typeof hora !== 'string') {
-            throw new TypeError('La hora debe ser una cadena de texto en formato HH:mm')
+            throw new BadRequestError('La hora debe ser una cadena de texto en formato HH:mm')
         }
 
         const regex = /^([01]\d|2[0-3]):([0-5]\d)(:([0-5]\d))?$/ // me genera dudas si esto funciona bien, lo saque de internet, pero no se si es correcto
         if (!regex.test(hora)) {
-            throw new TypeError('La hora debe estar en formato HH:mm y ser válida (00:00 a 23:59)')
+            throw new UnprocessableEntityError('La hora debe estar en formato HH:mm y ser válida (00:00 a 23:59)')
         }
     }
 
@@ -43,7 +46,7 @@ export class DisponibilidadHoraria {
         const minutosHasta = this.convertirHoraEnMinutos(horaFinal)
          
         if (minutosDesde >= minutosHasta) {
-            throw new RangeError('La hora de inicio debe ser menor que la hora de fin')
+            throw new UnprocessableEntityError('La hora de inicio debe ser menor que la hora de fin')
         }
     }
 
@@ -66,8 +69,8 @@ export class DisponibilidadHoraria {
 
     calcularMCDDuraciones(){
         const duracionesServicios = [
-            ...disponibilidad.practicas.map(p => p.duracionTurnoEnMins),
-            ...disponibilidad.especialidades.map(e => e.duracionTurnoEnMins)
+            ...this.practicas.map(p => p.duracionTurnoEnMins),
+            ...this.especialidades.map(e => e.duracionTurnoEnMins)
         ]
         return this.calcularMCD(duracionesServicios)
     }
@@ -78,4 +81,3 @@ export class DisponibilidadHoraria {
         return numeros.reduce((acc, num) => mcd(acc, num));
     }
 }
-

@@ -1,6 +1,7 @@
 import {
     BadRequestError,
-    ConflictError
+    ConflictError,
+    NotFoundError
 } from "../../errors/AppErrors.js";
 
 export class Medico {

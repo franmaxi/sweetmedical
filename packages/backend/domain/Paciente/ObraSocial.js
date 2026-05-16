@@ -1,3 +1,5 @@
+import { BadRequestError } from "../../errors/AppErrors.js";
+
 export class ObraSocial{
     constructor( {nombre} ){
         this.validarNombre(nombre)
@@ -11,7 +13,7 @@ export class ObraSocial{
 
     validarNombre(nombre){
         if (!nombre || typeof nombre !== 'string') {
-            throw new TypeError('El nombre debe ser una cadena de texto válida')
+            throw new BadRequestError('El nombre debe ser una cadena de texto válida')
         }
     }
     

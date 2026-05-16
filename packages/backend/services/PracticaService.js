@@ -1,4 +1,4 @@
-import { Practica } from "../domain/Medico/Practica.js";
+import { Practica } from "../domain/Medico/Servicios/Practica.js";
 import { PracticaRepository } from "../repositories/PracticaRepository.js";
 import { PracticaGenerica } from "../domain/Medico/Servicios/PracticaGenerica.js";
 import { PracticaGenericaRepository } from "../repositories/PracticaGenericaRepository.js";
@@ -47,16 +47,6 @@ export class PracticaService {
         return practica
     }
 
-    async obtenerPorIdGenerica(id){
-            this.validarEnteroPositivo(id, "Id")
-            const practicaGenerica = await this.practicaGenericaRepository.findById(id)
-    
-            if (!practicaGenerica) {
-                throw new NotFoundError("practica no encontrado")
-            }
-            return practicaGenerica
-        }
-
     async obtenerPorNombre(nombre){
         this.validarStringNoNulo(nombre, "nombre de la practica")
         return await this.practicaRepository.findByNombre(nombre)
@@ -91,22 +81,6 @@ export class PracticaService {
         
         return await this.practicaRepository.save(practica)
     }
-    
-    async crearGenerica(datosPGenerica){
-        this.validarStringNoNulo(datosPGenerica.codigo, "codigo")
-
-        this.validarStringNoNulo(datosPGenerica.nombre, "nombre")
-
-        if(await this.practicaGenericaRepository.findOneByNombre(datosPGenerica.nombre) != null){
-            throw new ConflictError("Ya existe una practica de nombre: " + datosPGenerica.nombre)
-        }
-        if(await this.practicaGenericaRepository.findByCodigo(datosPGenerica.codigo) != null){
-            throw new ConflictError("Ya existe una practica de codigo: " + datosPGenerica.codigo)
-        }
-        const practicaGenerica = new PracticaGenerica({nombre: datosPGenerica.nombre})
-    
-        return await this.practicaGenericaRepository.save(practicaGenerica)
-    }
 
     async actualizar(id, datosPractica) {
         this.validarEnteroPositivo(id, "Id")
@@ -117,6 +91,55 @@ export class PracticaService {
         }
         const practicaActualizada = await this.practicaRepository.update(id,datosPractica)
         return practicaActualizada
+    }
+
+
+    async eliminar(id){
+        this.validarEnteroPositivo(id, "Id")
+        const practicaExistente = await this.practicaRepository.findById(id)
+        if (!practicaExistente) {
+            throw new NotFoundError(`No se encontró un practica con el id ${id}`)
+        }
+        const practicaEliminado = await this.practicaRepository.delete(id)
+        return practicaEliminado
+    }
+
+    // ---------- PRACTICAS GENERICAS
+    async obtenerTodosGenerica({ numeroPagina = 1, limitePorPagina = 10, filtros = {} } = {}) {
+        this.validarPaginacion(numeroPagina, limitePorPagina)
+
+        const { practicasGenericas, totalPracticasGenericas } = await this.practicaGenericaRepository.findPaginados(
+            numeroPagina, 
+            limitePorPagina, 
+            filtros
+        )
+        
+        const totalPaginas = totalPracticasGenericas === 0  ? 0 : Math.ceil(totalPracticasGenericas / limitePorPagina)
+
+        return {
+            practicasGenericas,
+            numeroPagina,
+            limitePorPagina,
+            totalPaginas
+        }
+    }
+
+    async crearGenerica(datosPGenerica){
+        this.validarStringNoNulo(datosPGenerica.codigo, "codigo")
+
+        this.validarStringNoNulo(datosPGenerica.nombre, "nombre")
+
+        if(await this.practicaGenericaRepository.findOneByNombre(datosPGenerica.nombre) != null){
+            throw new ConflictError("Ya existe una practica de nombre: " + datosPGenerica.nombre)
+        }
+
+        if(await this.practicaGenericaRepository.findByCodigo(datosPGenerica.codigo) != null){
+            throw new ConflictError("Ya existe una practica de codigo: " + datosPGenerica.codigo)
+        }
+        
+        const practicaGenerica = new PracticaGenerica({nombre: datosPGenerica.nombre, codigo: datosPGenerica.codigo})
+    
+        return await this.practicaGenericaRepository.save(practicaGenerica)
     }
 
     async actualizarGenerica(id, datosNuevos){
@@ -146,20 +169,17 @@ export class PracticaService {
         return await this.practicaGenericaRepository.update(id,practicaGenerica)
     }
 
-    
-
-    async eliminar(id){
+    async obtenerPorIdGenerica(id){
         this.validarEnteroPositivo(id, "Id")
-        const practicaExistente = await this.practicaRepository.findById(id)
-        if (!practicaExistente) {
-            throw new NotFoundError(`No se encontró un practica con el id ${id}`)
+        const practicaGenerica = await this.practicaGenericaRepository.findById(id)
+    
+        if (!practicaGenerica) {
+            throw new NotFoundError("practica no encontrado")
         }
-        const practicaEliminado = await this.practicaRepository.delete(id)
-        return practicaEliminado
+        return practicaGenerica
     }
 
     // Metodos Auxiliares
-
     validarDatosPractica(datos) {
         if (!datos || typeof datos !== "object") {
             throw new BadRequestError("Los datos del practica son requeridos")
@@ -195,7 +215,6 @@ export class PracticaService {
         }
     }
 
-
     validarPaginacion(numeroPagina, limitePorPagina) {
         this.validarEnteroPositivo(numeroPagina, "Numero de página")
         this.validarEnteroPositivo(limitePorPagina, "Límite por página")
@@ -208,8 +227,8 @@ export class PracticaService {
     }
 
     validarStringNoNulo(string, parametro){
-            if (typeof string !== 'string' || string.trim() === '') {
-                throw new UnprocessableEntityError(`${parametro} debe ser un string no nulo`)
-            }
+        if (typeof string !== 'string' || string.trim() === '') {
+            throw new UnprocessableEntityError(`${parametro} debe ser un string no nulo`)
         }
+    }
 }

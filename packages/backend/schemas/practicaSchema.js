@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { Practica } from '../domain/Medico/Practica.js';
+import { Practica } from '../domain/Medico/Servicios/Practica.js';
 
 const practicaSchema = new mongoose.Schema({
     

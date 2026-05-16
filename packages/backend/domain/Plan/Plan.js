@@ -1,3 +1,5 @@
+import { BadRequestError } from "../../errors/AppErrors.js";
+
 export class Plan{
     constructor( {nombre} ){
         this.validarNombre(nombre)
@@ -22,7 +24,7 @@ export class Plan{
 
     validarNombre(nombre){
         if (typeof nombre !== 'string' || nombre.trim() === '') {
-            throw new TypeError('El nombre del plan debe ser un string no vacío')
+            throw new BadRequestError('El nombre del plan debe ser un string no vacío')
         }
     }
 }

@@ -1,6 +1,7 @@
 import { EstadoTurno } from "../Enumerados/EstadoTurno.js";
 import { Turno } from "./Turno.js";
 import { Usuario } from "../Usuario.js";
+import { BadRequestError } from "../../errors/AppErrors.js";
 
 export class CambioEstadoTurno{
     constructor( {estado,turno,usuario,motivo} ){
@@ -20,23 +21,23 @@ export class CambioEstadoTurno{
 
     validarEstado(estado){  
         if(!Object.values(EstadoTurno).includes(estado)){
-            throw new TypeError('El estado debe ser un valor válido')
+            throw new BadRequestError('El estado debe ser un valor válido')
         }
     }
     validarTurno(turno){  
         if (!(turno instanceof Turno)) { 
-            throw new TypeError('El turno debe ser una objeto Turno válido')
+            throw new BadRequestError('El turno debe ser una objeto Turno válido')
     }
     }
     validarUsuario(usuario){  
         if (!(usuario instanceof Usuario)) { // Preguntar si esta bien que sea un objeto.
-            throw new TypeError('El usuario debe ser un objeto válido')
+            throw new BadRequestError('El usuario debe ser un objeto válido')
     }
     }
     
     validarMotivo(motivo){  
         if (!motivo || typeof motivo !== 'string') {
-            throw new TypeError('El motivo debe ser una cadena de texto válida')
+            throw new BadRequestError('El motivo debe ser una cadena de texto válida')
     }
     }
 

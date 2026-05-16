@@ -1,4 +1,6 @@
+import { BadRequestError } from "../../errors/AppErrors.js";
 import { Usuario } from "../Usuario.js";
+
 
 export class Notificacion {
 
@@ -25,14 +27,13 @@ export class Notificacion {
 
     validarUsuario(usuario, campo){
         if (!(usuario instanceof Usuario)) {
-            throw new TypeError(`El ${campo} debe ser un objeto usuario válido`)
+            throw new BadRequestError(`El ${campo} debe ser un objeto usuario válido`)
         }
     }
 
     validarMensaje(mensaje){
         if (typeof mensaje !== 'string' || mensaje.trim() === '') {
-            throw new TypeError('El mensaje debe ser un string no vacío')
+            throw new BadRequestError('El mensaje debe ser un string no vacío')
         }  
     }
-
 }

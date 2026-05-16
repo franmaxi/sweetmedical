@@ -89,17 +89,6 @@ export class EspecialidadService{
         return await this.especialidadRepository.save(especialidad) 
     }
 
-    async crearGenerica(datosEGenerica){
-        this.validarStringNoNulo(datosEGenerica.nombre, "nombre de la especialidad")
-
-        if(await this.especialidadGenericaRepository.findOneByNombre(datosEGenerica.nombre) != null){
-            throw new ConflictError("Ya existe una especialidad de nombre: " + datosEGenerica.nombre)
-        }
-
-        const especialidadGenerica = new EspecialidadGenerica({nombre: datosEGenerica.nombre})
-
-        return await this.especialidadGenericaRepository.save(especialidadGenerica)
-    }
 
     async actualizar(id, datosEspecialidad){
         this.validarEnteroPositivo(id,"Id")
@@ -114,7 +103,19 @@ export class EspecialidadService{
         return await this.especialidadRepository.update(id,especialidad)
     }
 
-    // ---------- Especialidades Genericas
+    //  ---------- Especialidades Genericas ----------
+    async crearGenerica(datosEGenerica){
+        this.validarStringNoNulo(datosEGenerica.nombre, "nombre de la especialidad")
+
+        if(await this.especialidadGenericaRepository.findOneByNombre(datosEGenerica.nombre) != null){
+            throw new ConflictError("Ya existe una especialidad de nombre: " + datosEGenerica.nombre)
+        }
+
+        const especialidadGenerica = new EspecialidadGenerica({nombre: datosEGenerica.nombre})
+
+        return await this.especialidadGenericaRepository.save(especialidadGenerica)
+    }
+
     async obtenerTodosGenerica({numeroPagina = 1, limitePorPagina = 10, filtros = {} } = {}){
         this.validarPaginacion(numeroPagina,limitePorPagina)
         //TODO Agregar filtros

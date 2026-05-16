@@ -1,5 +1,7 @@
 import { EspecialidadGenerica } from "../Medico/Servicios/EspecialidadGenerica.js";
 import { NivelCobertura } from "../Enumerados/NivelCobertura.js";
+import { BadRequestError } from "../../errors/AppErrors.js";
+
 export class CoberturaEspecialidad{
     constructor( {especialidadGenerica,nivel} ){
         this.validarEspecialidad(especialidadGenerica)
@@ -13,13 +15,13 @@ export class CoberturaEspecialidad{
 
     validarEspecialidad(especialidadGenerica){
         if (!(especialidadGenerica instanceof EspecialidadGenerica)){
-            throw new TypeError('La especialidad debe ser un objeto válido')
+            throw new BadRequestError('La especialidad debe ser un objeto válido')
         }
     }
 
     validarNivel(nivel){
         if(!Object.values(NivelCobertura).includes(nivel)){
-            throw new TypeError('El nivel de cobertura debe ser un valor válido')
+            throw new BadRequestError('El nivel de cobertura debe ser un valor válido')
         }
     }
 }  

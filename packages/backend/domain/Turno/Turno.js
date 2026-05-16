@@ -5,6 +5,7 @@ import { Especialidad } from "../Medico/Servicios/Especialidad.js";
 import { Practica } from "../Medico/Servicios/Practica.js";
 import { Sede } from "../Sede.js";
 import { EstadoTurno } from "../Enumerados/EstadoTurno.js";
+import { BadRequestError } from "../../errors/AppErrors.js";
 
 export class Turno{
     constructor( {medico, fechaHora, sede, practica, especialidad, disponibilidad} 
@@ -32,50 +33,50 @@ export class Turno{
     
     validarMedico(medico){
         if (!(medico instanceof Medico)) { // Preguntar si esta bien que sea un objeto.
-            throw new TypeError('El Medico debe ser un objeto válido')
+            throw new BadRequestError('El Medico debe ser un objeto válido')
         }
     }    
 
     validarPaciente(paciente){
         if (!(paciente instanceof Paciente)) { // Preguntar si esta bien que sea un objeto.
-            throw new TypeError('El Paciente debe ser un objeto válido')
+            throw new BadRequestError('El Paciente debe ser un objeto válido')
         }
     }
 
     validarFechaHora(fechaHora){
         if (!fechaHora || !(fechaHora instanceof Date)) { 
-            throw new TypeError('La fecha y hora debe ser un objeto Date válido')
+            throw new BadRequestError('La fecha y hora debe ser un objeto Date válido')
         }
         // TODO validar si esto está bien o deberia ser un string con formato ISO.
     }
 
     validarSede(sede){
         if (!(sede instanceof Sede)) { // Preguntar si esta bien que sea un objeto.
-            throw new TypeError('La sede debe ser un objeto válido')
+            throw new BadRequestError('La sede debe ser un objeto válido')
         }
     }
 
     validarPractica(practica){
         if (!(practica instanceof Practica)) { // Preguntar si esta bien que sea un objeto.
-            throw new TypeError('La práctica debe ser una cadena de texto válida')
+            throw new BadRequestError('La práctica debe ser una cadena de texto válida')
         }
     }
     
     validarEspecialidad(especialidad){
         if (!(especialidad instanceof Especialidad)) { // Preguntar si esta bien que sea un objeto.
-            throw new TypeError('La especialidad debe ser una cadena de texto válida')
+            throw new BadRequestError('La especialidad debe ser una cadena de texto válida')
         }
     }
 
     validarEstado(estado){  
         if(!Object.values(EstadoTurno).includes(estado)){
-            throw new TypeError('El estado debe ser un valor válido')
+            throw new BadRequestError('El estado debe ser un valor válido')
         }
     }
 
     validarCosto(costo){
         if (typeof costo !== 'number' || costo < 0) {
-            throw new TypeError('El costo debe ser un número válido')
+            throw new BadRequestError('El costo debe ser un número válido')
         }
     }
 

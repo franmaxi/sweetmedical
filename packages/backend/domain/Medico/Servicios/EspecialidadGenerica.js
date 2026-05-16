@@ -1,3 +1,4 @@
+import { BadRequestError } from "../../../errors/AppErrors.js"
 export class EspecialidadGenerica{
     
     constructor({nombre}){
@@ -9,7 +10,7 @@ export class EspecialidadGenerica{
     
     validarNombre(nombre){
         if (typeof nombre !== 'string' || nombre.trim() === '') {
-            throw new TypeError('El nombre de la especialidad debe ser un string no vacío')
+            throw new BadRequestError('El nombre de la especialidad debe ser un string no vacío')
         }
     }
 }

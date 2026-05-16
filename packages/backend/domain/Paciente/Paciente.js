@@ -1,6 +1,7 @@
 import { Usuario } from "../Usuario.js";
 import { ObraSocial } from "./ObraSocial.js";
 import { Plan } from "../Plan/Plan.js";
+import { BadRequestError } from "../../errors/AppErrors.js";
 export class Paciente {
 
     constructor( {usuario,dni,nombre,obraSocial,plan} ){
@@ -22,32 +23,32 @@ export class Paciente {
     
     validarUsuario(usuario){
         if (!(usuario instanceof Usuario)) {
-            throw new TypeError('El usuario debe ser un objeto usuario válido')
+            throw new BadRequestError('El usuario debe ser un objeto usuario válido')
         }
     }
 
     validarDni(dni){
         if (typeof dni !== 'string' || dni.trim() === '') {
-            throw new TypeError('El DNI debe ser un string no vacío')
+            throw new BadRequestError('El DNI debe ser un string no vacío')
         }
         //TODO validar formato de DNI
     }
 
     validarNombre(nombre){
         if (typeof nombre !== 'string' || nombre.trim() === '') {
-            throw new TypeError('El nombre del paciente debe ser un string no vacío')
+            throw new BadRequestError('El nombre del paciente debe ser un string no vacío')
         }
     }
     
     validarObraSocial(obraSocial){
         if (!(obraSocial instanceof ObraSocial)) {
-            throw new TypeError('La obra social debe ser un objeto válido')
+            throw new BadRequestError('La obra social debe ser un objeto válido')
         }
     }
     
     validarPlan(plan){
         if (!(plan instanceof Plan)) {
-            throw new TypeError('El plan debe ser un objeto válido')
+            throw new BadRequestError('El plan debe ser un objeto válido')
         }
     }
 

@@ -1,4 +1,4 @@
-import { PracticaModel } from "../schemas/PracticaSchema.js";
+import { PracticaModel } from "../schemas/practicaSchema.js";
 
 export class PracticaRepository {
     constructor(){

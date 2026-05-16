@@ -1,3 +1,5 @@
+import { BadRequestError } from "../errors/AppErrors.js"
+
 export class Sede {
     constructor( {nombre, direccion} ) {
         this.validarString(nombre, 'nombre')
@@ -12,7 +14,7 @@ export class Sede {
 
     validarString(string, nombreCampo){
         if (typeof string !== 'string' || string.trim() === '') {
-            throw new TypeError(`El ${nombreCampo} debe ser un string no vacío`)
+            throw new BadRequestError(`El ${nombreCampo} debe ser un string no vacío`)
         }
     }
 
