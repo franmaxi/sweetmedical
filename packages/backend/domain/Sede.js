@@ -1,22 +1,11 @@
-import { BadRequestError } from "../errors/AppErrors.js"
+import { sedeDomainSchema } from "../validations/sedeValidation.js";
 
 export class Sede {
-    constructor( {nombre, direccion} ) {
-        this.validarString(nombre, 'nombre')
-        this.validarString(direccion, 'direccion')
+    constructor({ nombre, direccion }) {
+        const valid = sedeDomainSchema.parse({ nombre, direccion });
 
-        this.id = null //todo
-        this.nombre = nombre
-        this.direccion = direccion
+        this.id = null; //todo
+        this.nombre = valid.nombre;
+        this.direccion = valid.direccion;
     }
-
-    // Validacion Constructor
-
-    validarString(string, nombreCampo){
-        if (typeof string !== 'string' || string.trim() === '') {
-            throw new BadRequestError(`El ${nombreCampo} debe ser un string no vacío`)
-        }
-    }
-
-
 }

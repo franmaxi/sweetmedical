@@ -8,18 +8,20 @@ export class EspecialidadGenericaRepository{
     async findAll() {
         return await this.model.find(); 
     }
-    
+
     async findPaginados(pagina, limite, filtros = {}) {
         const salto = (pagina-1) * limite
 
-        let especialidadesGenericas = await this.findByFilters(filtros).skip(salto).limit(limite)
+        const filtrosAplicados = { eliminado: false, ...filtros };
+
+        let especialidadesGenericas = await this.findByFiltersLocal(filtrosAplicados).skip(salto).limit(limite)
 
         const total = await this.model.countDocuments({
-            eliminado: false
+            filtrosAplicados
         })
 
         return {
-            especialidades: especialidadesGenericas,
+            especialidadesGenericas: especialidadesGenericas,
             totalEspecialidadesGenericas: total,
             pagina,
             totalPages: Math.ceil(total/limite)
@@ -50,5 +52,10 @@ export class EspecialidadGenericaRepository{
 
     async delete(id) {
         return await this.model.findByIdAndDelete(id)
+    }
+
+    //auxiliar
+    findByFiltersLocal(filtros = {}) {
+        return this.model.find(filtros); 
     }
 }

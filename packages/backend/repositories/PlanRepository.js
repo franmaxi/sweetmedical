@@ -7,6 +7,9 @@ export class PlanRepository{
     async findAll() {
         return await this.model.find(); 
     }
+    async findById(id) {
+        return await this.model.findById(id);
+    }
      async save(plan) {
         const nuevoPlan = new this.model(plan);
         return await nuevoPlan.save();

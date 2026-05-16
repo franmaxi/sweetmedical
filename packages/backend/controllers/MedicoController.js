@@ -1,7 +1,6 @@
 import {BadRequestError} from "../errors/AppErrors.js"
 import { MedicoService } from "../services/MedicoService.js"
 
-
 export class MedicoController{
     constructor({
         medicoService = new MedicoService()
@@ -85,21 +84,6 @@ export class MedicoController{
         }
     }
 
-      create = async (req, res,next) =>{
-        try{
-    
-            const datosMedico = this.extraerYValidarBodyMedico(req.body)
-            const medicoCreado = await this.medicoService.crear(datosMedico)
-            return res.status(201).json({
-                status: "success",
-                data : medicoCreado
-            })
-        }
-        catch(error){
-            return next(error)
-        }
-    }
-
     consultarAgenda = async (req,res,next) => {
         try {
             const medicoId = this.parsearId(req.params.id)
@@ -114,6 +98,67 @@ export class MedicoController{
             return next(error)
         }
     }
+
+    //POST /medicos/:id/disponibilidades
+    crearDisponibilidad = async (req,res,next) => {
+        try {
+            const medicoId = this.parsearId(req.params.id)
+            const disponibilidad = req.body
+            const disponibilidadCreada = await this.medicoService.crearDisponibilidad(medicoId,disponibilidad)
+            return res.status(201).json({
+                status: "success",
+                data : disponibilidadCreada
+            })
+        } catch (error) {
+            return next(error)
+        }
+    }
+
+    // PUT /medicos/:id/disponibilidades/:disponibilidadId    
+    modificarDisponibilidad = async (req,res,next) => {
+        try {
+            const medicoId = this.parsearId(req.params.id)
+            const disponibilidadId = this.parsearId(req.params.disponibilidadId)
+            const disponibilidad = req.body
+            const disponibilidadActualizada = await this.medicoService.modificarDisponibilidad(medicoId,disponibilidadId,disponibilidad)
+            return res.status(200).json({
+                status: "success",
+                data : disponibilidadActualizada
+            })
+        } catch (error) {
+            return next(error)
+        }
+    }
+
+    // GET /medicos/:id/disponibilidades
+    listarDisponibilidades = async (req,res,next) => {
+        try {
+            const medicoId = this.parsearId(req.params.id)
+            const disponibilidades = await this.medicoService.obtenerDisponibilidades(medicoId)
+            return res.status(200).json({
+                status: "success",
+                data : disponibilidades
+            })
+        } catch (error) {
+            return next(error)
+        }
+    }
+
+    // GET /medicos/:id/disponibilidades/:disponibilidadId
+    obtenerDisponibilidad = async (req,res,next) => {
+        try {
+            const medicoId = this.parsearId(req.params.id)
+            const disponibilidadId = this.parsearId(req.params.disponibilidadId)
+            const disponibilidad = await this.medicoService.obtenerDisponibilidad(medicoId,disponibilidadId)
+            return res.status(200).json({
+                status: "success",
+                data : disponibilidad
+            })
+        } catch (error) {
+            return next(error)
+        }
+    }
+
 
     extraerEspecialidad(query){
         const especialidadId = query?.especialidadId === undefined ? null : Number(query.especialidadId)

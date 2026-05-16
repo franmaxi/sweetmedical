@@ -11,12 +11,17 @@ export class TurnoRepository{
             .populate("medico")
             .populate("paciente")
             .populate("sede")
+            .populate('disponibilidad')
+            .populate('especialidad')
+            .populate('practica')
     }
 
     async findAll() {
         return await this.model.find(); 
     }
     async obtenerSiguientesDisponibles(fechaTurno,fechaMaximo,medicoId){
+        // devuelve los turnos entre las fechas dadas, que esten disponibles, sean para el medico pasado por parametro
+        // se devuelve ordenado por fechaHora de menor a mayor
         return await this.model.find({
             medicoId,
             estado: EstadoTurno.DISPONIBLE,
@@ -24,7 +29,7 @@ export class TurnoRepository{
                 $gt: fechaTurno,
                 $lt: fechaMaximo
             }
-        }).sort({fechahora : 1})
+        }).sort({fechaHora : 1})
     }
     async save(turno) {
         const nuevoTurno = new this.model(turno);
@@ -82,5 +87,19 @@ export class TurnoRepository{
             // que estamos devolviendo en la pagina?
         
         return { turnos, totalTurnos, totalPaginas };
-}
+    }
+
+    async obtenerCombinados(turno) {
+        const duracion = turno.especialidad?.duracionTurnoEnMins ?? turno.practica?.duracionTurnoEnMins
+        const fechaFin = new Date(turno.fechahora.getTime() + duracion * 60 * 1000)
+
+        return await this.model.find({
+            medico: turno.medico._id,
+            estado: EstadoTurno.COMBINADO,
+            fechahora: { $gt: turno.fechahora, $lt: fechaFin }
+        })
+        .sort({ fechahora: 1 })
+        .populate('medico')
+        .populate('paciente')
+    }
 }

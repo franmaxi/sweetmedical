@@ -74,7 +74,7 @@ reservar = async(req, res, next) =>  {
         const turnoId = this.parsearId(req.params.id);
         const { pacienteId } = this.extraerBodyReserva(req.body);
 
-        const turno = await this.turnoService.reservar(turnoId, pacienteId);
+        const turno = await this.turnoService.reservarTurno(turnoId, pacienteId);
 
         return res.status(200).json({
             status: "success",

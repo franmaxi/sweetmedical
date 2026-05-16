@@ -1,6 +1,6 @@
 import { ObraSocialModel } from "../schemas/obraSocialSchema.js";
 
-export class ObrasSocialRepository{
+export class ObraSocialRepository{
     constructor(){
         this.model = ObraSocialModel
     }
@@ -12,6 +12,9 @@ export class ObrasSocialRepository{
      }
     async findAll() {
         return await this.#populate(this.model.find()); 
+    }
+    async findById(id) {
+        return await this.#populate(this.model.findById(id));
     }
      async save(obraSocial) {
         const nuevaObraSocial = new this.model(obraSocial);

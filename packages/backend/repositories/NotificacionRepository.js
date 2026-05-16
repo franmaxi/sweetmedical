@@ -37,4 +37,8 @@ export class NotificacionRepository{
         return await this.model.findById(id);
     }
 
+    async findById(id) {
+        return await this.model.findById(id);
+    }
 }
+

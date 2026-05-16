@@ -2,9 +2,7 @@ import { Agenda } from "../domain/Turno/Agenda.js"
 import { DisponibilidadHoraria } from "../domain/Medico/DisponibilidadHoraria.js"
 import { Especialidad } from "../domain/Medico/Especialidad.js"
 import { Practica } from "../domain/Medico/Practica.js"
-import { Turno } from "../domain/Turno/Turno.js"
-import { EstadoTurno } from "../domain/Enumerados/EstadoTurno.js"
-import { CambioEstadoTurno } from "../domain/Turno/CambioEstadoTurno.js"
+
 
 const agenda = new Agenda()
 
@@ -40,7 +38,7 @@ console.log('\n[TEST] generarTurnosPorDisponibilidad')
 const especialidad15 = new Especialidad({
     nombre: 'Cardiologia',
     duracionTurnoEnMins: 15,
-    costoConsulta: 1000
+    costo: 1000
 })
 
 const disponibilidad15 = new DisponibilidadHoraria({
@@ -83,7 +81,7 @@ console.log('\n[TEST] MCD especialidades + practicas')
 const especialidad30 = new Especialidad({
     nombre: 'Clinica',
     duracionTurnoEnMins: 30,
-    costoConsulta: 1000
+    costo: 1000
 })
 
 const practica60 = new Practica({

@@ -1,6 +1,8 @@
 import express from "express";
 import cors from "cors";
+import swaggerUi from "swagger-ui-express";          // ← agregado
 import router from "./routes/router.js";
+import swaggerSpec from "./swagger.js";              // ← agregado
 import { NotFoundHandler } from "./middlewares/notFoundHandler.js";
 import { errorLogger } from "./middlewares/errorLogger.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
@@ -16,14 +18,13 @@ app.use(
   })
 );
 
-
 app.get("/health", (_, res) => {
   res.status(200).json({ message: "Servidor en funcionamiento" });
 });
 
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));  // ← agregado
 
 app.use(router);
-
 
 app.use(NotFoundHandler);
 app.use(errorLogger);

@@ -1,30 +1,22 @@
-import { BadRequestError } from "../../errors/AppErrors.js";
+import { planDomainSchema } from "../../validations/pacienteValidation.js";
 
-export class Plan{
-    constructor( {nombre} ){
-        this.validarNombre(nombre)
+export class Plan {
+    constructor({ nombre }) {
+        const valid = planDomainSchema.parse({ nombre });
 
-        this.id = null //todo
-        this.nombre = nombre;
+        this.id = null; //todo
+        this.nombre = valid.nombre;
         this.coberturaEspecialidad = [];
         this.coberturaPractica = [];
     }
 
-    obtenerCoberturaEspecialidad(especialidad){
-        const cobertura = this.coberturaEspecialidad.find(c => c.especialidad === especialidad); //tiene q devolver un unico elemento
-        return cobertura.nivel;
-        // puede que tengamos que verificar los ids en vez de la especialidad directa segun como se trabaje con la persistencia
+    obtenerCoberturaEspecialidad(especialidad) {
+        const cobertura = this.coberturaEspecialidad.find(c => c.especialidad === especialidad);
+        return cobertura ? cobertura.nivel : null;
     }
-    obtenerCoberturaPractica(practica){
-        const cobertura = this.coberturaPractica.find(c => c.practica === practica);  //tiene q devolver un unico elemento
-        return cobertura.nivel;
-    }
-    
-    // Validacion Constructor
 
-    validarNombre(nombre){
-        if (typeof nombre !== 'string' || nombre.trim() === '') {
-            throw new BadRequestError('El nombre del plan debe ser un string no vacío')
-        }
+    obtenerCoberturaPractica(practica) {
+        const cobertura = this.coberturaPractica.find(c => c.practica === practica);
+        return cobertura ? cobertura.nivel : null;
     }
 }

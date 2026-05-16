@@ -1,6 +1,7 @@
 import { Paciente} from "../domain/Paciente/Paciente.js";
 import { PacienteRepository } from "../repositories/PacienteRepository.js";
 import { Usuario } from "../domain/Usuario.js";
+import 
 import { UsuarioRepository } from "../repositories/UsuarioRepository.js";
 import {
     BadRequestError,
@@ -12,13 +13,13 @@ export class PacienteService {
     constructor({
         pacienteRepository = new PacienteRepository(),
         usuarioRepository = new UsuarioRepository(),
-        //planRepository = new PlanRepository(), //TODO no vamos a tener plan ni obra social repositories
-        //obraSocialRepository = new ObraSocialRepository(),
+        planRepository = new PlanRepository(), //TODO no vamos a tener plan ni obra social repositories
+        obraSocialRepository = new ObraSocialRepository(),
     } = {}) {
         this.pacienteRepository = pacienteRepository
         this.usuarioRepository = usuarioRepository
-        //this.planRepository = planRepository
-        //this.obraSocialRepository = obraSocialRepository
+        this.planRepository = planRepository
+        this.obraSocialRepository = obraSocialRepository
     }
    
     async obtenerTodos({ numeroPagina = 1, limitePorPagina = 10, filtros = {} } = {}) {

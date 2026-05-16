@@ -29,16 +29,16 @@ export class FactoryNotificacion {
                     })
             })
             case EstadoTurno.CANCELADO: {
-                const {usuarioContrario} = this.obtenerContrario(turno)
-                const {motivoCancelacion} = this.obtenerUltimoHistorialEstado(turno).motivo
+                const usuarioContrario = this.obtenerContrario(turno)
+                const ultimoCambio = this.obtenerUltimoHistorialEstado(turno)
                 return new Notificacion({
-                    destinatario: usuarioContrario, 
+                    destinatario: usuarioContrario.usuario,
                     remitente: null, 
                     mensaje: i18next.t('notificaciones.turno.cancelado.destinatario', {
                         lng:       usuarioContrario.usuario.idioma,
                         nombre:    usuarioContrario.nombreUsuario,
                         fechaHora: turno.fechaHora,
-                        motivo:    motivoCancelacion,
+                        motivo:    ultimoCambio.motivo,
                     }) 
                 })
             }
@@ -85,7 +85,7 @@ export class FactoryNotificacion {
     obtenerContrario(turno){
         // devuelve el usuario contrario al que hizo el cambio de estado del turno, para enviarle la notificacion
         const ultimoHETurno = this.obtenerUltimoHistorialEstado(turno)
-        if(ultimoHETurno.usuario === turno.paciente.usuario){
+        if(ultimoHETurno.usuario._id.equals(turno.paciente.usuario._id)){
             return turno.medico
         } else {
             return turno.paciente

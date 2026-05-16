@@ -1,20 +1,21 @@
-import {BadRequestError} from "../errors/AppErrors.js"
 import { EspecialidadService } from "../services/EspecialidadService.js"
+import { paginacionSchema, paramsIdSchema } from "../validations/commonValidations.js"
+import { especialidadBodySchema, especialidadGenericaBodySchema } from "../validations/especialidadValidation.js"
 
-export class EspecialidadController{
+export class EspecialidadController {
     constructor({
         especialidadService = new EspecialidadService()
-    } = {}){
+    } = {}) {
         this.especialidadService = especialidadService
     } 
 
-    findAll = async (req, res,next) => {
+    findAll = async (req, res, next) => {
         try {
-            const paginacion = this.extraerPaginacion(req.query)
-            const resultado = await this.especialidadService.obtenerTodos({...paginacion})
+            const { page: numeroPagina, limit: limitePorPagina } = paginacionSchema.parse(req.query)
+            const resultado = await this.especialidadService.obtenerTodos({ numeroPagina, limitePorPagina })
             return res.status(200).json({
-                status : "success",
-                data : resultado.especialidades,
+                status: "success",
+                data: resultado.especialidades,
                 paginacion: {
                     numeroPagina: resultado.numeroPagina,
                     limitePagina: resultado.limitePagina,
@@ -27,50 +28,49 @@ export class EspecialidadController{
         }
     }
 
-    create = async (req, res,next) => {
+    create = async (req, res, next) => {
         try {
-            const datosEspecialidad = this.validarYExtraerBody(req.body,["nombre","duracionTurnoEnMins","costoConsulta"])
+            const datosEspecialidad = especialidadBodySchema.parse(req.body)
             const especialidadCreada = await this.especialidadService.crear(datosEspecialidad)
             return res.status(201).json({
                 status: "success",
-                data : especialidadCreada
+                data: especialidadCreada
             })
         } catch (error) {
             return next(error)
         }
     }
 
-
-    delete = async (req, res,next) => {
+    delete = async (req, res, next) => {
         try {
-            const id = this.parsearId(req.params.id)
+            const { id } = paramsIdSchema.parse(req.params)
             const especialidadEliminada = await this.especialidadService.eliminar(id)
             return res.status(200).json({
-                status : "success",
-                data : especialidadEliminada
+                status: "success",
+                data: especialidadEliminada
             })
         } catch (error) {
             return next(error)
         }
     }
 
-    update = async (req, res,next) => {
+    update = async (req, res, next) => {
         try {
-            const id = this.parsearId(req.params.id)
-            const datosEspecialidad = this.validarYExtraerBody(req.body,["nombre","duracionTurnoEnMins","costoConsulta"])
-            const especialidadActualizada = await this.especialidadService.actualizar(id,datosEspecialidad)
+            const { id } = paramsIdSchema.parse(req.params)
+            const datosEspecialidad = especialidadBodySchema.parse(req.body)
+            const especialidadActualizada = await this.especialidadService.actualizar(id, datosEspecialidad)
             return res.status(200).json({
                 status: "success",
-                data : especialidadActualizada
+                data: especialidadActualizada
             })
         } catch (error) {
             return next(error)
         }
     }
 
-    findById = async (req, res,next) => {
+    findById = async (req, res, next) => {
         try {
-            const id = this.parsearId(req.params.id)
+            const { id } = paramsIdSchema.parse(req.params)
             const especialidad = await this.especialidadService.obtenerPorId(id)
             return res.status(200).json({
                 status: "success",
@@ -82,26 +82,26 @@ export class EspecialidadController{
     }
 
     // ------- Especialidades Genericas ---------
-    createGenerica = async (req, res,next) => {
+    createGenerica = async (req, res, next) => {
         try {
-            const datosEGenerica = this.validarYExtraerBody(req.body, ["nombre"])
+            const datosEGenerica = especialidadGenericaBodySchema.parse(req.body)
             const eGenericaCreada = await this.especialidadService.crearGenerica(datosEGenerica)
             return res.status(201).json({
                 status: "success",
-                data : eGenericaCreada
+                data: eGenericaCreada
             })
         } catch (error) {
             return next(error)
         }
     }
 
-    findAllGenerica = async (req, res,next) => {
+    findAllGenerica = async (req, res, next) => {
         try {
-            const paginacion = this.extraerPaginacion(req.query)
-            const resultado = await this.especialidadService.obtenerTodosGenerica({...paginacion})
+            const { page: numeroPagina, limit: limitePorPagina } = paginacionSchema.parse(req.query)
+            const resultado = await this.especialidadService.obtenerTodosGenerica({ numeroPagina, limitePorPagina })
             return res.status(200).json({
-                status : "success",
-                data : resultado.especialidadesGenericas,
+                status: "success",
+                data: resultado.especialidadesGenericas,
                 paginacion: {
                     numeroPagina: resultado.numeroPagina,
                     limitePagina: resultado.limitePagina,
@@ -114,9 +114,9 @@ export class EspecialidadController{
         }
     }
 
-    findByIdGenerica = async (req, res,next) => {
+    findByIdGenerica = async (req, res, next) => {
         try {
-            const id = this.parsearId(req.params.id)
+            const { id } = paramsIdSchema.parse(req.params)
             const especialidadGenerica = await this.especialidadService.obtenerPorIdGenerica(id)
             return res.status(200).json({
                 status: "success",
@@ -127,70 +127,20 @@ export class EspecialidadController{
         }
     }
 
-    updateGenerica = async (req, res,next) => {
+    updateGenerica = async (req, res, next) => {
         try {
-            const id = this.parsearId(req.params.id)
-            const datosEspecialidad = this.validarYExtraerBody(req.body,["nombre"])
-            const especialidadActualizada = await this.especialidadService.actualizarGenerica(id,datosEspecialidad)
+            const { id } = paramsIdSchema.parse(req.params)
+            const datosEspecialidad = especialidadGenericaBodySchema.parse(req.body)
+            const especialidadActualizada = await this.especialidadService.actualizarGenerica(id, datosEspecialidad)
             return res.status(200).json({
                 status: "success",
-                data : especialidadActualizada
+                data: especialidadActualizada
             })
         } catch (error) {
             return next(error)
         }
     }    
-
-    // Métodos auxiliares
-    extraerPaginacion(query) {
-        const numeroPagina = query?.page === undefined ? 1 : Number(query.page)
-        const limitePorPagina = query?.limit === undefined ? 10 : Number(query.limit)
-
-        this.validarEnteroPositivo(numeroPagina, "page")
-        this.validarEnteroPositivo(limitePorPagina, "limit")
-
-        return { numeroPagina, limitePorPagina }
-    }
-
-    validarEnteroPositivo(numero, parametro) {
-        if (!Number.isInteger(numero) || numero <= 0) {
-            throw new BadRequestError(`El parámetro ${parametro} debe ser un entero positivo`)
-        }
-    }
- 
-    
-    parsearId(idParam) {
-        const id = Number(idParam)
-
-        this.validarEnteroPositivo(id, "id")
-
-        return id
-    }
-
-    validarYExtraerBody(body, camposRequeridos = []) {
-        if (!body || typeof body !== 'object' || Array.isArray(body)) {
-            throw new BadRequestError("El cuerpo de la solicitud debe ser un objeto JSON válido.");
-        }
-
-        const camposBody = Object.keys(body);
-
-        const camposNoPermitidos = camposBody.filter(campo => !camposRequeridos.includes(campo));
-        if (camposNoPermitidos.length > 0) {
-            throw new BadRequestError(`Campos no permitidos en la solicitud: ${camposNoPermitidos.join(", ")}`);
-        }
-
-        const camposFaltantes = camposRequeridos.filter(campo => body[campo] === undefined || body[campo] === null);
-        if (camposFaltantes.length > 0) {
-            throw new BadRequestError(`Faltan campos obligatorios en la solicitud: ${camposFaltantes.join(", ")}`);
-        }
-
-        const bodyLimpio = {};
-        camposRequeridos.forEach(campo => {
-            bodyLimpio[campo] = body[campo];
-        });
-
-        return bodyLimpio;
-    }
 }
+
 
     

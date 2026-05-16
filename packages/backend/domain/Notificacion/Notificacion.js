@@ -1,39 +1,20 @@
-import { BadRequestError } from "../../errors/AppErrors.js";
-import { Usuario } from "../Usuario.js";
-
+import { notificacionDomainSchema } from "../../validations/notificacionValidation.js";
 
 export class Notificacion {
-
-    constructor( {destinatario, remitente, mensaje} ) {
-        this.validarUsuario(destinatario, 'destinatario')
-        this.validarUsuario(remitente, 'remitente')
-        this.validarMensaje(mensaje)
+    constructor({ destinatario, remitente, mensaje }) {
+        const valid = notificacionDomainSchema.parse({ destinatario, remitente, mensaje });
 
         this.id = null; //todo revisar como se asigna el id para persistir
-        this.destinatario = destinatario;
-        this.remitente = remitente;
-        this.mensaje = mensaje;
-        this.fechaHoraCreacion =  Date.now();
-        this.fechaHoraLeida = null
-        this.leida = false
+        this.destinatario = valid.destinatario;
+        this.remitente = valid.remitente;
+        this.mensaje = valid.mensaje;
+        this.fechaHoraCreacion = Date.now();
+        this.fechaHoraLeida = null;
+        this.leida = false;
     }
 
-    marcarComoLeida(){
-        this.leida = true
-        this.fechaHoraLeida = Date.now()
-    }
-
-    // Validacion Constructor
-
-    validarUsuario(usuario, campo){
-        if (!(usuario instanceof Usuario)) {
-            throw new BadRequestError(`El ${campo} debe ser un objeto usuario válido`)
-        }
-    }
-
-    validarMensaje(mensaje){
-        if (typeof mensaje !== 'string' || mensaje.trim() === '') {
-            throw new BadRequestError('El mensaje debe ser un string no vacío')
-        }  
+    marcarComoLeida() {
+        this.leida = true;
+        this.fechaHoraLeida = Date.now();
     }
 }

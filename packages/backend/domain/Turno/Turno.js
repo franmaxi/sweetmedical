@@ -81,10 +81,10 @@ export class Turno{
     }
 
     // FIN VALIDACIONES 
-
-
     actualizarEstado(nuevoEstado, usuario, motivo){
-        if(this.estado !== EstadoTurno.CANCELADO || this.estado !== EstadoTurno.REALIZADO){
+        if (this.estado === EstadoTurno.CANCELADO || this.estado === EstadoTurno.REALIZADO) {
+            throw new BadRequestError(`No se puede cambiar el estado de un turno ${this.estado}`)
+        }
         const itemHistorial = new CambioEstadoTurno({
             estado: this.estado,
             turno: this,
@@ -94,10 +94,21 @@ export class Turno{
         this.historialEstados.push(itemHistorial);
         this.estado = nuevoEstado;
     }
-    //TODO else throw new BusinessException
-}
+
     ultimoHistorialEstado(){
         return this.historialEstados.at(-1)
+    }
+
+    // cancelar(usuario, motivo) {
+    //     this.validarPuedeModificarse()
+    //     this.actualizarEstado(EstadoTurno.CANCELADO, usuario, motivo)
+    // }
+
+    sePuedeCancelar(ahora, horasMinimasParaCancelar) {
+        const limiteMinimo = new Date(this.fechaHora.getTime() - horasMinimasParaCancelar * 60 * 60 * 1000)
+        if (ahora >= limiteMinimo) {
+            throw new UnprocessableEntityError(`El turno debe cancelarse con al menos ${horasMinimasParaCancelar} hora/s de anticipación`)
+        }
     }
 
     esTipoTurno(){

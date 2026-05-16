@@ -6,189 +6,162 @@ import {
     BadRequestError,
     ConflictError,
     NotFoundError,
-    UnprocessableEntityError,
 } from "../errors/AppErrors.js";
+import { paginacionSchema, objectIdSchema, stringNoNuloSchema } from "../validations/commonValidations.js";
+import { especialidadBodySchema, especialidadGenericaBodySchema } from "../validations/especialidadValidation.js";
 
-export class EspecialidadService{
-     constructor({
+export class EspecialidadService {
+    constructor({
         especialidadRepository = new EspecialidadRepository(),
         especialidadGenericaRepository = new EspecialidadGenericaRepository()
     } = {}) {
         this.especialidadRepository = especialidadRepository;
-        this.especialidadGenericaRepository = especialidadGenericaRepository
+        this.especialidadGenericaRepository = especialidadGenericaRepository;
     }
 
-    async obtenerTodos({numeroPagina = 1, limitePorPagina = 10, filtros = {} } = {}){
-        this.validarPaginacion(numeroPagina,limitePorPagina)
+    async obtenerTodos({ numeroPagina = 1, limitePorPagina = 10, filtros = {} } = {}) {
+        const { page, limit } = paginacionSchema.parse({ page: numeroPagina, limit: limitePorPagina });
         //TODO Agregar filtros
-        const {especialidades,totalEspecialidades} = await this.especialidadRepository.findPaginados(
-            numeroPagina,
-            limitePorPagina,
+        const { especialidades, totalEspecialidades } = await this.especialidadRepository.findPaginados(
+            page,
+            limit,
             filtros
-        ) 
-        const totalPaginas = totalEspecialidades === 0 ? 0 : Math.ceil(totalEspecialidades/limitePorPagina)
+        ); 
+        const totalPaginas = totalEspecialidades === 0 ? 0 : Math.ceil(totalEspecialidades / limit);
         return {
             especialidades,
-            numeroPagina,
-            limitePorPagina,
+            numeroPagina: page,
+            limitePorPagina: limit,
             totalPaginas,
             totalEspecialidades
-        }
+        };
     }
 
-    async obtenerPorId(id){
-        this.validarEnteroPositivo(id, "Id")
-        const especialidad = await this.especialidadRepository.findById(id)
+    async obtenerPorId(id) {
+        const validId = objectIdSchema.parse(id);
+        const especialidad = await this.especialidadRepository.findById(validId);
 
         if (!especialidad) {
-            throw new NotFoundError("Especialidad no encontrado")
+            throw new NotFoundError("Especialidad no encontrado");
         }
-        return especialidad
+        return especialidad;
     }
 
-    async obtenerPorIdGenerica(id){
-        this.validarEnteroPositivo(id, "Id")
-        const especialidadGenerica = await this.especialidadGenericaRepository.findById(id)
+    async obtenerPorIdGenerica(id) {
+        const validId = objectIdSchema.parse(id);
+        const especialidadGenerica = await this.especialidadGenericaRepository.findById(validId);
 
         if (!especialidadGenerica) {
-            throw new NotFoundError("Especialidad no encontrado")
+            throw new NotFoundError("Especialidad no encontrado");
         }
-        return especialidadGenerica
+        return especialidadGenerica;
     }
 
-    async obtenerPorNombre(nombre){
-        this.validarStringNoNulo(nombre, "nombre de la especialidad")
-        return await this.especialidadRepository.findByNombre(nombre)
+    async obtenerPorNombre(nombre) {
+        const validNombre = stringNoNuloSchema.parse(nombre);
+        return await this.especialidadRepository.findByNombre(validNombre);
     }
 
-    async obtenerPorIdPadre(idPadre){
-        this.validarEnteroPositivo(idPadre, "Id")
-     
-        return await this.especialidadRepository.findByIdEspecialidadGenerica(idPadre)
+    async obtenerPorIdPadre(idPadre) {
+        const validIdPadre = objectIdSchema.parse(idPadre);
+        return await this.especialidadRepository.findByIdEspecialidadGenerica(validIdPadre);
     }
 
-    async validarExistenciaPorId(id){
-        this.validarEnteroPositivo(id, "Id")
-
-        const especialidad = await this.especialidadRepository.findById(id)
+    async validarExistenciaPorId(id) {
+        const validId = objectIdSchema.parse(id);
+        const especialidad = await this.especialidadRepository.findById(validId);
 
         if (!especialidad) {
-            false
+            return false;
         }
-        return true
+        return true;
     }
 
-    async crear(datosEspecialidad){
-        this.validarDatosEspecialidad(datosEspecialidad)
-        
+    async crear(datosEspecialidad) {
+        const validDatos = especialidadBodySchema.parse(datosEspecialidad);
+        const especialidadGenerica = await this.especialidadGenericaRepository.findOneByNombre(validDatos.nombre);
+        if (especialidadGenerica == null) {
+            throw new BadRequestError("No existe una especialidad generica de nombre: " + validDatos.nombre + ". No se podrá asociar una concreta");
+        }
+
         const especialidad = new Especialidad({
-            nombre: datosEspecialidad.nombre,    
-            duracionTurnoEnMins : datosEspecialidad.duracionTurnoEnMins,
-            costoConsulta : datosEspecialidad.costoConsulta
-        })
-        return await this.especialidadRepository.save(especialidad) 
+            especialidadGenerica: especialidadGenerica._id,   
+            nombre: validDatos.nombre, 
+            duracionTurnoEnMins: validDatos.duracionTurnoEnMins,
+            costo: validDatos.costo
+        });
+        return await this.especialidadRepository.save(especialidad); 
     }
 
+    async actualizar(id, datosEspecialidad) {
+        const validId = objectIdSchema.parse(id);
+        const validDatos = especialidadBodySchema.parse(datosEspecialidad);
 
-    async actualizar(id, datosEspecialidad){
-        this.validarEnteroPositivo(id,"Id")
-        this.validarDatosEspecialidad(datosEspecialidad) 
+        const especialidad = await this.obtenerPorId(validId);
 
-        const especialidad = await this.obtenerPorId(id)
+        if (especialidad?.nombre.toLowerCase() !== validDatos?.nombre.toLowerCase()) {
+            throw new BadRequestError("No se puede modificar el nombre de una especialidad. Se deberá modificar la genérica");
+        }
+        
+        especialidad.duracionTurnoEnMins = validDatos.duracionTurnoEnMins;
+        especialidad.costo = validDatos.costo;
 
-        especialidad.nombre = datosEspecialidad.nombre
-        especialidad.duracionTurnoEnMins = datosEspecialidad.duracionTurnoEnMins
-        especialidad.costoConsulta = datosEspecialidad.costoConsulta
-
-        return await this.especialidadRepository.update(id,especialidad)
+        return await this.especialidadRepository.update(validId, especialidad);
     }
 
-    //  ---------- Especialidades Genericas ----------
-    async crearGenerica(datosEGenerica){
-        this.validarStringNoNulo(datosEGenerica.nombre, "nombre de la especialidad")
+    // ---------- Especialidades Genericas ----------
+    async crearGenerica(datosEGenerica) {
+        const validDatos = especialidadGenericaBodySchema.parse(datosEGenerica);
 
-        if(await this.especialidadGenericaRepository.findOneByNombre(datosEGenerica.nombre) != null){
-            throw new ConflictError("Ya existe una especialidad de nombre: " + datosEGenerica.nombre)
+        if (await this.especialidadGenericaRepository.findOneByNombre(validDatos.nombre) != null) {
+            throw new ConflictError("Ya existe una especialidad de nombre: " + validDatos.nombre);
         }
 
-        const especialidadGenerica = new EspecialidadGenerica({nombre: datosEGenerica.nombre})
+        const especialidadGenerica = new EspecialidadGenerica({ nombre: validDatos.nombre });
 
-        return await this.especialidadGenericaRepository.save(especialidadGenerica)
+        return await this.especialidadGenericaRepository.save(especialidadGenerica);
     }
 
-    async obtenerTodosGenerica({numeroPagina = 1, limitePorPagina = 10, filtros = {} } = {}){
-        this.validarPaginacion(numeroPagina,limitePorPagina)
+    async obtenerTodosGenerica({ numeroPagina = 1, limitePorPagina = 10, filtros = {} } = {}) {
+        const { page, limit } = paginacionSchema.parse({ page: numeroPagina, limit: limitePorPagina });
         //TODO Agregar filtros
-        const {especialidadesGenericas,totalEspecialidadesGenericas} = await this.especialidadGenericaRepository.findPaginados(
-            numeroPagina,
-            limitePorPagina,
+        const { especialidadesGenericas, totalEspecialidadesGenericas } = await this.especialidadGenericaRepository.findPaginados(
+            page,
+            limit,
             filtros
-        ) 
-        const totalPaginas = totalEspecialidadesGenericas === 0 ? 0 : Math.ceil(totalEspecialidadesGenericas/limitePorPagina)
+        ); 
+        const totalPaginas = totalEspecialidadesGenericas === 0 ? 0 : Math.ceil(totalEspecialidadesGenericas / limit);
         return {
             especialidadesGenericas,
-            numeroPagina,
-            limitePorPagina,
+            numeroPagina: page,
+            limitePorPagina: limit,
             totalPaginas,
             totalEspecialidadesGenericas
-        }
+        };
     }
 
-    async actualizarGenerica(id, nombreNuevo){
-        this.validarEnteroPositivo(id,"Id")
-        this.validarStringNoNulo(nombreNuevo, "nombre de la especialidad generica")
+    async actualizarGenerica(id, datosNuevo) {
+        const validId = objectIdSchema.parse(id);
+        const nombreNuevo = typeof datosNuevo === "object" && datosNuevo !== null && "nombre" in datosNuevo
+            ? stringNoNuloSchema.parse(datosNuevo.nombre)
+            : stringNoNuloSchema.parse(datosNuevo);
 
-        if(await this.especialidadGenericaRepository.findOneByNombre(nombreNuevo) != null){
-            throw new ConflictError("Ya existe una especialidad de nombre: " + nombreNuevo)
+        if (await this.especialidadGenericaRepository.findOneByNombre(nombreNuevo) != null) {
+            throw new ConflictError("Ya existe una especialidad de nombre: " + nombreNuevo);
         }
 
-        const especialidadGenerica = await this.obtenerPorIdGenerica(id)
+        const especialidadGenerica = await this.obtenerPorIdGenerica(validId);
 
-        especialidadGenerica.nombre = nombreNuevo
+        especialidadGenerica.nombre = nombreNuevo;
 
-        const especialidadesHijas = await this.obtenerPorIdPadre(id)
+        const especialidadesHijas = await this.obtenerPorIdPadre(validId);
 
         //Si actualizamos el nombre de una generica, las hijas deberán tener su mismo nombre
         if (especialidadesHijas.length > 0) {
             const idsHijas = especialidadesHijas.map(e => e.id);
-            
             await this.especialidadRepository.updateManyNombres(idsHijas, nombreNuevo);
         }
 
-        return await this.especialidadGenericaRepository.update(id,especialidadGenerica)
-    }
-
-    // Métodos Auxiliares
-    validarDatosEspecialidad(datosEspecialidad){
-        if (!datosEspecialidad || typeof datosEspecialidad !== "object" || Array.isArray(datosEspecialidad)) {
-            throw new BadRequestError("Los datos del medico son invalidos")
-        }
-        const {nombre, duracionTurnoEnMins, costoConsulta} = datosEspecialidad
-
-        this.validarStringNoNulo(nombre, "nombre de la especialidad")
-
-        if (typeof duracionTurnoEnMins !== "number" ) {
-            throw new UnprocessableEntityError("La duracionTurnoEnMins de la especialidad es invalida")
-        }
-        if (typeof costoConsulta !== "number" ) {
-            throw new UnprocessableEntityError("El costoConsulta de la especialidad es invalida")
-        }
-    }
-
-    validarPaginacion(numeroPagina, limitePorPagina) {
-        this.validarEnteroPositivo(numeroPagina, "Numero de página")
-        this.validarEnteroPositivo(limitePorPagina, "Límite por página")
-    }
-
-    validarEnteroPositivo(numero, parametro) {
-        if (!Number.isInteger(numero) || numero <= 0) {
-            throw new BadRequestError(`${parametro} debe ser un entero positivo`)
-        }
-    }
-
-    validarStringNoNulo(string, parametro){
-        if (typeof string !== 'string' || string.trim() === '') {
-            throw new UnprocessableEntityError(`${parametro} debe ser un string no nulo`)
-        }
+        return await this.especialidadGenericaRepository.update(validId, especialidadGenerica);
     }
 }

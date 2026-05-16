@@ -4,10 +4,11 @@ import { NotificacionController } from "../controllers/NotificacionController.js
 const notificacionController = new NotificacionController()
 /*
     Endpoints:
-    - GET notificaciones/?usuario=19                -> todas las notificaciones del usuario
-    - GET notificaciones/?usuario=19&leida=false     -> filtrar por leida (true|false)
-    - PATCH notificaciones/:id?usuario=10              -> obtener notificación por id (opcional usuario para contexto)
- */
+    - GET notificaciones                            -> Obtener todas las notificaciones del sistema 
+    - GET notificaciones?usuario=19                 -> todas las notificaciones del usuario
+    - GET notificaciones?usuario=19&leida=false     -> filtrar por leida (true|false)
+    - PATCH notificaciones/:id?usuario=10              
+    */
 const router = express.Router()
 
 router.route('/')

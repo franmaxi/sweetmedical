@@ -69,4 +69,32 @@ export class MedicoRepository{
         }
         return medico.disponibilidades[0];
     }
+
+    async addDisponibilidad(medicoId, disponibilidad) {
+        return await this.#populate(
+            this.model.findByIdAndUpdate(
+                medicoId,
+                { $push: { disponibilidades: disponibilidad} },
+                { new: true }
+            )
+        );
+    }
+
+    // esto reemplaza la disponibilidad completa en la posicion encontrada,
+    async updateDisponibilidad(medicoId, dispoId, disponibilidad) {
+        return await this.#populate(
+            this.model.findOneAndUpdate(
+                { _id: medicoId, "disponibilidades._id": dispoId },
+                { $set: { "disponibilidades.$": disponibilidad } },
+                { new: true }
+            )
+        );
+    }
+
+    async getDisponibilidades(medicoId) {
+        const medico = await this.#populate(this.model.findById(medicoId).select("disponibilidades"));
+        return medico ? medico.disponibilidades : [];
+    }
+
+    
 }

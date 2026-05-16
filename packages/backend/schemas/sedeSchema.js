@@ -1,20 +1,18 @@
 import mongoose from 'mongoose';
-import { Sede } from '../domain/Turno/Sede.js';
+import { Sede } from '../domain/Sede.js';
 
-const sedelSchema = new mongoose.Schema({
-    nombre:{
+const sedeSchema = new mongoose.Schema({
+    nombre: {
         type: String,
         required: true,
-        trim:true
+        trim: true
     },
-
-    direccion: [{
+    direccion: {
         type: String,
         required: true,
-        trim:true   
-    }],
-    
-},{
+        trim: true   
+    },
+}, {
     timestamps: true,
     versionKey: false,
     collection: 'sedes'

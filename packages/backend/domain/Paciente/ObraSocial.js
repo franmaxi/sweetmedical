@@ -1,24 +1,15 @@
-import { BadRequestError } from "../../errors/AppErrors.js";
+import { obraSocialDomainSchema } from "../../validations/pacienteValidation.js";
 
-export class ObraSocial{
-    constructor( {nombre} ){
-        this.validarNombre(nombre)
+export class ObraSocial {
+    constructor({ nombre }) {
+        const valid = obraSocialDomainSchema.parse({ nombre });
 
         this.id = null; //todo
-        this.nombre = nombre;
+        this.nombre = valid.nombre;
         this.planes = [];
     }
 
-    // Validacion Constructor
-
-    validarNombre(nombre){
-        if (!nombre || typeof nombre !== 'string') {
-            throw new BadRequestError('El nombre debe ser una cadena de texto válida')
-        }
-    }
-    
-    agregarPlanes(...planes){
+    agregarPlanes(...planes) {
         this.planes.push(...planes);
     }
-   
 }

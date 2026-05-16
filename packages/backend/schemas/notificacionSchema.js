@@ -32,7 +32,7 @@ const notificacionSchema = new mongoose.Schema({
 },{
     timestamps: true,
     versionKey: false,
-    collection: 'noticaciones'
+    collection: 'notificaciones'
 });
 
 notificacionSchema.loadClass(Notificacion);

@@ -12,10 +12,12 @@ export class PracticaRepository {
     async findPaginados(pagina, limite, filtros = {}) {
         const salto = (pagina-1) * limite
 
-        let practicas = await this.findByFilters(filtros).skip(salto).limit(limite)
+        const filtrosAplicados = { eliminado: false, ...filtros };
+
+        let practicas = await this.findByFiltersLocal(filtrosAplicados).skip(salto).limit(limite)
 
         const total = await this.model.countDocuments({
-            eliminado: false
+            filtrosAplicados
         })
 
         return {
@@ -31,12 +33,12 @@ export class PracticaRepository {
     }
 
     async findByNombre(nombre) {
-        const practicas = await model.find({ nombre: nombre });
+        const practicas = await this.model.find({ nombre: nombre });
         return practicas;
     }
 
     async findByPracticaGenerica(idPracticaGenerica) {
-        const practicas = await model.find({ practicaGenerica: idPracticaGenerica });
+        const practicas = await this.model.find({ practicaGenerica: idPracticaGenerica });
         return practicas;
     }
 
@@ -55,7 +57,7 @@ export class PracticaRepository {
 
     //Datos a actualizar tendrá unicamente los datos q se modificaran, por ej nombre y codigo.
     async updateMany(ids, datosAActualizar) {
-        return await model.updateMany(
+        return await this.model.updateMany(
             { _id: { $in: ids } }, 
             { $set: datosAActualizar }
         );
@@ -63,5 +65,10 @@ export class PracticaRepository {
 
     async delete(id) {
         return await this.model.findByIdAndDelete(id);
+    }
+
+    //auxiliar
+    findByFiltersLocal(filtros = {}) {
+        return this.model.find(filtros); 
     }
 }

@@ -1,197 +1,143 @@
 import { PracticaService } from "../services/PracticaService.js";
-import { BadRequestError } from "../errors/AppErrors.js"
+import { paginacionSchema, paramsIdSchema } from "../validations/commonValidations.js";
+import { practicaBodySchema, practicaGenericaBodySchema } from "../validations/practicaValidation.js";
 
 export class PracticaController {
-    constructor( {
+    constructor({
         practicaService = new PracticaService()
     } = {}) {
-        this.practicaService = practicaService
+        this.practicaService = practicaService;
     }
 
-    findAll = async (req, res,next) => {
-        try{
-            const paginacion = this.extraerPaginacion(req.query)
-            const resultado = await this.practicaService.obtenerTodos({...paginacion})
+    findAll = async (req, res, next) => {
+        try {
+            const { page: numeroPagina, limit: limitePorPagina } = paginacionSchema.parse(req.query);
+            const resultado = await this.practicaService.obtenerTodos({ numeroPagina, limitePorPagina });
             return res.status(200).json({
-                status : "success",
-                data : resultado.practicas,
+                status: "success",
+                data: resultado.practicas,
                 paginacion: {
                     numeroPagina: resultado.numeroPagina,
                     limitePagina: resultado.limitePagina,
                     totalPaginas: resultado.totalPaginas,
                     totalPracticas: resultado.totalPracticas
                 }
-            })
-        }
-        catch(error){
-            return next(error)
+            });
+        } catch (error) {
+            return next(error);
         }
     }
 
-    create = async (req,res, next) => {
+    create = async (req, res, next) => {
         try {
-            const datosPractica = this.validarYExtraerBody(req.body, ["codigo","nombre","duracionTurnoEnMins","costo"])
-            const practicaCreada = await this.practicaService.crear(datosPractica)
+            const datosPractica = practicaBodySchema.parse(req.body);
+            const practicaCreada = await this.practicaService.crear(datosPractica);
             return res.status(201).json({
                 status: "success",
-                data : practicaCreada
-            })
-        }
-        catch(error){
-            return next(error)
-        }
-    }
-
-
-    delete = async (req,res,next) => {
-        try{
-            const id = this.parsearId(req.params.id)
-            const practicaEliminada = await this.practicaService.eliminar(id)
-            return res.status(200).json({
-                status : "success",
-                data : practicaEliminada
-            })
-        }
-        catch(error){
-            return next(error)
+                data: practicaCreada
+            });
+        } catch (error) {
+            return next(error);
         }
     }
 
-    update = async (req,res,next) => {
+    delete = async (req, res, next) => {
         try {
-            const id = this.parsearId(req.params.id)
-            const datosPractica = this.validarYExtraerBody(req.body, ["id","codigo","nombre","duracionTurnoEnMins","costo"])
-            const practicaActualizada = await this.practicaService.actualizar(id,datosPractica)
+            const { id } = paramsIdSchema.parse(req.params);
+            const practicaEliminada = await this.practicaService.eliminar(id);
             return res.status(200).json({
                 status: "success",
-                data : practicaActualizada
-            })
+                data: practicaEliminada
+            });
         } catch (error) {
-            return next(error)
+            return next(error);
         }
     }
 
-    findById = async (req,res,next) => {
+    update = async (req, res, next) => {
         try {
-            const id = this.parsearId(req.params.id)
-            const practica = await this.practicaService.obtenerPorId(id)
+            const { id } = paramsIdSchema.parse(req.params);
+            const datosPractica = practicaBodySchema.parse(req.body);
+            const practicaActualizada = await this.practicaService.actualizar(id, datosPractica);
+            return res.status(200).json({
+                status: "success",
+                data: practicaActualizada
+            });
+        } catch (error) {
+            return next(error);
+        }
+    }
+
+    findById = async (req, res, next) => {
+        try {
+            const { id } = paramsIdSchema.parse(req.params);
+            const practica = await this.practicaService.obtenerPorId(id);
             return res.status(200).json({
                 status: "success",
                 data: practica
-            })
+            });
         } catch (error) {
-            return next(error)
-        }
-    }
-        // ------- Practicas Genericas ---------
-    createGenerica = async (req,res, next) => {
-        try {
-            const datosPGenerica = this.validarYExtraerBody(req.body, ["codigo","nombre"])
-            const practicaGenericaCreada = await this.practicaService.crearGenerica(datosPGenerica)
-            return res.status(201).json({
-                status: "success",
-                data : practicaGenericaCreada
-            })
-        }
-        catch(error){
-            return next(error)
+            return next(error);
         }
     }
 
-    findAllGenerica = async (req, res,next) => {
+    // ------- Practicas Genericas ---------
+    createGenerica = async (req, res, next) => {
         try {
-            const paginacion = this.extraerPaginacion(req.query)
-            const resultado = await this.practicaService.obtenerTodosGenerica({...paginacion}) //TODO
+            const datosPGenerica = practicaGenericaBodySchema.parse(req.body);
+            const practicaGenericaCreada = await this.practicaService.crearGenerica(datosPGenerica);
+            return res.status(201).json({
+                status: "success",
+                data: practicaGenericaCreada
+            });
+        } catch (error) {
+            return next(error);
+        }
+    }
+
+    findAllGenerica = async (req, res, next) => {
+        try {
+            const { page: numeroPagina, limit: limitePorPagina } = paginacionSchema.parse(req.query);
+            const resultado = await this.practicaService.obtenerTodosGenerica({ numeroPagina, limitePorPagina });
             return res.status(200).json({
-                status : "success",
-                data : resultado.practicasGenericas,
+                status: "success",
+                data: resultado.practicasGenericas,
                 paginacion: {
                     numeroPagina: resultado.numeroPagina,
                     limitePagina: resultado.limitePagina,
                     totalPaginas: resultado.totalPaginas,
                     totalPracticasGenericas: resultado.totalPracticas
                 }
-            })
+            });
         } catch (error) {
-            return next(error)
+            return next(error);
         }
     }
 
-    findByIdGenerica = async (req, res,next) => {
+    findByIdGenerica = async (req, res, next) => {
         try {
-            const id = this.parsearId(req.params.id)
-            const practicaGenerica = await this.practicaService.obtenerPorIdGenerica(id)
+            const { id } = paramsIdSchema.parse(req.params);
+            const practicaGenerica = await this.practicaService.obtenerPorIdGenerica(id);
             return res.status(200).json({
                 status: "success",
                 data: practicaGenerica
-            })
+            });
         } catch (error) {
-            return next(error)
+            return next(error);
         }
     }
 
-    updateGenerica = async (req, res,next) => {
+    updateGenerica = async (req, res, next) => {
         try {
-            const id = this.parsearId(req.params.id)
-            const datosPGenerica = this.validarYExtraerBody(req.body, ["codigo","nombre"])
-            const practicaActualizada = await this.practicaService.actualizarGenerica(id,datosPGenerica)
+            const { id } = paramsIdSchema.parse(req.params);
+            const datosPGenerica = practicaGenericaBodySchema.parse(req.body);
+            const practicaActualizada = await this.practicaService.actualizarGenerica(id, datosPGenerica);
             return res.status(200).json({
                 status: "success",
-                data : practicaActualizada
-            })
+                data: practicaActualizada
+            });
         } catch (error) {
-            return next(error)
+            return next(error);
         }
     }    
-
-    // Métodos auxiliares
-    extraerPaginacion(query) {
-        const numeroPagina = query?.page === undefined ? 1 : Number(query.page)
-        const limitePorPagina = query?.limit === undefined ? 10 : Number(query.limit)
-
-        this.validarEnteroPositivo(numeroPagina, "page")
-        this.validarEnteroPositivo(limitePorPagina, "limit")
-
-        return { numeroPagina, limitePorPagina }
-    }
-
-    validarEnteroPositivo(numero, parametro) {
-        if (!Number.isInteger(numero) || numero <= 0) {
-            throw new BadRequestError(`El parámetro ${parametro} debe ser un entero positivo`)
-        }
-    }
- 
-    
-    parsearId(idParam) {
-        const id = Number(idParam)
-
-        this.validarEnteroPositivo(id, "id")
-
-        return id
-    }
-
-    validarYExtraerBody(body, camposRequeridos = []) {
-        if (!body || typeof body !== 'object' || Array.isArray(body)) {
-            throw new BadRequestError("El cuerpo de la solicitud debe ser un objeto JSON válido.");
-        }
-    
-        const camposBody = Object.keys(body);
-    
-        const camposNoPermitidos = camposBody.filter(campo => !camposRequeridos.includes(campo));
-        if (camposNoPermitidos.length > 0) {
-            throw new BadRequestError(`Campos no permitidos en la solicitud: ${camposNoPermitidos.join(", ")}`);
-        }
-    
-        const camposFaltantes = camposRequeridos.filter(campo => body[campo] === undefined || body[campo] === null);
-        if (camposFaltantes.length > 0) {
-            throw new BadRequestError(`Faltan campos obligatorios en la solicitud: ${camposFaltantes.join(", ")}`);
-        }
-    
-        const bodyLimpio = {};
-        camposRequeridos.forEach(campo => {
-            bodyLimpio[campo] = body[campo];
-        });
-    
-        return bodyLimpio;
-    }
 }

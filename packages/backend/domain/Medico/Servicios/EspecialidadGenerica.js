@@ -1,16 +1,10 @@
-import { BadRequestError } from "../../../errors/AppErrors.js"
-export class EspecialidadGenerica{
-    
-    constructor({nombre}){
-        this.validarNombre(nombre)
+import { especialidadGenericaBodySchema } from "../../../validations/especialidadValidation.js"
 
-        this.id = null
-        this.nombre = nombre;
-    }
-    
-    validarNombre(nombre){
-        if (typeof nombre !== 'string' || nombre.trim() === '') {
-            throw new BadRequestError('El nombre de la especialidad debe ser un string no vacío')
-        }
+export class EspecialidadGenerica {
+    constructor({ nombre }) {
+        const valid = especialidadGenericaBodySchema.parse({ nombre });
+
+        this.id = null;
+        this.nombre = valid.nombre;
     }
 }
