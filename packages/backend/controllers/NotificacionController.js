@@ -15,9 +15,10 @@ export class NotificacionController{
     // GET 
     findAll = async (req, res, next) => {
         try {
-            const paginacion = this.extraerPaginacion(req.query)
-            const filtros = this.extraerFiltros(req.query)
-            const resultado = await this.notificacionService.obtenerTodos({ ...paginacion, filtros})
+            const paginacion = this.extraerPaginacion(req.query);
+            const filtros = this.extraerFiltros(req.query);
+
+            const resultado = await this.notificacionService.obtenerTodos({ ...paginacion, filtros });
 
             return res.status(200).json({
                 status: "success",
@@ -28,14 +29,29 @@ export class NotificacionController{
                     totalPaginas: resultado.totalPaginas,
                     totalNotificaciones: resultado.totalNotificaciones
                 }
+            });
+        } catch (error) {
+            return next(error);
+        }
+    };
+
+
+
+    marcarComoLeida = async (req, res, next) => {
+        try {
+            const id = this.parsearId(req.params.id)
+            const usuarioId = this.validarUsuario(req.query.usuarioId)
+
+            const notificacionActualizada = await this.notificacionService.marcarComoLeida(id, usuarioId)
+            return res.status(200).json({
+                status: "success",
+                data: notificacionActualizada
             })
         } catch (error) {
-            return next (error)
+            return next(error)
         }
     }
-
     
-
     findById = async (req,res,next) => {
         try {
             const id = this.parsearId(req.params.id)
@@ -90,6 +106,16 @@ export class NotificacionController{
         return { numeroPagina, limitePorPagina }
     }
 
+    validarUsuario(usuarioId) {
+        if (usuarioId === undefined) {
+            throw new BadRequestError("El parámetro usuarioId es obligatorio")
+        }
+        const id = Number(usuarioId)
+        if (!Number.isFinite(id) || !Number.isInteger(id) || id <= 0) {
+            throw new BadRequestError("El parámetro usuarioId debe ser un número entero positivo")
+        }
+        return id
+    }
 
     validarEnteroPositivo(numero, parametro) {
         if (!Number.isInteger(numero) || numero <= 0) {
