@@ -22,7 +22,7 @@ export class TurnoRepository{
             estado: EstadoTurno.DISPONIBLE,
             fechaHora:{
                 $gt: fechaTurno,
-                $lte: fechaMaximo
+                $lt: fechaMaximo
             }
         }).sort({fechahora : 1})
     }
@@ -33,6 +33,13 @@ export class TurnoRepository{
 
     async update(id, turnoModificado) {
         return await this.model.findByIdAndUpdate(id, turnoModificado, { new: true });
+    }
+
+    async updateMany(ids, datosAActualizar) {
+        return await model.updateMany(
+            { _id: { $in: ids } }, 
+            { $set: datosAActualizar }
+        );
     }
     
     async delete(id) {

@@ -42,19 +42,6 @@ export class PracticaController {
         }
     }
 
-    createGenerica = async (req,res, next) => {
-        try {
-            const datosPGenerica = this.validarYExtraerBody(req.body, ["codigo","nombre"])
-            const pGenericaCreada = await this.practicaService.crearGenerica(datosPGenerica)
-            return res.status(201).json({
-                status: "success",
-                data : pGenericaCreada
-            })
-        }
-        catch(error){
-            return next(error)
-        }
-    }
 
     delete = async (req,res,next) => {
         try{
@@ -96,6 +83,66 @@ export class PracticaController {
             return next(error)
         }
     }
+        // ------- Practicas Genericas ---------
+    createGenerica = async (req,res, next) => {
+        try {
+            const datosPGenerica = this.validarYExtraerBody(req.body, ["codigo","nombre"])
+            const practicaGenericaCreada = await this.practicaService.crearGenerica(datosPGenerica)
+            return res.status(201).json({
+                status: "success",
+                data : practicaGenericaCreada
+            })
+        }
+        catch(error){
+            return next(error)
+        }
+    }
+
+    findAllGenerica = async (req, res,next) => {
+        try {
+            const paginacion = this.extraerPaginacion(req.query)
+            const resultado = await this.practicaService.obtenerTodosGenerica({...paginacion}) //TODO
+            return res.status(200).json({
+                status : "success",
+                data : resultado.practicasGenericas,
+                paginacion: {
+                    numeroPagina: resultado.numeroPagina,
+                    limitePagina: resultado.limitePagina,
+                    totalPaginas: resultado.totalPaginas,
+                    totalPracticasGenericas: resultado.totalPracticas
+                }
+            })
+        } catch (error) {
+            return next(error)
+        }
+    }
+
+    findByIdGenerica = async (req, res,next) => {
+        try {
+            const id = this.parsearId(req.params.id)
+            const practicaGenerica = await this.practicaService.obtenerPorIdGenerica(id)
+            return res.status(200).json({
+                status: "success",
+                data: practicaGenerica
+            })
+        } catch (error) {
+            return next(error)
+        }
+    }
+
+    updateGenerica = async (req, res,next) => {
+        try {
+            const id = this.parsearId(req.params.id)
+            const datosPGenerica = this.validarYExtraerBody(req.body, ["codigo","nombre"])
+            const practicaActualizada = await this.practicaService.actualizarGenerica(id,datosPGenerica)
+            return res.status(200).json({
+                status: "success",
+                data : practicaActualizada
+            })
+        } catch (error) {
+            return next(error)
+        }
+    }    
 
     // Métodos auxiliares
     extraerPaginacion(query) {

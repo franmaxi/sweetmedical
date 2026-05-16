@@ -26,8 +26,8 @@ export class EspecialidadRepository{
         return await this.model.findById(id)
     }
 
-    async findByIdPadre(idPadre) {
-        const especialidades = await model.find({ idPadre: idPadre });
+    async findByIdEspecialidadGenerica(idEspecialidadGenerica) {
+        const especialidades = await model.find({ especialidadGenerica: idEspecialidadGenerica });
         return especialidades;
     }
 

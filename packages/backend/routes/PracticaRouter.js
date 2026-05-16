@@ -13,5 +13,12 @@ router.route('/:id')
 	.get((req, res, next) => practicaController.findById(req, res, next))
 	.put((req, res, next) => practicaController.update(req, res, next))
 	.delete((req, res, next) => practicaController.delete(req, res, next))
+router.route('/generica')
+	.post((req, res, next) => practicaController.createGenerica(req, res, next))
+	.get((req, res, next) => practicaController.findAllGenerica(req, res, next))
 
+router.route('/generica/:id')
+	.get((req, res, next) => practicaController.findByIdGenerica(req, res, next))
+	.put((req, res, next) => practicaController.updateGenerica(req, res, next))
+	
 export default router

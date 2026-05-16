@@ -35,8 +35,8 @@ export class PracticaRepository {
         return practicas;
     }
 
-    async findByIdPadre(idPadre) {
-        const practicas = await model.find({ idPadre: idPadre });
+    async findByPracticaGenerica(idPracticaGenerica) {
+        const practicas = await model.find({ practicaGenerica: idPracticaGenerica });
         return practicas;
     }
 

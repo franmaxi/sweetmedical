@@ -1,7 +1,7 @@
 import {BadRequestError} from "../errors/AppErrors.js"
 import { EspecialidadService } from "../services/EspecialidadService.js"
 
-export class ServicioController{
+export class EspecialidadController{
     constructor({
         especialidadService = new EspecialidadService()
     } = {}){
@@ -40,18 +40,6 @@ export class ServicioController{
         }
     }
 
-    createGenerica = async (req, res,next) => {
-        try {
-            const datosEGenerica = this.validarYExtraerBody(req.body, ["nombre"])
-            const eGenericaCreada = await this.especialidadService.crearGenerica(datosEGenerica)
-            return res.status(201).json({
-                status: "success",
-                data : eGenericaCreada
-            })
-        } catch (error) {
-            return next(error)
-        }
-    }
 
     delete = async (req, res,next) => {
         try {
@@ -93,6 +81,65 @@ export class ServicioController{
         }
     }
 
+    // ------- Especialidades Genericas ---------
+    createGenerica = async (req, res,next) => {
+        try {
+            const datosEGenerica = this.validarYExtraerBody(req.body, ["nombre"])
+            const eGenericaCreada = await this.especialidadService.crearGenerica(datosEGenerica)
+            return res.status(201).json({
+                status: "success",
+                data : eGenericaCreada
+            })
+        } catch (error) {
+            return next(error)
+        }
+    }
+
+    findAllGenerica = async (req, res,next) => {
+        try {
+            const paginacion = this.extraerPaginacion(req.query)
+            const resultado = await this.especialidadService.obtenerTodosGenerica({...paginacion})
+            return res.status(200).json({
+                status : "success",
+                data : resultado.especialidadesGenericas,
+                paginacion: {
+                    numeroPagina: resultado.numeroPagina,
+                    limitePagina: resultado.limitePagina,
+                    totalPaginas: resultado.totalPaginas,
+                    totalEspecialidadesGenericas: resultado.totalEspecialidades
+                }
+            })
+        } catch (error) {
+            return next(error)
+        }
+    }
+
+    findByIdGenerica = async (req, res,next) => {
+        try {
+            const id = this.parsearId(req.params.id)
+            const especialidadGenerica = await this.especialidadService.obtenerPorIdGenerica(id)
+            return res.status(200).json({
+                status: "success",
+                data: especialidadGenerica
+            })
+        } catch (error) {
+            return next(error)
+        }
+    }
+
+    updateGenerica = async (req, res,next) => {
+        try {
+            const id = this.parsearId(req.params.id)
+            const datosEspecialidad = this.validarYExtraerBody(req.body,["nombre"])
+            const especialidadActualizada = await this.especialidadService.actualizarGenerica(id,datosEspecialidad)
+            return res.status(200).json({
+                status: "success",
+                data : especialidadActualizada
+            })
+        } catch (error) {
+            return next(error)
+        }
+    }    
 
     // Métodos auxiliares
     extraerPaginacion(query) {

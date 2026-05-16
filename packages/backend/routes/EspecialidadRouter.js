@@ -14,4 +14,11 @@ router.route('/:id')
 	.put((req, res, next) => especialidadController.update(req, res, next))
 	.delete((req, res, next) => especialidadController.delete(req, res, next))
 
+router.route('/generica')
+	.post((req, res, next) => especialidadController.createGenerica(req, res, next))
+	.get((req, res, next) => especialidadController.findAllGenerica(req, res, next))
+
+router.route('/generica/:id')
+	.get((req, res, next) => especialidadController.findByIdGenerica(req, res, next))
+	.put((req, res, next) => especialidadController.updateGenerica(req, res, next))
 export default router

@@ -64,7 +64,7 @@ export class EspecialidadService{
     async obtenerPorIdPadre(idPadre){
         this.validarEnteroPositivo(idPadre, "Id")
      
-        return await this.especialidadRepository.findByIdPadre(idPadre)
+        return await this.especialidadRepository.findByIdEspecialidadGenerica(idPadre)
     }
 
     async validarExistenciaPorId(id){
@@ -112,6 +112,25 @@ export class EspecialidadService{
         especialidad.costoConsulta = datosEspecialidad.costoConsulta
 
         return await this.especialidadRepository.update(id,especialidad)
+    }
+
+    // ---------- Especialidades Genericas
+    async obtenerTodosGenerica({numeroPagina = 1, limitePorPagina = 10, filtros = {} } = {}){
+        this.validarPaginacion(numeroPagina,limitePorPagina)
+        //TODO Agregar filtros
+        const {especialidadesGenericas,totalEspecialidadesGenericas} = await this.especialidadGenericaRepository.findPaginados(
+            numeroPagina,
+            limitePorPagina,
+            filtros
+        ) 
+        const totalPaginas = totalEspecialidadesGenericas === 0 ? 0 : Math.ceil(totalEspecialidadesGenericas/limitePorPagina)
+        return {
+            especialidadesGenericas,
+            numeroPagina,
+            limitePorPagina,
+            totalPaginas,
+            totalEspecialidadesGenericas
+        }
     }
 
     async actualizarGenerica(id, nombreNuevo){

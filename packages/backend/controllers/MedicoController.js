@@ -85,11 +85,27 @@ export class MedicoController{
         }
     }
 
+      create = async (req, res,next) =>{
+        try{
+    
+            const datosMedico = this.extraerYValidarBodyMedico(req.body)
+            const medicoCreado = await this.medicoService.crear(datosMedico)
+            return res.status(201).json({
+                status: "success",
+                data : medicoCreado
+            })
+        }
+        catch(error){
+            return next(error)
+        }
+    }
+
     consultarAgenda = async (req,res,next) => {
         try {
             const medicoId = this.parsearId(req.params.id)
-            const servicioId= this.parsearId(req.params.servicioId)
-            const agenda = await this.medicoService.consultarAgenda(medicoId,servicioId)
+            const especialidadId= this.extraerEspecialidad(req.query)
+            const practicaId = this.extraerPractica(req.query)
+            const agenda = await this.medicoService.consultarAgenda(medicoId,especialidadId,practicaId)
             return res.status(200).json({
                 status: "success",
                 data: agenda
@@ -97,6 +113,23 @@ export class MedicoController{
         } catch (error) {
             return next(error)
         }
+    }
+
+    extraerEspecialidad(query){
+        const especialidadId = query?.especialidadId === undefined ? null : Number(query.especialidadId)
+        if(especialidadId !== null){
+            this.validarEnteroPositivo(especialidadId,"especialidadId")
+        }
+        return especialidadId
+    }
+
+    extraerPractica(query){
+        const practicaId = query?.practicaId === undefined ? null : Number(query.practicaId)
+        if(practicaId !== null){
+            this.validarEnteroPositivo(practicaId,"practicaId")
+        }
+        return practicaId
+    }   
     
     extraerPaginacion(query) {
         const numeroPagina = query?.page === undefined ? 1 : Number(query.page)

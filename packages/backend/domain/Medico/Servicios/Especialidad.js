@@ -1,17 +1,17 @@
 import { BadRequestError } from "../../../errors/AppErrors"
 import { NivelCobertura } from "../../Enumerados/NivelCobertura"
 export class Especialidad{
-    constructor( {idPadre,nombre,duracionTurnoEnMins,costoConsulta} ){
-        this.validarEnteroPositivo(idPadre,"id")
+    constructor( {especialidadGenerica,nombre,duracionTurnoEnMins,costo} ){
+        this.validarEnteroPositivo(especialidadGenerica,"id")
         this.validarNombre(nombre)
         this.validarDuracionTurnoEnMins(duracionTurnoEnMins)
-        this.validarCostoConsulta(costoConsulta)
+        this.validarCostoConsulta(costo)
 
         this.id = null //TODO
-        this.idPadre = idPadre
+        this.especialidadGenerica = especialidadGenerica
         this.nombre = nombre;
         this.duracionTurnoEnMins = duracionTurnoEnMins;
-        this.costoConsulta = costoConsulta;
+        this.costo = costo;
     }
 
 

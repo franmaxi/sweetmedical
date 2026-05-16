@@ -15,6 +15,7 @@ router.route('/:id')
 	.delete((req, res, next) => medicoController.delete(req, res, next))
 
 router.route('/:id/agenda') // Hacemos referencia a los servicios (practica/especialidad) propios del medico (hijas)
-	.get((req, res, next) => medicoController.consultarAgenda(req, res, next))
+	.get((req, res, next) =>	medicoController.consultarAgenda(req, res, next))
 
 export default router
+

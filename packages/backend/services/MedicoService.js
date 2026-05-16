@@ -130,21 +130,31 @@ export class MedicoService{
         return medico !== null
     }
 
-    async consultarEspecialidad(medicoId,especialidadID){
+    async consultarAgenda (medicoId, especialidadId, practicaId){
         this.validarEnteroPositivo(medicoId,"Id")
-        this.validarEnteroPositivo(especialidadID,"Id")
         const medico = await this.obtenerPorId(medicoId)
-        //const especialidad = await this.especialidadService.obtenerPorId(especialidadID)
-        return medico.especialidades.includes(especialidadID)
+        const especialidad = await this.especialidadService.obtenerPorId(especialidadId)
+        const practica = await this.practicaService.obtenerPorId(practicaId)
+
+         if (!especialidad) {
+            throw new NotFoundError("Especialidad no encontrada")
+        }
+        if (!medico) {
+            throw new NotFoundError("Medico no encontrado")
+        }
+        if (!practica) {
+            throw new NotFoundError("Practica no encontrada")
+        }
+        if (!medico.especialidades.includes(especialidadId)) {
+            throw new UnprocessableEntityError("El médico no tiene asignada esa especialidad")
+        }
+        if (!medico.practicas.includes(practicaId)) {
+            throw new UnprocessableEntityError("El médico no tiene asignada esa práctica")
+        }   
+        
+        return agenda = await this.turnoService.obtenerAgendaPorMedicoYEspecialidadYPractica(medicoId, especialidadId, practicaId)
     }
 
-    async consultarPractica(medicoId,practicaID){
-        this.validarEnteroPositivo(medicoId,"Id")
-        this.validarEnteroPositivo(practicaID,"Id")
-        const medico = await this.obtenerPorId(medicoId)
-        //const practica = await this.practicaService.obtenerPorId(practicaID)
-        return medico.practicas.includes(practicaID)
-    }
 
     async consultarDisponibilidad(medicoId){
         this.validarEnteroPositivo(medicoId,"Id")

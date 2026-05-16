@@ -65,7 +65,7 @@ export class PracticaService {
     async obtenerPorIdPadre(idPadre){
         this.validarEnteroPositivo(idPadre, "Id")
      
-        return await this.practicaRepository.findByIdPadre(idPadre)
+        return await this.practicaRepository.findByPracticaGenerica(idPadre)
     }
 
     async validarExistenciaPorId(id){
