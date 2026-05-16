@@ -66,4 +66,12 @@ export class NotificacionService {
         if (!usuario) throw new NotFoundError('Usuario no encontrado');
         return usuario;
     }
+
+    async notificarCambioEstadoTurno(turno) {
+        const factory = new FactoryNotificacion()
+        const notificacion = factory.crearSegunEstadoTurno(turno)
+        if (notificacion) {
+            await this.notificacionRepository.crear(notificacion)
+        }
+    }
 }

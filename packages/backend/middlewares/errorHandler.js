@@ -7,7 +7,9 @@ export function errorHandler(err, req, res, next) {
     }
 
     if (err instanceof ZodError) {
-        const errores = err.errors.map(e => {
+        const listaIssues = err.issues || err.errors || [];
+
+        const errores = listaIssues.map(e => {
             const campo = e.path.length > 0 ? `${e.path.join('.')}: ` : "";
             return `${campo}${e.message}`;
         }).join("; ");

@@ -8,6 +8,10 @@ const especialidadGenericaSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    eliminado: {
+        type: Boolean,
+        default: false
+    }
 }, {
     timestamps: true,
     versionKey: false,

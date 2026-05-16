@@ -6,15 +6,14 @@ export class EspecialidadRepository{
     }
     
     async findPaginados(pagina, limite, filtros = {}) {
-        const salto = (pagina-1) * limite
+        const paginaValida = pagina < 1 ? 1 : pagina;
+        const salto = (paginaValida-1) * limite
 
         const filtrosAplicados = { eliminado: false, ...filtros };
 
         let especialidades = await this.findByFiltersLocal(filtrosAplicados).skip(salto).limit(limite)
 
-        const total = await this.model.countDocuments({
-            filtrosAplicados
-        })
+        const total = await this.model.countDocuments(filtrosAplicados)
 
         return {
             especialidades: especialidades,
@@ -60,7 +59,7 @@ export class EspecialidadRepository{
     }
 
     async delete(id) {
-        return await this.model.findByIdAndDelete(id)
+        return await this.model.findByIdAndUpdate(id, { eliminado: true }, { new: true });
     }
 
     //auxiliar

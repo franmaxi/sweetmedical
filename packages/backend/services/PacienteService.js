@@ -1,7 +1,8 @@
 import { Paciente} from "../domain/Paciente/Paciente.js";
 import { PacienteRepository } from "../repositories/PacienteRepository.js";
 import { Usuario } from "../domain/Usuario.js";
-import 
+import { PlanRepository } from "../repositories/PlanRepository.js";
+import { ObraSocialRepository } from "../repositories/ObraSocialRepository.js";
 import { UsuarioRepository } from "../repositories/UsuarioRepository.js";
 import {
     BadRequestError,

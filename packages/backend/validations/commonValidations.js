@@ -2,7 +2,7 @@ import { Types } from "mongoose"
 import { z } from "zod"
 
 export const paginacionSchema = z.object({
-    page: z.coerce.number().int().positive().default(1),
+    page: z.coerce.number().int().min(1, "La página debe ser mayor o igual a 1").default(1),
     limit: z.coerce.number().int().positive().default(10)
 })
 

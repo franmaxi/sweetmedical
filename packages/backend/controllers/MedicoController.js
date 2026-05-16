@@ -159,6 +159,41 @@ export class MedicoController{
         }
     }
 
+    agregarServicio = async (req,res,next) => {
+        try {
+            const medicoId = this.parsearId(req.params.id)
+            const especialidad = req.body.especialidad ? this.extraerEspecialidad(req.body) : null
+            const practica = req.body.practica ? this.extraerPractica(req.body) : null
+            if(especialidad == null && practica == null){
+                throw new BadRequestError("Debe proporcionar especialidadId o practicaId")
+            }
+            const servicioAgregado = await this.medicoService.agregarServicio(medicoId,especialidad,practica)
+            return res.status(200).json({
+                status: "success",
+                data : servicioAgregado
+            })
+        } catch (error) {
+            return next(error)
+        }
+    }
+
+    modificarServicio = async (req,res,next) => {
+        try {
+            const medicoId = this.parsearId(req.params.id)
+            const especialidad = req.body.especialidad ? this.extraerEspecialidad(req.body) : null
+            const practica = req.body.practica ? this.extraerPractica(req.body) : null
+            if(especialidad == null && practica == null){
+                throw new BadRequestError("Debe proporcionar especialidadId o practicaId")
+            }
+            const servicioModificado = await this.medicoService.modificarServicio(medicoId,especialidad,practica)
+            return res.status(200).json({
+                status: "success",
+                data : servicioModificado
+            })
+        } catch (error) {
+            return next(error)
+        }
+    }
 
     extraerEspecialidad(query){
         const especialidadId = query?.especialidadId === undefined ? null : Number(query.especialidadId)
@@ -169,7 +204,7 @@ export class MedicoController{
     }
 
     extraerPractica(query){
-        const practicaId = query?.practicaId === undefined ? null : Number(query.practicaId)
+        const practica = query?.practicaId === undefined ? null : Number(query.practicaId)
         if(practicaId !== null){
             this.validarEnteroPositivo(practicaId,"practicaId")
         }

@@ -51,7 +51,7 @@ export class MedicoRepository{
         return await this.#populate(this.model.findByIdAndUpdate(id, medico, { new: true }))
     }
     async delete(id) {
-        return await this.#populate(this.model.findByIdAndDelete(id))
+        return await this.model.findByIdAndUpdate(id, { eliminado: true }, { new: true });
     }
     async obtenerPorMatricula(matricula) {
         return await MedicoModel.findOne({ matricula, eliminado: false })
@@ -61,7 +61,10 @@ export class MedicoRepository{
         const medico = await MedicoModel.findOne( 
             {_id: medicoId},
             { disponibilidades: { $elemMatch: { _id: dispoId } } } 
-        ).lean();
+        )
+        .populate('disponibilidades.especialidades')
+        .populate('disponibilidades.practicas')
+        .lean();
         // el lean me trae el objeto Json directamente, no el documento de Mongo, leer documentacion Mongoose
         // cuando no modificamos o no tenemos getters custom es recomendable ya que nos evitamos la metadata que no necesitamos
         if (!medico || !medico.disponibilidades || medico.disponibilidades.length === 0) {

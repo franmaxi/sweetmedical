@@ -4,6 +4,7 @@ import { EstadoTurno } from "../domain/Enumerados/EstadoTurno.js";
 import { MedicoRepository } from "../repositories/MedicoRepository.js";
 import { UsuarioRepository } from "../repositories/UsuarioRepository.js";
 import { DisponibilidadHoraria } from "../domain/Medico/DisponibilidadHoraria.js";
+import { objectIdSchema } from "../validations/commonValidations.js";
 import {
     BadRequestError,
     NotFoundError,
@@ -173,7 +174,24 @@ export class MedicoService{
         })
     }
 
-    async 
+    async agregarServicio(medicoId,especialidad,practica){
+        if (medicoId) objectIdSchema.validate(medicoId)
+
+        const medico = await this.obtenerPorId(medicoId)
+        if (!medico) throw new NotFoundError("Medico no encontrado")
+
+        if (especialidad) {
+            const especialidadCreada = await this.especialidadService.crear(especialidad)
+            medico.agregarEspecialidad(especialidadCreada._id)
+        }
+
+        if (practica) {
+            const practicaCreada = this.practicaService.crear(practica)
+            medico.agregarPractica(practicaCreada._id)
+        }
+
+        return await this.medicoRepository.save(medico) 
+    }
 
 
     async consultarDisponibilidad(medicoId){

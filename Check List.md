@@ -11,15 +11,15 @@
 ## Pacientes
 - [x] **Reservar** turno validando disponibilidad ✅ 2026-05-15 
 - [ ] **Refrescar** turnos luego de reservar
-- [ ] **Cancelar** turno con mínimo 1 hora de anticipación
-- [ ] **Registrar motivo** de cancelación
+- [x] **Cancelar** turno con mínimo 1 hora de anticipación
+- [x] **Registrar motivo** de cancelación
 - [ ] **Consultar historial** personal de turnos
 - [ ] **Solicitar cambio** de fecha de turno
 - [ ] **Flujo de confirmación** para cambio de turno
 
 ## Médicos
-- [ ] **Cancelar** turnos con mínimo 1 hora de anticipación
-- [ ] **Registrar motivo** de cancelación
+- [x] **Cancelar** turnos con mínimo 1 hora de anticipación
+- [x] **Registrar motivo** de cancelación
 - [ ] Consultar historial de turnos de un paciente
 - [ ] Proponer modificación de fecha de turno
 - [ ] Confirmación de modificación requerida
@@ -31,7 +31,7 @@
 # 🧾 Gestión de Servicios
 
 ## CRUD de Servicios Médicos
-- [ ] Alta de servicios 
+- [x] Alta de servicios         
 - [ ] Modificación de servicios
 - [ ] Baja de servicios
 - [ ] Relación médico ↔ servicios
@@ -93,11 +93,11 @@
 
 # 📚 Documentación
 
-- [ ] Documentación Swagger configurada
-- [ ] Endpoints documentados
+- [x] Documentación Swagger configurada
+- [x] Endpoints documentados
 - [ ] Schemas/modelos documentados
-- [ ] Ejemplos de requests/responses
-- [ ] Códigos de error documentados
+- [x] Ejemplos de requests/responses
+- [x] Códigos de error documentados
 
 ---
 

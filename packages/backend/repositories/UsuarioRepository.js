@@ -14,11 +14,12 @@ export class UsuarioRepository{
         return await this.model.findById(id)
     }
     
-    async findById(id) {
-        return await this.model.findById(id);
+    async delete(id) {
+        return await this.model.findByIdAndUpdate(id, { eliminado: true }, { new: true });
     }
 
-    async obtenerPorId(id) {
+    
+    async findById(id) {
         return await this.model.findById(id);
     }
 }

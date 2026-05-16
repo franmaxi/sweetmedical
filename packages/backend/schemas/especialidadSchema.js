@@ -20,6 +20,10 @@ const especialidadSchema = new mongoose.Schema({
     costo: {
         type: Number,
         required: true
+    },
+    eliminado: {
+        type: Boolean,
+        default: false
     }
 }, {
     timestamps: true,

@@ -11,6 +11,7 @@ export class Practica {
         this.nombre = valid.nombre;
         this.duracionTurnoEnMins = valid.duracionTurnoEnMins;
         this.costo = valid.costo;
+        this.eliminado = false
     }
 
     calcularCostoSegunCobertura(nivelCobertura) {

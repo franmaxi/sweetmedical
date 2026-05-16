@@ -7,5 +7,6 @@ export class PracticaGenerica {
         this.id = null;
         this.nombre = valid.nombre;
         this.codigo = valid.codigo;
+        this.eliminado = false
     }
 }

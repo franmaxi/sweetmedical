@@ -12,7 +12,6 @@ const practicaSchema = new mongoose.Schema({
     codigo: {
         type: String,
         required: true,
-        unique: true,
         trim: true
     },
     nombre: {
@@ -27,6 +26,10 @@ const practicaSchema = new mongoose.Schema({
     costo: {
         type: Number,
         required: true
+    },
+    eliminado: {
+        type: Boolean,
+        default: false
     }
 }, {
     timestamps: true,

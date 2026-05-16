@@ -13,6 +13,10 @@ const practicaGenericaSchema = new mongoose.Schema({
         type: String,
         required: true,
         trim: true
+    },
+    eliminado: {
+        type: Boolean,
+        default: false
     }
     
 }, {

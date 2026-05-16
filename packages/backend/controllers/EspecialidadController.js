@@ -18,7 +18,7 @@ export class EspecialidadController {
                 data: resultado.especialidades,
                 paginacion: {
                     numeroPagina: resultado.numeroPagina,
-                    limitePagina: resultado.limitePagina,
+                    limitePagina: resultado.limitePorPagina,
                     totalPaginas: resultado.totalPaginas,
                     totalEspecialidades: resultado.totalEspecialidades
                 }

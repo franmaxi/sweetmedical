@@ -20,18 +20,16 @@ export class EspecialidadService {
     }
 
     async obtenerTodos({ numeroPagina = 1, limitePorPagina = 10, filtros = {} } = {}) {
-        const { page, limit } = paginacionSchema.parse({ page: numeroPagina, limit: limitePorPagina });
-        //TODO Agregar filtros
         const { especialidades, totalEspecialidades } = await this.especialidadRepository.findPaginados(
-            page,
-            limit,
+            numeroPagina,
+            limitePorPagina,
             filtros
         ); 
-        const totalPaginas = totalEspecialidades === 0 ? 0 : Math.ceil(totalEspecialidades / limit);
+        const totalPaginas = totalEspecialidades === 0 ? 0 : Math.ceil(totalEspecialidades / limitePorPagina);
         return {
             especialidades,
-            numeroPagina: page,
-            limitePorPagina: limit,
+            numeroPagina: numeroPagina,
+            limitePorPagina: limitePorPagina,
             totalPaginas,
             totalEspecialidades
         };
@@ -57,26 +55,7 @@ export class EspecialidadService {
         return especialidadGenerica;
     }
 
-    async obtenerPorNombre(nombre) {
-        const validNombre = stringNoNuloSchema.parse(nombre);
-        return await this.especialidadRepository.findByNombre(validNombre);
-    }
-
-    async obtenerPorIdPadre(idPadre) {
-        const validIdPadre = objectIdSchema.parse(idPadre);
-        return await this.especialidadRepository.findByIdEspecialidadGenerica(validIdPadre);
-    }
-
-    async validarExistenciaPorId(id) {
-        const validId = objectIdSchema.parse(id);
-        const especialidad = await this.especialidadRepository.findById(validId);
-
-        if (!especialidad) {
-            return false;
-        }
-        return true;
-    }
-
+    
     async crear(datosEspecialidad) {
         const validDatos = especialidadBodySchema.parse(datosEspecialidad);
         const especialidadGenerica = await this.especialidadGenericaRepository.findOneByNombre(validDatos.nombre);
@@ -108,6 +87,37 @@ export class EspecialidadService {
 
         return await this.especialidadRepository.update(validId, especialidad);
     }
+
+    async eliminar(id){
+        const validId = objectIdSchema.parse(id);
+
+        if (! this.validarExistenciaPorId(validId)){
+            throw new NotFoundError("Especialidad no encontrado");
+        }
+  
+        return await this.especialidadRepository.delete(validId);
+    }
+
+    async obtenerPorNombre(nombre) {
+        const validNombre = stringNoNuloSchema.parse(nombre);
+        return await this.especialidadRepository.findByNombre(validNombre);
+    }
+
+    async obtenerPorIdPadre(idPadre) {
+        const validIdPadre = objectIdSchema.parse(idPadre);
+        return await this.especialidadRepository.findByIdEspecialidadGenerica(validIdPadre);
+    }
+
+    async validarExistenciaPorId(id) {
+        const validId = objectIdSchema.parse(id);
+        const especialidad = await this.especialidadRepository.findById(validId);
+
+        if (!especialidad) {
+            return false;
+        }
+        return true;
+    }
+
 
     // ---------- Especialidades Genericas ----------
     async crearGenerica(datosEGenerica) {

@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import { ObraSocial } from '../domain/Paciente/obrasocial.js';
+import { ObraSocial } from '../domain/Paciente/ObraSocial.js';
 
 const obraSocialSchema = new mongoose.Schema({
     nombre:{

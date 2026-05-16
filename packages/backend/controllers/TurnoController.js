@@ -72,9 +72,9 @@ reservar = async(req, res, next) =>  {
     try {
         //TODO faltaria agregar la fecha, especialidad/practic
         const turnoId = this.parsearId(req.params.id);
-        const { pacienteId } = this.extraerBodyReserva(req.body);
+        const { pacienteId, especialidadId, practicaId } = this.extraerBodyReserva(req.body);
 
-        const turno = await this.turnoService.reservarTurno(turnoId, pacienteId);
+        const turno = await this.turnoService.reservarTurno(turnoId, pacienteId, especialidadId, practicaId);
 
         return res.status(200).json({
             status: "success",
@@ -170,9 +170,10 @@ delete = async (req, res, next) => {
     if (!body?.pacienteId) {
         throw new BadRequestError("El campo 'pacienteId' es obligatorio para reservar un turno.");
     }
-
     return {
-        pacienteId: this.parsearId(body.pacienteId)
+        pacienteId: this.parsearId(body.pacienteId),
+        especialidadId: body.especialidadId ?? null,
+        practicaId: body.practicaId ?? null,
     };
 }
  extraerBodyCancelacion(body) {

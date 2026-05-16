@@ -945,6 +945,60 @@ const swaggerSpec = {
         },
       },
     },
+    "/turnos/{id}/reservar": {
+        post: {
+            tags: ["Turnos"],
+            summary: "Reservar un turno",
+            parameters: [{ $ref: "#/components/parameters/idParam" }],
+            requestBody: {
+            required: true,
+            content: {
+                "application/json": {
+                schema: {
+                    type: "object",
+                    required: ["pacienteId"],
+                    properties: {
+                    pacienteId: { type: "integer", example: 1 },
+                    especialidadId: { type: "string", example: "664a1b2c3d4e5f6a7b8c9d1b" },
+                    practicaId: { type: "string", example: "664a1b2c3d4e5f6a7b8c9d1c" },
+                    },
+                },
+                },
+            },
+            },
+            responses: {
+            200: { description: "Turno reservado", content: { "application/json": { schema: { type: "object", properties: { status: { type: "string", example: "success" }, data: { $ref: "#/components/schemas/Turno" } } } } } },
+            404: { description: "Turno o paciente no encontrado", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+            422: { description: "Turno no disponible o sin tiempo suficiente", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+            },
+        },
+    },
+    "/turnos/{id}/cancelar": {
+        post: {
+            tags: ["Turnos"],
+            summary: "Cancelar un turno",
+            parameters: [{ $ref: "#/components/parameters/idParam" }],
+            requestBody: {
+            required: true,
+            content: {
+                "application/json": {
+                schema: {
+                    type: "object",
+                    required: ["usuario"],
+                    properties: {
+                    usuario: { type: "object", description: "Datos del usuario que cancela" },
+                    motivo: { type: "string", example: "No puedo asistir" },
+                    },
+                },
+                },
+            },
+            },
+            responses: {
+            200: { description: "Turno cancelado", content: { "application/json": { schema: { type: "object", properties: { status: { type: "string", example: "success" }, data: { $ref: "#/components/schemas/Turno" } } } } } },
+            404: { description: "Turno no encontrado", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
+            },
+        },
+    },
 
     // ── Prácticas ───────────────────────────────────────────────────────
     "/practicas": {

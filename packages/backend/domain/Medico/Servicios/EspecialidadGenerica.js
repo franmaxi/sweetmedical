@@ -6,5 +6,6 @@ export class EspecialidadGenerica {
 
         this.id = null;
         this.nombre = valid.nombre;
+        this.eliminado = false
     }
 }
