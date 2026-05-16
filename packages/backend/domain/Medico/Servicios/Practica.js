@@ -1,11 +1,15 @@
+import { BadRequestError } from "../../../errors/AppErrors"
+import { NivelCobertura } from "../../Enumerados/NivelCobertura"
 export class Practica {
-    constructor( {codigo, nombre, duracionTurnoEnMins, costo} ) {
+    constructor( {codigo,idPadre, nombre, duracionTurnoEnMins, costo} ) {
+        this.validarEnteroPositivo(idPadre,"id")
         this.validarCodigo(codigo)
         this.validarNombre(nombre)
         this.validarNumeroMayorA0(duracionTurnoEnMins, 'duración del turno en minutos')
         this.validarNumeroMayorA0(costo, 'costo de la práctica')
         
         this.id = null //todo
+        this.idPadre = idPadre
         this.codigo = codigo
         this.nombre = nombre
         this.duracionTurnoEnMins = duracionTurnoEnMins
@@ -13,6 +17,12 @@ export class Practica {
     }
 
     // Validaciones Constructor
+    validarEnteroPositivo(numero, parametro) {
+            if (!Number.isInteger(numero) || numero <= 0) {
+                throw new BadRequestError(`El parámetro ${parametro} debe ser un entero positivo`)
+        }
+    }
+
     validarCodigo(codigo){
         if (typeof codigo !== 'string' || codigo.trim() === '') {
             throw new TypeError('El código de la práctica debe ser un string no vacío')
@@ -30,7 +40,9 @@ export class Practica {
             throw new TypeError(`${nombreCampo} debe ser un número positivo`)
         }
     }
-
-
-
+    calcularCostoSegunCobertura(nivelCobertura){
+        if(nivelCobertura == NivelCobertura.TOTAL) return 0
+        if(nivelCobertura == NivelCobertura.PARCIAL) return this.costo *0.5
+        return this.costo
+    }
 }

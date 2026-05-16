@@ -23,8 +23,12 @@ const pacienteSchema = new mongoose.Schema({
         ref: 'ObraSocial',
         required: true
     },
+    plan:{
+        type:mongoose.Schema.type.ObjectId,
+        ref:'Plan',
+        required: true
+    },
     
-    //ESTO ES PARA EL SOFT DELETE
     eliminado: {
         type: Boolean,
         default: false
@@ -35,10 +39,7 @@ const pacienteSchema = new mongoose.Schema({
     collection: 'pacientes'
 });
 
-
-//CARGAMOS EL ESQUEMA ALOJAMIENTO (MONGOOSE) A LA ENTIDAD ALOJAMIENTO (NUESTRO DOMINIO)
 pacienteSchema.loadClass(Paciente);
 
-//EXPORTAMOS EL MODELO MONGOOSE QUE SE USARA CORRESPONDIENTE AL ESQUEMA
 export const PacienteModel = mongoose.model('Paciente', pacienteSchema);
 

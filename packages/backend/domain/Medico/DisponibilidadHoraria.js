@@ -14,6 +14,7 @@ export class DisponibilidadHoraria {
         this.especialidades = []
         this.practicas = []
         this.sede = sede
+        this.mcdDuracion = this.calcularMCDDuraciones() //mcd de las duraciones de especialidades y practicas
     }
     
     // Validaciones Constructor
@@ -61,6 +62,20 @@ export class DisponibilidadHoraria {
     
     obtenerDiferenciaEnMinutos(){
        return this.convertirHoraEnMinutos(this.horaHasta) - this.convertirHoraEnMinutos(this.horaDesde)
+    }
+
+    calcularMCDDuraciones(){
+        const duracionesServicios = [
+            ...disponibilidad.practicas.map(p => p.duracionTurnoEnMins),
+            ...disponibilidad.especialidades.map(e => e.duracionTurnoEnMins)
+        ]
+        return this.calcularMCD(duracionesServicios)
+    }
+
+    calcularMCD(numeros) {
+        if (!numeros || numeros.length === 0) return 1;
+        const mcd = (a, b) => b === 0 ? a : mcd(b, a % b);
+        return numeros.reduce((acc, num) => mcd(acc, num));
     }
 }
 

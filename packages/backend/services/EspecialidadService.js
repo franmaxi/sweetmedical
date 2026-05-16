@@ -1,7 +1,10 @@
-import { Especialidad } from "../domain/Medico/Especialidad";
+import { Especialidad } from "../domain/Medico/Servicios/Especialidad.js";
 import { EspecialidadRepository } from "../repositories/EspecialidadRepository.js";
+import { EspecialidadGenericaRepository } from "../repositories/EspecialidadGenericaRepository.js";
+import { EspecialidadGenerica } from "../domain/Medico/Servicios/EspecialidadGenerica.js";
 import {
     BadRequestError,
+    ConflictError,
     NotFoundError,
     UnprocessableEntityError,
 } from "../errors/AppErrors.js";
@@ -9,8 +12,10 @@ import {
 export class EspecialidadService{
      constructor({
         especialidadRepository = new EspecialidadRepository(),
+        especialidadGenericaRepository = new EspecialidadGenericaRepository()
     } = {}) {
         this.especialidadRepository = especialidadRepository;
+        this.especialidadGenericaRepository = especialidadGenericaRepository
     }
 
     async obtenerTodos({numeroPagina = 1, limitePorPagina = 10, filtros = {} } = {}){
@@ -41,6 +46,27 @@ export class EspecialidadService{
         return especialidad
     }
 
+    async obtenerPorIdGenerica(id){
+        this.validarEnteroPositivo(id, "Id")
+        const especialidadGenerica = await this.especialidadGenericaRepository.findById(id)
+
+        if (!especialidadGenerica) {
+            throw new NotFoundError("Especialidad no encontrado")
+        }
+        return especialidadGenerica
+    }
+
+    async obtenerPorNombre(nombre){
+        this.validarStringNoNulo(nombre, "nombre de la especialidad")
+        return await this.especialidadRepository.findByNombre(nombre)
+    }
+
+    async obtenerPorIdPadre(idPadre){
+        this.validarEnteroPositivo(idPadre, "Id")
+     
+        return await this.especialidadRepository.findByIdPadre(idPadre)
+    }
+
     async validarExistenciaPorId(id){
         this.validarEnteroPositivo(id, "Id")
 
@@ -55,12 +81,24 @@ export class EspecialidadService{
     async crear(datosEspecialidad){
         this.validarDatosEspecialidad(datosEspecialidad)
         
-        const especialidad = new Medico({
+        const especialidad = new Especialidad({
             nombre: datosEspecialidad.nombre,    
             duracionTurnoEnMins : datosEspecialidad.duracionTurnoEnMins,
             costoConsulta : datosEspecialidad.costoConsulta
         })
         return await this.especialidadRepository.save(especialidad) 
+    }
+
+    async crearGenerica(datosEGenerica){
+        this.validarStringNoNulo(datosEGenerica.nombre, "nombre de la especialidad")
+
+        if(await this.especialidadGenericaRepository.findOneByNombre(datosEGenerica.nombre) != null){
+            throw new ConflictError("Ya existe una especialidad de nombre: " + datosEGenerica.nombre)
+        }
+
+        const especialidadGenerica = new EspecialidadGenerica({nombre: datosEGenerica.nombre})
+
+        return await this.especialidadGenericaRepository.save(especialidadGenerica)
     }
 
     async actualizar(id, datosEspecialidad){
@@ -73,10 +111,32 @@ export class EspecialidadService{
         especialidad.duracionTurnoEnMins = datosEspecialidad.duracionTurnoEnMins
         especialidad.costoConsulta = datosEspecialidad.costoConsulta
 
-        return await this.especialidadRepository.save(especialidad)
+        return await this.especialidadRepository.update(id,especialidad)
     }
 
+    async actualizarGenerica(id, nombreNuevo){
+        this.validarEnteroPositivo(id,"Id")
+        this.validarStringNoNulo(nombreNuevo, "nombre de la especialidad generica")
 
+        if(await this.especialidadGenericaRepository.findOneByNombre(nombreNuevo) != null){
+            throw new ConflictError("Ya existe una especialidad de nombre: " + nombreNuevo)
+        }
+
+        const especialidadGenerica = await this.obtenerPorIdGenerica(id)
+
+        especialidadGenerica.nombre = nombreNuevo
+
+        const especialidadesHijas = await this.obtenerPorIdPadre(id)
+
+        //Si actualizamos el nombre de una generica, las hijas deberán tener su mismo nombre
+        if (especialidadesHijas.length > 0) {
+            const idsHijas = especialidadesHijas.map(e => e.id);
+            
+            await this.especialidadRepository.updateManyNombres(idsHijas, nombreNuevo);
+        }
+
+        return await this.especialidadGenericaRepository.update(id,especialidadGenerica)
+    }
 
     // Métodos Auxiliares
     validarDatosEspecialidad(datosEspecialidad){
@@ -85,16 +145,14 @@ export class EspecialidadService{
         }
         const {nombre, duracionTurnoEnMins, costoConsulta} = datosEspecialidad
 
-         if (typeof nombre !== "string" ) {
-            throw new UnprocessableEntityError("El nombre de la especialidad es invalida")
-        }
+        this.validarStringNoNulo(nombre, "nombre de la especialidad")
+
         if (typeof duracionTurnoEnMins !== "number" ) {
             throw new UnprocessableEntityError("La duracionTurnoEnMins de la especialidad es invalida")
         }
         if (typeof costoConsulta !== "number" ) {
             throw new UnprocessableEntityError("El costoConsulta de la especialidad es invalida")
         }
-        
     }
 
     validarPaginacion(numeroPagina, limitePorPagina) {
@@ -105,6 +163,12 @@ export class EspecialidadService{
     validarEnteroPositivo(numero, parametro) {
         if (!Number.isInteger(numero) || numero <= 0) {
             throw new BadRequestError(`${parametro} debe ser un entero positivo`)
+        }
+    }
+
+    validarStringNoNulo(string, parametro){
+        if (typeof string !== 'string' || string.trim() === '') {
+            throw new UnprocessableEntityError(`${parametro} debe ser un string no nulo`)
         }
     }
 }

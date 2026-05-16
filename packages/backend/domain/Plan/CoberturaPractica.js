@@ -1,18 +1,18 @@
-import { Practica } from "../Medico/Practica.js";
+import { PracticaGenerica } from "../Medico/Servicios/PracticaGenerica.js";
 import { NivelCobertura } from "../Enumerados/NivelCobertura.js";
 export class CoberturaPractica{
-    constructor( {practica,nivel} ){
+    constructor( {practicaGenerica,nivel} ){
         this.validarPractica(practica)
         this.validarNivel(nivel)
 
-        this.practica = practica;
+        this.practicaGenerica = practicaGenerica;
         this.nivel = nivel;
     }
 
     // Validacion Constructor
 
-    validarPractica(practica){
-        if(!(practica instanceof Practica)){
+    validarPractica(practicaGenerica){
+        if(!(practicaGenerica instanceof PracticaGenerica)){
             throw new TypeError('La práctica debe ser un objeto válido')
         }
     }

@@ -11,10 +11,13 @@ findAll = async (req, res, next) => {
     try {
         const paginacion = this.extraerPaginacion(req.query);
         const filtros = this.extraerFiltros(req.query);
+        const pacienteId = req.query.pacienteId;
 
         const resultado = await this.turnoService.obtenerTodos({
+            pacienteId,
             ...paginacion,
             filtros
+            
         });
 
         return res.status(200).json({
@@ -136,7 +139,7 @@ delete = async (req, res, next) => {
         "fechaHora",
         "sedeId", // puede ser opcional si se determina a través del médico o la especialidad
         "especialidadId",
-        "practica",
+        "practicaId",
         "costo"
     ];
 
@@ -158,7 +161,7 @@ delete = async (req, res, next) => {
         fechaHora: body.fechaHora,
         sedeId: body.sedeId,
         especialidadId: body.especialidadId,
-        practica: body.practica,
+        practicaId: body.practicaId,
         costo: body.costo
     };
     }
@@ -182,29 +185,41 @@ delete = async (req, res, next) => {
         motivo: body.motivo ?? "cancelación sin motivo especificado"
     };  
 }
-    extraerFiltros(query) {
-        const filtros = {};
-
-        if(query.medicoId !== undefined) {
-            filtros.medicoId = Number(query.medicoId);
-        }
-        
-        if(query.estado !== undefined) {
-            filtros.estado = query.estado;
-        }
-
-        if(query.desde !== undefined) {
-            const fechaDesde = new Date(query.desde);
-            filtros.desde = isNaN(fechaDesde) ? null : fechaDesde;
-        }
-        
-        if(query.hasta !== undefined) {
-            const fechaHasta = new Date(query.hasta);
-            filtros.hasta = isNaN(fechaHasta) ? null : fechaHasta;
-        }
-
-        return filtros;
+ extraerFiltros(query) {
+    const filtros = {};
+    // Agregue especialidadId, sedeId y practicaId
+    if (query.medicoId !== undefined) {
+        filtros.medicoId = Number(query.medicoId);
     }
+
+    if (query.estado !== undefined) {
+        filtros.estado = query.estado;
+    }
+
+    if (query.especialidadId !== undefined) {
+        filtros.especialidadId = query.especialidadId;
+    }
+
+    if (query.practicaId !== undefined) {
+        filtros.practicaId = query.practicaId;
+    }
+
+    if (query.sedeId !== undefined) {
+        filtros.sedeId = query.sedeId;
+    }
+
+    if (query.desde !== undefined) {
+        const fechaDesde = new Date(query.desde);
+        filtros.desde = isNaN(fechaDesde) ? null : fechaDesde;
+    }
+
+    if (query.hasta !== undefined) {
+        const fechaHasta = new Date(query.hasta);
+        filtros.hasta = isNaN(fechaHasta) ? null : fechaHasta;
+    }
+
+    return filtros;
+}
 
     extraerPaginacion(query) {
         const numeroPagina = query?.page === undefined ? 1 : Number(query.page);

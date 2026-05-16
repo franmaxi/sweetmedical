@@ -1,7 +1,7 @@
 import {BadRequestError} from "../errors/AppErrors.js"
 import { EspecialidadService } from "../services/EspecialidadService.js"
 
-export class EspecialidadController{
+export class ServicioController{
     constructor({
         especialidadService = new EspecialidadService()
     } = {}){
@@ -29,11 +29,24 @@ export class EspecialidadController{
 
     create = async (req, res,next) => {
         try {
-            const datosEspecialidad = this.extraerYValidarBodyMedico(req.body)
+            const datosEspecialidad = this.validarYExtraerBody(req.body,["nombre","duracionTurnoEnMins","costoConsulta"])
             const especialidadCreada = await this.especialidadService.crear(datosEspecialidad)
             return res.status(201).json({
                 status: "success",
                 data : especialidadCreada
+            })
+        } catch (error) {
+            return next(error)
+        }
+    }
+
+    createGenerica = async (req, res,next) => {
+        try {
+            const datosEGenerica = this.validarYExtraerBody(req.body, ["nombre"])
+            const eGenericaCreada = await this.especialidadService.crearGenerica(datosEGenerica)
+            return res.status(201).json({
+                status: "success",
+                data : eGenericaCreada
             })
         } catch (error) {
             return next(error)
@@ -56,7 +69,7 @@ export class EspecialidadController{
     update = async (req, res,next) => {
         try {
             const id = this.parsearId(req.params.id)
-            const datosEspecialidad = this.extraerYValidarBodyEspecialidad(req.body)
+            const datosEspecialidad = this.validarYExtraerBody(req.body,["nombre","duracionTurnoEnMins","costoConsulta"])
             const especialidadActualizada = await this.especialidadService.actualizar(id,datosEspecialidad)
             return res.status(200).json({
                 status: "success",
@@ -107,36 +120,29 @@ export class EspecialidadController{
         return id
     }
 
-    
-    extraerYValidarBodyEspecialidad(body) {
+    validarYExtraerBody(body, camposRequeridos = []) {
         if (!body || typeof body !== 'object' || Array.isArray(body)) {
             throw new BadRequestError("El cuerpo de la solicitud debe ser un objeto JSON válido.");
         }
 
-        const camposPermitidos = [
-            "nombre",
-            "duracionTurnoEnMins",
-            "costoConsulta"
-        ];
-
         const camposBody = Object.keys(body);
-        const camposNoPermitidos = camposBody.filter(campo => !camposPermitidos.includes(campo));
 
+        const camposNoPermitidos = camposBody.filter(campo => !camposRequeridos.includes(campo));
         if (camposNoPermitidos.length > 0) {
-            throw new BadRequestError(`Campos no permitidos en el cuerpo de la solicitud: ${camposNoPermitidos.join(", ")}`);
+            throw new BadRequestError(`Campos no permitidos en la solicitud: ${camposNoPermitidos.join(", ")}`);
         }
 
-        const camposFaltantes = camposPermitidos.filter((campo) => body[campo] === undefined);
-        
+        const camposFaltantes = camposRequeridos.filter(campo => body[campo] === undefined || body[campo] === null);
         if (camposFaltantes.length > 0) {
-            throw new BadRequestError(`Faltan campos obligatorios en el cuerpo de la solicitud: ${camposFaltantes.join(", ")}`);
+            throw new BadRequestError(`Faltan campos obligatorios en la solicitud: ${camposFaltantes.join(", ")}`);
         }
 
-        return {
-            nombre: body.nombre,
-            duracionTurnoEnMins: body.duracionTurnoEnMins,
-            costoConsulta: body.costoConsulta,
-        };
+        const bodyLimpio = {};
+        camposRequeridos.forEach(campo => {
+            bodyLimpio[campo] = body[campo];
+        });
+
+        return bodyLimpio;
     }
 }
 

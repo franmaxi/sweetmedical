@@ -1,11 +1,11 @@
 import { Medico } from "../domain/Medico/Medico.js";
-import { Usuario } from "../domain/Usuario.js"
 import { MedicoRepository } from "../repositories/MedicoRepository.js";
 import { UsuarioRepository } from "../repositories/UsuarioRepository.js";
 import {
     BadRequestError,
     NotFoundError,
     UnprocessableEntityError,
+    ConflictError
 } from "../errors/AppErrors.js";
 
 export class MedicoService{
@@ -57,7 +57,7 @@ export class MedicoService{
 
     async crear(datosMedico){
         this.validarDatosMedico(datosMedico)
-        if(existeMatricula(datosMedico.matricula))
+        if(await this.existeMatricula(datosMedico.matricula))
         {
             throw new ConflictError("Ya existe un médico con esa matrícula")
         }
@@ -69,12 +69,14 @@ export class MedicoService{
             password: datosMedico.password
         })        
         const medico = new Medico({
-            usuario: usuarioGuardado._id,    
+            usuario: usuarioCreado._id,    
             matricula : datosMedico.matricula,
             nombre : datosMedico.nombre
         })
         return await this.medicoRepository.save(medico) 
     }
+
+
     
     async actualizar(id, datosMedico){
         this.validarEnteroPositivo(id,"Id")
@@ -102,7 +104,7 @@ export class MedicoService{
             if (!await this.practicaService.validarExistenciaPorId(practicaId)) {
                 throw new NotFoundError(`Practica ${practicaId} no encontrada`)
             }
-}
+        }
         
         medicoExistente.matricula = datosMedico.matricula
         medicoExistente.nombre = datosMedico.nombre
@@ -127,6 +129,30 @@ export class MedicoService{
         const medico = await this.medicoRepository.obtenerPorMatricula(matricula)
         return medico !== null
     }
+
+    async consultarEspecialidad(medicoId,especialidadID){
+        this.validarEnteroPositivo(medicoId,"Id")
+        this.validarEnteroPositivo(especialidadID,"Id")
+        const medico = await this.obtenerPorId(medicoId)
+        //const especialidad = await this.especialidadService.obtenerPorId(especialidadID)
+        return medico.especialidades.includes(especialidadID)
+    }
+
+    async consultarPractica(medicoId,practicaID){
+        this.validarEnteroPositivo(medicoId,"Id")
+        this.validarEnteroPositivo(practicaID,"Id")
+        const medico = await this.obtenerPorId(medicoId)
+        //const practica = await this.practicaService.obtenerPorId(practicaID)
+        return medico.practicas.includes(practicaID)
+    }
+
+    async consultarDisponibilidad(medicoId){
+        this.validarEnteroPositivo(medicoId,"Id")
+        const medico = await this.obtenerPorId(medicoId)
+        return medico.disponibilidades
+    }
+
+
     validarDatosServicios({ especialidadIds, practicaIds }) {
         if (!Array.isArray(especialidadIds) || !Array.isArray(practicaIds)) {
             throw new BadRequestError("especialidadIds y practicaIds deben ser listas")
@@ -145,6 +171,7 @@ export class MedicoService{
             }
         }
     }
+
     validarDatosMedico(datosMedico){
         if (!datosMedico || typeof datosMedico !== "object" || Array.isArray(datosMedico)) {
             throw new BadRequestError("Los datos del medico son invalidos")
@@ -164,6 +191,8 @@ export class MedicoService{
             throw new UnprocessableEntityError("La contraseña del medico es invalida")
         }
     }
+
+       
 
     validarPaginacion(numeroPagina, limitePorPagina) {
         this.validarEnteroPositivo(numeroPagina, "Numero de página")

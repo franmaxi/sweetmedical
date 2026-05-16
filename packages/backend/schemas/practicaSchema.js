@@ -2,6 +2,13 @@ import mongoose from 'mongoose';
 import { Practica } from '../domain/Medico/Practica.js';
 
 const practicaSchema = new mongoose.Schema({
+    
+    practicaGenerica:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'PracticaGenerica',
+        required: true
+    },
+    
     codigo: {
         type: String,
         required: true,

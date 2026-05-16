@@ -26,6 +26,17 @@ export class EspecialidadRepository{
         return await this.model.findById(id)
     }
 
+    async findByIdPadre(idPadre) {
+        const especialidades = await model.find({ idPadre: idPadre });
+        return especialidades;
+    }
+
+    async findByNombre(nombre) {
+        const especialidades = await model.find({ nombre: nombre });
+        return especialidades;
+    }
+
+
     async findByFilters(filtros = {}) {
         return await this.model.find(filtros)
     }
@@ -37,6 +48,13 @@ export class EspecialidadRepository{
 
     async update(id, especialidad) {
         return await this.model.findByIdAndUpdate(id, especialidad, { new: true })
+    }
+
+    async updateManyNombres(ids, nuevoNombre) {
+        return await model.updateMany(
+            { _id: { $in: ids } }, 
+            { nombre: nuevoNombre }
+        );
     }
 
     async delete(id) {

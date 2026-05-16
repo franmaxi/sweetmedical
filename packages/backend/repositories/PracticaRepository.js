@@ -30,6 +30,16 @@ export class PracticaRepository {
         return await this.model.findById(id);
     }
 
+    async findByNombre(nombre) {
+        const practicas = await model.find({ nombre: nombre });
+        return practicas;
+    }
+
+    async findByIdPadre(idPadre) {
+        const practicas = await model.find({ idPadre: idPadre });
+        return practicas;
+    }
+
     findByFilters(filtros = {}) {
         return this.model.find(filtros)
     }
@@ -41,6 +51,14 @@ export class PracticaRepository {
 
     async update(id, Practica) {
         return await this.model.findByIdAndUpdate(id, Practica, { new: true });
+    }
+
+    //Datos a actualizar tendrá unicamente los datos q se modificaran, por ej nombre y codigo.
+    async updateMany(ids, datosAActualizar) {
+        return await model.updateMany(
+            { _id: { $in: ids } }, 
+            { $set: datosAActualizar }
+        );
     }
 
     async delete(id) {

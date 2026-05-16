@@ -17,7 +17,7 @@ export class MedicoRepository{
         return await this.#populate(this.model.find())
     }
 
-    async  obtenerPaginados(pagina, limite, filtros = {}) {
+    async obtenerPaginados(pagina, limite, filtros = {}) {
         const salto = (pagina-1) * limite
 
         let medicos = await this.findByFilters(filtros).skip(salto).limit(limite)
@@ -54,6 +54,19 @@ export class MedicoRepository{
         return await this.#populate(this.model.findByIdAndDelete(id))
     }
     async obtenerPorMatricula(matricula) {
-    return await MedicoModel.findOne({ matricula, eliminado: false })
-}
+        return await MedicoModel.findOne({ matricula, eliminado: false })
+    }
+
+    async obtenerDisponibilidadPorId(medicoId, dispoId){
+        const medico = await MedicoModel.findOne( 
+            {_id: medicoId},
+            { disponibilidades: { $elemMatch: { _id: dispoId } } } 
+        ).lean();
+        // el lean me trae el objeto Json directamente, no el documento de Mongo, leer documentacion Mongoose
+        // cuando no modificamos o no tenemos getters custom es recomendable ya que nos evitamos la metadata que no necesitamos
+        if (!medico || !medico.disponibilidades || medico.disponibilidades.length === 0) {
+            return null;
+        }
+        return medico.disponibilidades[0];
+    }
 }

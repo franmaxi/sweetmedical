@@ -12,7 +12,7 @@ const CoberturaEspecialidad = new mongoose.Schema({
         required: true}
 }, {_id : false})
 
-const CoberturaPlractica = new mongoose.Schema({
+const CoberturaPractica = new mongoose.Schema({
     practica:{ type: mongoose.Schema.Types.ObjectId,
         ref: 'Practica',
         required: true},

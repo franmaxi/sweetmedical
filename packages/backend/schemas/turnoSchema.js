@@ -30,26 +30,29 @@ const turnoSchema = new mongoose.Schema({
         required: true,
         trim:true
     },
-
+    practica:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Practica'
+    },
+    especialidad:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Especialidad'
+    },
     estado:{
         type:  String,
         enum: Object.values(EstadoTurno),
         required: true
     },
-
     historialEstados:[ historialEstadoSchema ],
-
     costo: {
         type: Number,
         required: true
     },
-
-    eleccionTurno: {
+    disponibilidad:{
         type: mongoose.Schema.Types.ObjectId,
+        ref: 'DisponibilidadHoraria',
         required: true
     },
-    
-    //ESTO ES PARA EL SOFT DELETE
     eliminado: {
         type: Boolean,
         default: false

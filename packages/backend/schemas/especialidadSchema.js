@@ -1,7 +1,13 @@
 import mongoose from 'mongoose';
-import { Especialidad } from '../domain/Medico/Especialidad.js';
+import { Especialidad } from '../domain/Medico/Servicios/Especialidad.js';
 
 const especialidadSchema = new mongoose.Schema({
+    especialidadGenerica:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'EspecialidadGenerica',
+        required: true
+    },
+
     nombre: {
         type: String,
         required: true,

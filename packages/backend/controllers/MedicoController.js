@@ -84,6 +84,19 @@ export class MedicoController{
             return next(error)
         }
     }
+
+    consultarAgenda = async (req,res,next) => {
+        try {
+            const medicoId = this.parsearId(req.params.id)
+            const servicioId= this.parsearId(req.params.servicioId)
+            const agenda = await this.medicoService.consultarAgenda(medicoId,servicioId)
+            return res.status(200).json({
+                status: "success",
+                data: agenda
+            })
+        } catch (error) {
+            return next(error)
+        }
     
     extraerPaginacion(query) {
         const numeroPagina = query?.page === undefined ? 1 : Number(query.page)
@@ -151,8 +164,8 @@ export class MedicoController{
             nombre,
             nombreUsuario,
             password,
-            especialidadIds,
-            practicaIds,
+            especialidades,
+            practicas,
             sedes,
             disponibilidades
         }
@@ -168,13 +181,26 @@ export class MedicoController{
             errores[nombreCampo] = "Campo requerido"
         }
     }
+
     validarArray(array, nombreCampo, errores) {
-    if (array === undefined || array === null) {
-        errores[nombreCampo] = "Campo requerido"
-        return
+        if (array === undefined || array === null) {
+            errores[nombreCampo] = "Campo requerido"
+            return
+        }
+        if (!Array.isArray(array)) {
+            errores[nombreCampo] = "Debe ser una lista"
+        }
     }
-    if (!Array.isArray(array)) {
-        errores[nombreCampo] = "Debe ser una lista"
+
+    
+	async consultarEspecialidad(medicoId,especialidadID){
+        this.validarEnteroPositivo(medicoId,"Id")
+        this.validarEnteroPositivo(especialidadID,"Id")
+        const medico = await this.obtenerPorId(medicoId)
+        //const especialidad = await this.especialidadService.obtenerPorId(especialidadID)
+        return medico.especialidades.includes(especialidadID)
     }
-}
-}
+
+
+    
+    }

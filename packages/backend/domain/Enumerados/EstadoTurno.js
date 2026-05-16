@@ -3,5 +3,6 @@ export const EstadoTurno = Object.freeze({
     RESERVADO: "RESERVADO",
     CONFIRMADO: "CONFIRMADO",
     CANCELADO: "CANCELADO",
-    REALIZADO: "REALIZADO"
+    REALIZADO: "REALIZADO",
+    COMBINADO: "COMBINADO" // el estado para los turnos que se combinaron en uno mayor
 })

@@ -1,13 +1,13 @@
 import { CambioEstadoTurno } from "./CambioEstadoTurno.js";
 import { Medico } from "../Medico/Medico.js";
 import { Paciente } from "../Paciente/Paciente.js";
-import { Especialidad } from "../Medico/Especialidad.js";
-import { Practica } from "../Medico/Practica.js";
+import { Especialidad } from "../Medico/Servicios/Especialidad.js";
+import { Practica } from "../Medico/Servicios/Practica.js";
 import { Sede } from "../Sede.js";
 import { EstadoTurno } from "../Enumerados/EstadoTurno.js";
 
 export class Turno{
-    constructor( {medico, fechaHora, sede, practica, especialidad} 
+    constructor( {medico, fechaHora, sede, practica, especialidad, disponibilidad} 
     ){ 
         this.validarMedico(medico);
         this.validarFechaHora(fechaHora);
@@ -20,12 +20,12 @@ export class Turno{
         this.paciente = null;
         this.fechaHora = fechaHora; //DateTime
         this.sede = sede;
-        this.practica = practica; // sería una lista cuando se crea el turno, y cuando se reserva un unico valor
-        this.especialidad = especialidad; // sería una lista cuando se crea el turno, y cuando se reserva un unico valor
+        this.practica = practica; // sería una lista cuando se crea el turno, y cuando se reserva un unico valor o null
+        this.especialidad = especialidad; // sería una lista cuando se crea el turno, y cuando se reserva un unico valor o null
         this.estado = EstadoTurno.DISPONIBLE;
         this.historialEstados = [];
         this.costo = null;
-        this.eleccionTurno = null // Es la practica/especidalidad que se eligio
+        this.disponibilidad = disponibilidad // disponibilidad por la q el turno se creó
     }
 
     // Validacion Constructor

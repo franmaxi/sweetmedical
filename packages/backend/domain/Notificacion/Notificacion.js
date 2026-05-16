@@ -12,6 +12,7 @@ export class Notificacion {
         this.remitente = remitente;
         this.mensaje = mensaje;
         this.fechaHoraCreacion =  Date.now();
+        this.fechaHoraLeida = null
         this.leida = false
     }
 

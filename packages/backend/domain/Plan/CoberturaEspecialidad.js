@@ -1,18 +1,18 @@
-import { Especialidad } from "../Medico/Especialidad.js";
+import { EspecialidadGenerica } from "../Medico/Servicios/EspecialidadGenerica.js";
 import { NivelCobertura } from "../Enumerados/NivelCobertura.js";
 export class CoberturaEspecialidad{
-    constructor( {especialidad,nivel} ){
-        this.validarEspecialidad(especialidad)
+    constructor( {especialidadGenerica,nivel} ){
+        this.validarEspecialidad(especialidadGenerica)
         this.validarNivel(nivel)
 
-        this.especialidad = especialidad;
+        this.especialidadGenerica = especialidadGenerica;
         this.nivel = nivel;
     }
 
     // Validacion Constructor
 
-    validarEspecialidad(especialidad){
-        if (!(especialidad instanceof Especialidad)){
+    validarEspecialidad(especialidadGenerica){
+        if (!(especialidadGenerica instanceof EspecialidadGenerica)){
             throw new TypeError('La especialidad debe ser un objeto válido')
         }
     }

@@ -89,7 +89,7 @@ export class Agenda {
         // matriz
         const matrizOpcionesTurno = this.obtenerMatrizEspecialidadPracticaDuracion(disponibilidad.especialidades, disponibilidad.practicas, duracionesUnicas)
         // duracion de HH:mm
-        const duracionTurnos = this.calcularMCD(duracionesUnicas)
+        const duracionTurnos = disponibilidad.mcdDuracion
 
         const diaDesde = new Date(inicio)
         diaDesde.setHours(0,0,0,0)

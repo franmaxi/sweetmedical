@@ -83,6 +83,7 @@ export class Medico {
         
     }
 
+
     hayConflictoEspecialidad(especialidades){
         if (this.especialidades.length < especialidades.length) {
             throw new BadRequestError('Las especialidades de la disponibilidad no coinciden con las del médico')

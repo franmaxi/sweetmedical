@@ -19,7 +19,7 @@ export class PracticaController {
                     numeroPagina: resultado.numeroPagina,
                     limitePagina: resultado.limitePagina,
                     totalPaginas: resultado.totalPaginas,
-                    totalMedicos: resultado.totalMedicos
+                    totalPracticas: resultado.totalPracticas
                 }
             })
         }
@@ -30,11 +30,25 @@ export class PracticaController {
 
     create = async (req,res, next) => {
         try {
-            const datosPractica = this.extraerYValidarBodyPractica(req.body)
+            const datosPractica = this.validarYExtraerBody(req.body, ["codigo","nombre","duracionTurnoEnMins","costo"])
             const practicaCreada = await this.practicaService.crear(datosPractica)
             return res.status(201).json({
                 status: "success",
                 data : practicaCreada
+            })
+        }
+        catch(error){
+            return next(error)
+        }
+    }
+
+    createGenerica = async (req,res, next) => {
+        try {
+            const datosPGenerica = this.validarYExtraerBody(req.body, ["codigo","nombre"])
+            const pGenericaCreada = await this.practicaService.crearGenerica(datosPGenerica)
+            return res.status(201).json({
+                status: "success",
+                data : pGenericaCreada
             })
         }
         catch(error){
@@ -59,7 +73,7 @@ export class PracticaController {
     update = async (req,res,next) => {
         try {
             const id = this.parsearId(req.params.id)
-            const datosPractica = this.extraerYValidarBodyPractica(req.body)
+            const datosPractica = this.validarYExtraerBody(req.body, ["id","codigo","nombre","duracionTurnoEnMins","costo"])
             const practicaActualizada = await this.practicaService.actualizar(id,datosPractica)
             return res.status(200).json({
                 status: "success",
@@ -84,7 +98,6 @@ export class PracticaController {
     }
 
     // Métodos auxiliares
-
     extraerPaginacion(query) {
         const numeroPagina = query?.page === undefined ? 1 : Number(query.page)
         const limitePorPagina = query?.limit === undefined ? 10 : Number(query.limit)
@@ -110,49 +123,28 @@ export class PracticaController {
         return id
     }
 
-    extraerYValidarBodyPractica(body) {
-        const {codigo,nombre,duracionTurnoEnMins,costo} = body
-        const errores = {}
-
-        this.validarCampoRequerido(codigo,"codigo",errores)
-        this.validarCampoRequerido(nombre,"nombre",errores)
-        this.validarCampoRequeridoNumerico(duracionTurnoEnMins,"duracionTurnoEnMins",errores)
-        this.validarCampoRequeridoNumerico(costo,"costo",errores)
-
-        if(Object.keys(errores).length > 0){
-            throw new BadRequestError("Errores en el cuerpo",errores)
+    validarYExtraerBody(body, camposRequeridos = []) {
+        if (!body || typeof body !== 'object' || Array.isArray(body)) {
+            throw new BadRequestError("El cuerpo de la solicitud debe ser un objeto JSON válido.");
         }
-
-        return {
-            codigo,
-            nombre,
-            duracionTurnoEnMins,
-            costo
+    
+        const camposBody = Object.keys(body);
+    
+        const camposNoPermitidos = camposBody.filter(campo => !camposRequeridos.includes(campo));
+        if (camposNoPermitidos.length > 0) {
+            throw new BadRequestError(`Campos no permitidos en la solicitud: ${camposNoPermitidos.join(", ")}`);
         }
-    }
-
-    validarCampoRequerido(valor, nombreCampo, errores) {
-        if (valor === undefined || valor === null) {
-            errores[nombreCampo] = "Campo requerido"
-            return
+    
+        const camposFaltantes = camposRequeridos.filter(campo => body[campo] === undefined || body[campo] === null);
+        if (camposFaltantes.length > 0) {
+            throw new BadRequestError(`Faltan campos obligatorios en la solicitud: ${camposFaltantes.join(", ")}`);
         }
-
-        if (typeof valor === "string" && valor.trim() === "") {
-            errores[nombreCampo] = "Campo requerido"
-        }
-    }
-
-    validarCampoRequeridoNumerico(valor, nombreCampo, errores) {
-        if (valor === undefined || valor === null) {
-            errores[nombreCampo] = "Campo requerido"
-            return
-        }
-        if (typeof valor !== "number" || isNaN(valor)) {
-            errores[nombreCampo] = "Debe ser un número válido"
-            return
-        }
-        if (valor <= 0) {
-            errores[nombreCampo] = "Debe ser mayor a 0"
-        }
+    
+        const bodyLimpio = {};
+        camposRequeridos.forEach(campo => {
+            bodyLimpio[campo] = body[campo];
+        });
+    
+        return bodyLimpio;
     }
 }
