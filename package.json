@@ -30,6 +30,8 @@
   },
   "dependencies": {
     "mongoose": "^9.6.2"
+  },
+  "jest": {
+    "testEnvironment": "node"
   }
-  
 }

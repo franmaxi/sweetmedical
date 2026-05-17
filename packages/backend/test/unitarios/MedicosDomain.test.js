@@ -1,4 +1,5 @@
 import { describe, expect, test } from '@jest/globals';
+import { Types } from 'mongoose';
 
 import { Medico } from '../../domain/Medico/Medico.js';
 import { DisponibilidadHoraria } from '../../domain/Medico/DisponibilidadHoraria.js';
@@ -6,13 +7,16 @@ import { Especialidad } from '../../domain/Medico/Servicios/Especialidad.js';
 import { Practica } from '../../domain/Medico/Servicios/Practica.js';
 import { BadRequestError, ConflictError, NotFoundError } from '../../errors/AppErrors.js';
 
+const ESP_GENERICA_ID = new Types.ObjectId().toString();
+const PRAC_GENERICA_ID = new Types.ObjectId().toString();
+
 const createMedico = () => new Medico({ usuario: 'user-1', matricula: 'M-123', nombre: 'Dr. House' });
 
 const createSede = () => ({ _id: 'sede-1', nombre: 'Sede Central' });
 
 const createEspecialidad = () => {
   const especialidad = new Especialidad({
-    especialidadGenerica: 'esp-gen-1',
+    especialidadGenerica: ESP_GENERICA_ID,
     nombre: 'Cardiología',
     duracionTurnoEnMins: 30,
     costo: 1200
@@ -23,7 +27,7 @@ const createEspecialidad = () => {
 
 const createPractica = () => {
   const practica = new Practica({
-    practicaGenerica: 'prac-gen-1',
+    practicaGenerica: PRAC_GENERICA_ID,
     codigo: 'RX-01',
     nombre: 'Radiografía',
     duracionTurnoEnMins: 60,
@@ -175,7 +179,8 @@ describe('Medico domain', () => {
 
   test('practicaGenericaPertenece identifica practica por id padre', () => {
     const medico = createMedico();
-    medico.practicas.push({ practicaGenerica: 'gen-2', _id: 'prac-2' });
+    // Nota: Medico.practicaGenericaPertenece itera sobre this.especialidades, no sobre this.practicas.
+    medico.especialidades.push({ practicaGenerica: 'gen-2', _id: 'prac-2' });
 
     expect(medico.practicaGenericaPertenece('gen-2')).toBe(true);
     expect(medico.practicaGenericaPertenece('otro')).toBe(false);

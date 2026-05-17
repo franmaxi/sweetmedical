@@ -29,7 +29,7 @@ export const estadosBodySchema = z.object({
     especialidadId: objectId.optional().nullable().default(null),
     practicaId: objectId.optional().nullable().default(null),
     usuario: objectId.optional().nullable().default(null),
-    motivo: z.string().nullable().trim().default(null),
+    motivo: z.string().trim().nullable().default(null),
 }).strict("No se permiten campos adicionales en la solicitud.");
 
 // Filtros de query para GET /turnos (sin paginación, se combinan con turnoQuerySchema)
