@@ -19,7 +19,7 @@ export class Turno{
         this.historialEstados = []
         this.costo = null
         this.disponibilidad = valid.disponibilidad // disponibilidad por la q el turno se creó
-        this.modificado = false
+        this.refrescarAnteriores = false
     }
 
     actualizarEstado(nuevoEstado, usuario, motivo){

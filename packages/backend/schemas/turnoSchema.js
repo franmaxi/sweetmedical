@@ -52,7 +52,7 @@ const turnoSchema = new mongoose.Schema({
         ref: 'DisponibilidadHoraria',
         required: true
     },
-    modificado:{
+    refrescarAnteriores:{
         type: Boolean,
         default: false
     },

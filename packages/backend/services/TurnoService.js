@@ -13,7 +13,6 @@ import { PracticaRepository } from "../repositories/PracticaRepository.js"
 import { EspecialidadRepository } from "../repositories/EspecialidadRepository.js"
 import { UsuarioService } from "./UsuarioService.js"
 import { NotificacionService } from "./NotificacionService.js"
-import { objectIdSchema } from "../validations/commonValidations.js";
 
 
 export class TurnoService {
@@ -335,14 +334,14 @@ export class TurnoService {
         
         // actualizamos el inicial
         let tiempoRestante = disponibilidad.mcdDuracion * (1 + turnosCombinados.length + turnosSiguientes.length)
-        turnoCopia.especialidad = disponibilidad.especialidad.filter(e => e.duracionTurnoEnMins <= tiempoRestante)
-        turnoCopia.practica = disponibilidad.practica.filter(p => p.duracionTurnoEnMins <= tiempoRestante)
+        turnoCopia.especialidad = disponibilidad.especialidades.filter(e => e.duracionTurnoEnMins <= tiempoRestante)
+        turnoCopia.practica = disponibilidad.practicas.filter(p => p.duracionTurnoEnMins <= tiempoRestante)
         // actualizamos tiempo restante
         tiempoRestante = tiempoRestante - disponibilidad.mcdDuracion // le resto la duracion del turno que acabo de calcular
         // actualizamos los combinados
         for (let i = 0; i < turnosCombinados.length ; i++) {
-            turnosCombinados[i].especialidad = disponibilidad.especialidad.filter(e => e.duracionTurnoEnMins <= tiempoRestante)
-            turnosCombinados[i].practica = disponibilidad.practica.filter(p => p.duracionTurnoEnMins <= tiempoRestante)
+            turnosCombinados[i].especialidad = disponibilidad.especialidades.filter(e => e.duracionTurnoEnMins <= tiempoRestante)
+            turnosCombinados[i].practica = disponibilidad.practicas.filter(p => p.duracionTurnoEnMins <= tiempoRestante)
             tiempoRestante = tiempoRestante - disponibilidad.mcdDuracion 
         }
 
@@ -421,43 +420,75 @@ export class TurnoService {
 
 
     async refrescarTurnosBatch(){
-        const turnosModificados = this.turnoRepository.findAllDispoPopulado({modificado:true})
+        console.log("Iniciamos Proceso Refresco Turnos Batch");
+        const turnosModificados = await this.turnoRepository.findAllDispoPopulado({refrescarAnteriores:true})
         // si se reservo un turno, lo marcamos con un boolean y despues lo agarramos acá.
         for (const t of turnosModificados) {
-            //encontrar los anteriores diponibles
             const duracionMaxima = Math.max(
-            ...(t.disponibilidad.especialidades.map(e => e.duracionTurnoEnMins)),
-            ...(t.disponibilidad.practicas.map(p => p.duracionTurnoEnMins))
+                ...(t.disponibilidad.especialidades.map(e => e.duracionTurnoEnMins)),
+                ...(t.disponibilidad.practicas.map(p => p.duracionTurnoEnMins))
             )
-            const fechaMinima = new Date(t.fechaHora - duracionMaxima * 60 * 1000) 
-            // si mi turno tiene duracion max de 1 hora, y su fecha es 19:00, la fechaMinima es 18:00
-            const turnosAnteriores = await this.turnoRepository.obtenerSiguientesDisponibles(fechaMinima, t.fechaHora, turnoCopia.medico._id)
-            turnosAnteriores.reverse()
             
-            // borramos los turnos no contiguos
-            for (let i = 0; i < turnosSiguientes.length; i++) {
-                let horaSupuesta = new Date(ultimoTurno.fechaHora + ( (i + 1) * disponibilidad.mcdDuracion) * 60 * 1000)
-                if (turnosSiguientes[i].fechaHora.getTime() !== horaSupuesta.getTime()) {
-                    turnosSiguientes.splice(i) // Cuando encuentra alguno que no sea disponible, corta desde esa posicion.
-                    break
+            if (t.estado == EstadoTurno.RESERVADO) {
+                await this.refrescarTurnosAnteriores(t, t.disponibilidad.mcdDuracion, duracionMaxima)
+            }
+            else if(t.estado == EstadoTurno.CANCELADO){
+                // calculamos el tiempo disponible luego de cancelar los turnos
+                //turno cancelado a las 18:00 / mcd = 30 / duracionMaxima = 2h = 120m / fechaMinima = 17:30 (arranco a contar desde el turno de las 18) -> fechaMaxima = 19:30 (cuento hasta el de las 20, sin incluirlo)
+                //cancelado a las 18:00 mcd 30 duracionMaxima 30 fechaMinima = 17:30 fechaMaxima= 18:00
+                const fechaMinima = new Date(t.fechaHora - t.disponibilidad.mcdDuracion * 60 * 1000) // desde el primero que refrescamos sin considerarlo
+                const fechaMaxima = new Date(t.fechaHora + (duracionMaxima - t.disponibilidad.mcdDuracion) * 60 * 1000) // hasta el ultimo posible que necesitemos para calcular el tiempo
+                const turnosSiguientes = await this.turnoRepository.obtenerSiguientesDisponibles(fechaMinima, fechaMaxima, turnoCopia.medico._id)
+                
+                let tiempoRestante = t.disponibilidad.mcdDuracion
+                // borramos los turnos no contiguos
+                for (let i = 0; i < turnosSiguientes.length; i++) {
+                    let horaSupuesta = new Date(fechaMinima + ( (i + 1) * t.disponibilidad.mcdDuracion) * 60 * 1000)
+                    tiempoRestante = tiempoRestante + t.disponibilidad.mcdDuracion
+                    if (turnosSiguientes[i].fechaHora.getTime() !== horaSupuesta.getTime()) {
+                        break
+                    }
                 }
+                await this.refrescarTurnosAnteriores(t, tiempoRestante ,duracionMaxima)
             }
-
-            //arrancamos desde el turno anterior al reservado/cancelado. Vamos yendo para atras sumando el tiempo que se agrega
-            let tiempoRestante = disponibilidad.mcdDuracion
-            for (const ta of turnosAnteriores) {
-                
-                
-            }
-            
-            
         }
-        // por cada turno tomo los turnos anteriores que esten en disponible
-        // itero hasta tener un turno con la lista de especialidad y practica igual que para disponibilidad
-        // o hasta encontrar un turno que no este disponible
-        // filtro para no traerme los cancelados
     }
 
+    async refrescarTurnosAnteriores(t, tiempoRestanteInicial,duracionMaxima){
+        const turnosAModificar = []
+
+        //encontrar los anteriores diponibles
+        const fechaMinima = new Date(t.fechaHora - duracionMaxima * 60 * 1000) 
+        // si mi turno tiene duracion max de 1 hora, y su fecha es 19:00, la fechaMinima es 18:00
+
+        // obtengo los turnos anteriores en orden inverso (osea 17:30 - 17:00 - 16:30 - 16:00)
+        const turnosAnteriores = await this.turnoRepository.obtenerSiguientesDisponibles(fechaMinima, t.fechaHora, turnoCopia.medico._id)
+        turnosAnteriores.reverse()
+        
+        // borramos los turnos no contiguos
+        for (let i = 0; i < turnosAnteriores.length; i++) {
+            let horaSupuesta = new Date(t.fechaHora - (i+1) * t.disponibilidad.mcdDuracion * 60 * 1000) 
+            // si el turno fue a las 18:00, la hora del anterior deberia ser 17:30
+            
+            if (turnosAnteriores[i].fechaHora.getTime() !== horaSupuesta.getTime()) {
+                turnosAnteriores.splice(i) // Cuando encuentra alguno que no sea disponible, corta desde esa posicion.
+                break
+            }
+        }
+
+        //arrancamos desde el turno anterior al reservado/cancelado. Vamos yendo para atras sumando el tiempo que se agrega
+        //let tiempoRestante = t.disponibilidad.mcdDuracion // empieza en 30
+        let tiempoRestante = tiempoRestanteInicial
+        for (const ta of turnosAnteriores) {
+            ta.especialidad = t.disponibilidad.especialidades.filter(e => e.duracionTurnoEnMins <= tiempoRestante)
+            ta.practica = t.disponibilidad.practicas.filter(p => p.duracionTurnoEnMins <= tiempoRestante)
+            tiempoRestante = tiempoRestante + t.disponibilidad.mcdDuracion 
+            turnosAModificar.push(ta)
+        }
+        
+        t.refrescarAnteriores = false
+        await this.turnoRepository.updateAll(t, ...turnosAModificar)
+    }
 
     copiarTurnoCancelado(turno){
         return new Turno({
