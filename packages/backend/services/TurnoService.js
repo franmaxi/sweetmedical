@@ -361,12 +361,13 @@ export class TurnoService {
         fechaInicio.setUTCHours(0, 0, 0, 0)
 
         const fechaFin = new Date(fechaInicio.getTime())
+        
         fechaFin.setUTCDate(fechaInicio.getUTCDate() + 6)
         fechaFin.setUTCHours(23, 59, 59, 999)
 
-        console.log("Iniciamos Proceso Generacion Turnos Batch");
-        console.log("Fecha Inicio (UTC): " + fechaInicio.toISOString());
-        console.log("Fecha Fin (UTC): " + fechaFin.toISOString());
+        // console.log("Iniciamos Proceso Generacion Turnos Batch");
+        // console.log("Fecha Inicio (UTC): " + fechaInicio.toISOString());
+        // console.log("Fecha Fin (UTC): " + fechaFin.toISOString());
         
         // obtenemos medicos
         const medicos = await this.medicoRepository.findAll()
@@ -420,7 +421,7 @@ export class TurnoService {
 
 
     async refrescarTurnosBatch(){
-        console.log("Iniciamos Proceso Refresco Turnos Batch");
+        //console.log("Iniciamos Proceso Refresco Turnos Batch");
         const turnosModificados = await this.turnoRepository.findAllDispoPopulado({refrescarAnteriores:true})
         // si se reservo un turno, lo marcamos con un boolean y despues lo agarramos acá.
         for (const t of turnosModificados) {
