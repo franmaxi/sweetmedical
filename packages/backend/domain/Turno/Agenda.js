@@ -30,6 +30,7 @@ export class Agenda {
         // semana 2, genera 6
         // semana 3, genera 7
         // semana 4, genera 8
+        const turnosGenerados = []
 
         if(!medico?.disponibilidades || medico.disponibilidades.length === 0){
             return turnosGenerados
@@ -45,8 +46,6 @@ export class Agenda {
         if (inicio >= fin) {
             throw new RangeError('La fecha inicial debe ser menor o igualque la final')
         }
-
-        const turnosGenerados = []
 
         medico.disponibilidades.forEach(dispo => {            
             const turnos = this.generarTurnosPorDisponibilidad(medico, dispo, inicio, fin)
@@ -126,7 +125,8 @@ export class Agenda {
                     fechaHora: new Date(turnoInicio), // dispo_hora_inicio + (index*duracionTurnos)
                     sede: disponibilidad.sede,
                     practica: opcionesTurno.practicas,
-                    especialidad: opcionesTurno.especialidades
+                    especialidad: opcionesTurno.especialidades,
+                    disponibilidad: disponibilidad
                     //practica: [...(disponibilidad.practicas ?? [])], 
                     //especialidad: [...(disponibilidad.especialidades ?? [])]
                 })
@@ -138,12 +138,9 @@ export class Agenda {
 
 
     obtenerDiaFechaArgentina(fechaUTC) {
-        const formateador = new Intl.DateTimeFormat('es-AR', { 
-            timeZone: 'America/Argentina/Buenos_Aires', 
-            weekday: 'numeric' 
-        });
-        // Formatea y retorna: Domingo = 0, Lunes = 1, Martes = 2... 
-        return parseInt(formateador.format(fechaUTC)) % 7;
+        const AR_OFFSET_MS = -3 * 60 * 60 * 1000
+        const fechaAR = new Date(fechaUTC.getTime() + AR_OFFSET_MS)
+        return fechaAR.getUTCDay()
     }
 
     obtenerMatrizEspecialidadPracticaDuracion(especialidades, practicas, duracionesUnicas){

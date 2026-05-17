@@ -19,7 +19,7 @@ console.log('MCD [20] - Esperado: 20 - Resultado: ', mcd2)
 console.log(mcd2 === 20 ? 'OK' : 'ERROR')
 
 // TEST Turnos de medico sin disponibilidad
-console.log('\n[TEST] generarTurnos SIN disponibilidades')
+console.log('\n [TEST] generarTurnos SIN disponibilidades \n')
 
 const medicoSinDisponibilidades = new Medico({
     usuario: "000000000000000000000000",
@@ -37,7 +37,7 @@ console.log(turnosVacios.length === 0 ? 'OK' : 'ERROR')
 
 
 // TEST generarTurnosPorDisponibilidad
-console.log('\n[TEST] generarTurnosPorDisponibilidad')
+console.log('\n [TEST] generarTurnosPorDisponibilidad \n')
 
 const especialidad15 = new Especialidad({
     especialidadGenerica: "000000000000000000000000",
@@ -69,7 +69,7 @@ const turnos15 = agenda.generarTurnosPorDisponibilidad(
     new Date('2026-05-15')
 )
 
-console.log('\nCantidad de turnos generados - Esperado: 4')
+console.log('\n Cantidad de turnos generados - Esperado: 4')
 console.log('Resultado:', turnos15.length)
 
 turnos15.forEach((t, index) => {
@@ -82,7 +82,7 @@ turnos15.forEach((t, index) => {
 
 // TEST MCD entre especialidades y practicas
 
-console.log('\n[TEST] MCD especialidades + practicas')
+console.log('\n [TEST] MCD especialidades + practicas \n')
 
 const especialidad30 = new Especialidad({
     especialidadGenerica: "000000000000000000000000",
@@ -101,8 +101,8 @@ const practica60 = new Practica({
 
 const disponibilidadMixta = new DisponibilidadHoraria({
     diaSemana: 1,
-    horaDesde: '10:00',
-    horaHasta: '12:00',
+    horaDesde: '21:00',
+    horaHasta: '23:00',
     sede: sedeMock
 })
 
@@ -127,16 +127,16 @@ console.log('Esperado: 4 turnos')
 console.log('Resultado:', turnosMixtos.length)
 
 turnosMixtos.forEach((t, index) => {
-    console.log(`Turno ${index + 1}`)
+    console.log(`\nTurno ${index + 1}`)
     console.log(t)
 })
 
 // TEST dia incorrecto
-console.log('\n[TEST] disponibilidad otro dia')
+console.log('\n [TEST] disponibilidad otro dia \n')
 const disponibilidadViernes = new DisponibilidadHoraria({
     diaSemana: 5, // viernes
-    horaDesde: '10:00',
-    horaHasta: '11:00',
+    horaDesde: '20:00',
+    horaHasta: '23:00',
     sede: sedeMock
 })
 

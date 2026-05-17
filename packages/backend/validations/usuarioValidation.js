@@ -9,4 +9,4 @@ export const usuarioDomainSchema = z.object({
         required_error: "La contraseña es requerida.",
         invalid_type_error: "La contraseña debe ser un texto."
     }).min(1, "La contraseña no puede estar vacía.")
-})
+}).strict()

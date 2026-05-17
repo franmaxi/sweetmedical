@@ -132,7 +132,6 @@ export class EspecialidadService {
 
     async obtenerTodosGenerica({ numeroPagina = 1, limitePorPagina = 10, filtros = {} } = {}) {
         const { page, limit } = paginacionSchema.parse({ page: numeroPagina, limit: limitePorPagina });
-        //TODO Agregar filtros
         const { especialidadesGenericas, totalEspecialidadesGenericas } = await this.especialidadGenericaRepository.findPaginados(
             page,
             limit,

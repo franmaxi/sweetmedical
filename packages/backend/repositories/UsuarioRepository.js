@@ -5,13 +5,13 @@ export class UsuarioRepository{
         this.model = UsuarioModel
     }
 
+    async findByNombre(nombre){
+        return await this.model.findOne({nombreUsuario:nombre})
+    }
+
     async save(usuario){
         const nuevoUsuario = new this.model(usuario)
         return await nuevoUsuario.save()
-    }
-
-    async obtenerPorId(id){
-        return await this.model.findById(id)
     }
     
     async delete(id) {
@@ -21,5 +21,12 @@ export class UsuarioRepository{
     
     async findById(id) {
         return await this.model.findById(id);
+    }
+
+    async update(id, usuarioModificado) {
+        return await this.model.findByIdAndUpdate(
+            id, { $set: usuarioModificado },    
+                { new: true, runValidators: true }
+        );
     }
 }

@@ -92,21 +92,7 @@ export class MedicoController {
         }
     }
 
-    consultarAgenda = async (req, res, next) => {
-        try {
-            const { id: medicoId } = paramsIdSchema.parse(req.params);
-            const especialidadId = req.query.especialidadId ? objectIdSchema.parse(req.query.especialidadId) : null;
-            const practicaId = req.query.practicaId ? objectIdSchema.parse(req.query.practicaId) : null;
-            
-            const agenda = await this.medicoService.consultarAgenda(medicoId, especialidadId, practicaId);
-            return res.status(200).json({
-                status: "success",
-                data: agenda
-            });
-        } catch (error) {
-            return next(error);
-        }
-    }
+
 
     // POST /medicos/:id/disponibilidades
     crearDisponibilidad = async (req, res, next) => {

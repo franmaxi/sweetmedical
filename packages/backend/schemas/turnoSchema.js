@@ -5,7 +5,7 @@ import { EstadoTurno } from '../domain/Enumerados/EstadoTurno.js';
 const historialEstadoSchema = new mongoose.Schema({
     estado:{ type: String, enum:Object.values(EstadoTurno), required: true},
     fechaHoraIngreso: {type: Date, required: true},
-    usuario: { type: mongoose.Schema.Types.ObjectId, ref: "Usuario" }, // TODO daba error asi: usuario:{type: Schema.Types.ObjectId, ref:"Usuario"},
+    usuario: { type: mongoose.Schema.Types.ObjectId, ref: "Usuario" },
     motivo: {type: String}
 }, {_id : false})
 
@@ -18,17 +18,16 @@ const turnoSchema = new mongoose.Schema({
     paciente:{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'paciente',
-        required: true
+        default: null
     },
     fechahora:{
         type: Date,
-        required: true,
-        trim:true
+        required: true
     },
     sede:{
         type: mongoose.Schema.Types.ObjectId,
-        required: true,
-        trim:true
+        ref: 'Sede',
+        required: true
     },
     practica:{
         type: mongoose.Schema.Types.ObjectId,
@@ -46,12 +45,16 @@ const turnoSchema = new mongoose.Schema({
     historialEstados:[ historialEstadoSchema ],
     costo: {
         type: Number,
-        required: true
+        default: null
     },
     disponibilidad:{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'DisponibilidadHoraria',
         required: true
+    },
+    modificado:{
+        type: Boolean,
+        default: false
     },
     eliminado: {
         type: Boolean,

@@ -10,21 +10,21 @@
 
 ## Pacientes
 - [x] **Reservar** turno validando disponibilidad ✅ 2026-05-15 
-- [ ] **Refrescar** turnos luego de reservar
+- [ ] **Refrescar** turnos luego de reservar // Gonza 
 - [x] **Cancelar** turno con mínimo 1 hora de anticipación
 - [x] **Registrar motivo** de cancelación
-- [ ] **Consultar historial** personal de turnos
-- [ ] **Solicitar cambio** de fecha de turno
+- [x] **Consultar historial** personal de turnos
+- [ ] **Solicitar cambio** de fecha de turno // nico y mate <3 retrasados
 - [ ] **Flujo de confirmación** para cambio de turno
 
 ## Médicos
 - [x] **Cancelar** turnos con mínimo 1 hora de anticipación
 - [x] **Registrar motivo** de cancelación
-- [ ] Consultar historial de turnos de un paciente
-- [ ] Proponer modificación de fecha de turno
+- [x] Consultar historial de turnos de un paciente
+- [ ] Proponer modificación de fecha de turno // nico y mate <3
 - [ ] Confirmación de modificación requerida
-- [ ] Marcar turno como REALIZADO
-- [ ] Consultar disponibilidad por especialidad/práctica
+- [x] Marcar turno como REALIZADO
+- [x] Consultar disponibilidad por especialidad/práctica
 
 ---
 
@@ -32,10 +32,10 @@
 
 ## CRUD de Servicios Médicos
 - [x] Alta de servicios         
-- [ ] Modificación de servicios
-- [ ] Baja de servicios
-- [ ] Gestión de especialidades
-- [ ] Gestión de prácticas
+- [x] Modificación de servicios
+- [x] Baja de servicios
+- [x] Gestión de especialidades
+- [x] Gestión de prácticas
 
 ---
 

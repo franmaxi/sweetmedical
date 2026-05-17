@@ -1,7 +1,7 @@
 import { Medico } from "../domain/Medico/Medico.js";
 import { EstadoTurno } from "../domain/Enumerados/EstadoTurno.js";
 import { MedicoRepository } from "../repositories/MedicoRepository.js";
-import { UsuarioRepository } from "../repositories/UsuarioRepository.js";
+import { UsuarioService } from "./UsuarioService.js";
 import { DisponibilidadHoraria } from "../domain/Medico/DisponibilidadHoraria.js";
 import { TurnoService } from "./TurnoService.js";
 import { EspecialidadService } from "./EspecialidadService.js";
@@ -17,13 +17,13 @@ import {
 export class MedicoService {
     constructor({
         medicoRepository = new MedicoRepository(),
-        usuarioRepository = new UsuarioRepository(),
+        usuarioService = new UsuarioService(),
         especialidadService = new EspecialidadService(),
         practicaService = new PracticaService(),
         turnoService = new TurnoService()
     } = {}) {
         this.medicoRepository = medicoRepository;
-        this.usuarioRepository = usuarioRepository;
+        this.usuarioService = usuarioService;
         this.especialidadService = especialidadService;
         this.practicaService = practicaService;
         this.turnoService = turnoService;
@@ -54,21 +54,12 @@ export class MedicoService {
         return medico;
     }
 
-    async obtenerUsuarioPorId(id) {
-        const validId = objectIdSchema.parse(String(id));
-        const usuario = await this.usuarioRepository.findById(validId);
-        if (!usuario) {
-            throw new NotFoundError("Usuario no encontrado");
-        }
-        return usuario;
-    }
-
     async crear(datosMedico) {
         if (await this.existeMatricula(datosMedico.matricula)) {
             throw new ConflictError("Ya existe un médico con esa matrícula");
         }
 
-        const usuarioCreado = await this.usuarioRepository.save({
+        const usuarioCreado = await this.usuarioService.crear({ //TODO se puede implementar un factory
             nombreUsuario: datosMedico.nombreUsuario,
             password: datosMedico.password
         });
@@ -85,8 +76,7 @@ export class MedicoService {
     async actualizar(id, datosMedico) {
         const validId = objectIdSchema.parse(String(id));
         const medicoExistente = await this.obtenerPorId(validId);
-        const usuarioExistente = await this.obtenerUsuarioPorId(validId);
-
+        
         if (medicoExistente.matricula !== datosMedico.matricula && await this.existeMatricula(datosMedico.matricula)) {
             throw new ConflictError("Ya existe un médico con esa matrícula");
         }
@@ -102,20 +92,23 @@ export class MedicoService {
             }
         }
 
-        usuarioExistente.nombreUsuario = datosMedico.nombreUsuario;
-        if (datosMedico.password) {
-            usuarioExistente.password = datosMedico.password;
-        }
-        await this.usuarioRepository.save(usuarioExistente);
+        const datosUsuario = {
+            nombreUsuario: datosMedico.nombreUsuario,
+            password: datosMedico.password || medicoExistente.usuario.password 
+        };
 
-        medicoExistente.matricula = datosMedico.matricula;
-        medicoExistente.nombre = datosMedico.nombre;
-        medicoExistente.especialidades = datosMedico.especialidades;
-        medicoExistente.practicas = datosMedico.practicas;
-        medicoExistente.sedes = datosMedico.sedes;
-        medicoExistente.disponibilidades = datosMedico.disponibilidades;
+        await this.usuarioService.actualizar(datosMedico.usuario._id,datosUsuario);
 
-        return await this.medicoRepository.save(medicoExistente);
+        const datosMedicoParaActualizar = {
+            matricula: datosMedico.matricula,
+            nombre: datosMedico.nombre,
+            especialidades: datosMedico.especialidades,
+            practicas: datosMedico.practicas,
+            sedes: datosMedico.sedes,
+            disponibilidades: datosMedico.disponibilidades
+        };
+
+        return await this.medicoRepository.update(validId,datosMedicoParaActualizar);
     }
 
     async eliminar(id) {
@@ -123,49 +116,13 @@ export class MedicoService {
         const medico = await this.obtenerPorId(validId);
         const usuario = await this.obtenerUsuarioPorId(validId);
         
-        await this.usuarioRepository.delete(usuario);
+        await this.usuarioService.delete(usuario);
         return await this.medicoRepository.delete(medico);
     }
 
     async existeMatricula(matricula) {
         const medico = await this.medicoRepository.obtenerPorMatricula(matricula);
         return medico !== null;
-    }
-
-
-    //TODO esto debe ir en Turno Service
-    async consultarAgenda(medicoId, especialidadId, practicaId) {
-        const validMedicoId = objectIdSchema.parse(String(medicoId));
-        const medico = await this.obtenerPorId(validMedicoId);
-        if (!medico) throw new NotFoundError("Medico no encontrado");
-
-        if (especialidadId) {
-            const validEspId = objectIdSchema.parse(String(especialidadId));
-            const especialidad = await this.especialidadService.obtenerPorId(validEspId);
-            if (!especialidad) throw new NotFoundError("Especialidad no encontrada");
-            if (!medico.especialidadPertenece(validEspId)) {
-                throw new UnprocessableEntityError("El médico no tiene asignada esa especialidad");
-            }
-        }
-
-        if (practicaId) {
-            const validPracId = objectIdSchema.parse(String(practicaId));
-            const practica = await this.practicaService.obtenerPorId(validPracId);
-            if (!practica) throw new NotFoundError("Practica no encontrada");
-            if (!medico.practicaPertenece(validPracId)) {
-                throw new UnprocessableEntityError("El médico no tiene asignada esa práctica");
-            }
-        }
-
-        const filtros = {
-            medicoId: validMedicoId,
-            estado: EstadoTurno.DISPONIBLE
-        };
-        if (especialidadId) filtros.especialidadId = especialidadId;
-        if (practicaId) filtros.practicaId = practicaId;
-
-        
-        return await this.turnoService.obtenerPaginados(1, 100, filtros); //TODO falta obtener paginados por medico
     }
 
     // Este metodo se usara siempre con un servicio null.
@@ -214,6 +171,7 @@ export class MedicoService {
         if (especialidad) {
             // No hace falta modificar la lista de especialidades del medico, porq ya apunta al objeto que modificamos
             await this.especialidadService.actualizar(especialidad._id, especialidad);
+            //TODO tener en cuenta como se modifican los turnos
         }
 
         if (practica) {
@@ -232,6 +190,7 @@ export class MedicoService {
             const validEspId = objectIdSchema.parse(String(especialidadId));
             medico.eliminarEspecialidad(validEspId);
             await this.especialidadService.eliminar(validEspId);
+            //TODO tener en cuenta como se modifican los turnos
         
         } else if (practicaId) {
             const validPracId = objectIdSchema.parse(String(practicaId));

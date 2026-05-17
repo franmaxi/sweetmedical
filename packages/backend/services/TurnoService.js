@@ -2,10 +2,8 @@ import { Turno } from "../domain/Turno/Turno.js"
 import { EstadoTurno } from "../domain/Enumerados/EstadoTurno.js"
 import { Agenda } from "../domain/Turno/Agenda.js"
 import {
-    BadRequestError,
     NotFoundError,
     UnprocessableEntityError,
-    BusinessException,
 } from "../errors/AppErrors.js"
 
 import { TurnoRepository } from "../repositories/TurnoRespository.js"
@@ -13,9 +11,9 @@ import { MedicoRepository } from "../repositories/MedicoRepository.js"
 import { PacienteRepository } from "../repositories/PacienteRepository.js"
 import { PracticaRepository } from "../repositories/PracticaRepository.js"
 import { EspecialidadRepository } from "../repositories/EspecialidadRepository.js"
-import { UsuarioRepository } from "../repositories/UsuarioRepository.js"
-
+import { UsuarioService } from "./UsuarioService.js"
 import { NotificacionService } from "./NotificacionService.js"
+import { objectIdSchema } from "../validations/commonValidations.js";
 
 
 export class TurnoService {
@@ -26,7 +24,7 @@ export class TurnoService {
         practicaRepository = new PracticaRepository(),
         especialidadRepository = new EspecialidadRepository(),
         notificacionService = new NotificacionService(),
-        usuarioRepository = new UsuarioRepository()
+        usuarioService = new UsuarioService()
     } = {}) {
         this.turnoRepository = turnoRepository
         this.medicoRepository = medicoRepository
@@ -34,17 +32,36 @@ export class TurnoService {
         this.practicaRepository = practicaRepository
         this.especialidadRepository = especialidadRepository
         this.notificacionService = notificacionService
-        this.usuarioRepository = usuarioRepository
+        this.usuarioService = usuarioService
     }
 
-    async obtenerTodos({ pacienteId, numeroPagina = 1, limitePorPagina = 10, filtros = {} } = {}) {
-        this.validarPaginacion(numeroPagina, limitePorPagina);
+    //nos interesa PARA EL HISTORIAl que nos traiga los turnos realizados, cancelados y reservados, no quiero que aparezcan los combinados (se puede filtrar para que algo no aparezca con mongoose). Chequear si se pueden pasar multiples estados
+    async obtenerTodos({ pacienteId, medicoId, numeroPagina = 1, limitePorPagina = 10, filtros = {}, ordenamiento = {} } = {} ) {
 
-        const paciente = await this.pacienteRepository.obtenerPorId(pacienteId);
+        this.validarPaginacion(numeroPagina, limitePorPagina)
+        
+        if (pacienteId) {
+            const paciente = await this.pacienteRepository.findById(pacienteId);
+            if (!paciente) throw new NotFoundError('Paciente no encontrado');
+            filtros.paciente = pacienteId;
+        }
+
+        if (medicoId) {
+            const medico = await this.medicoRepository.findById(medicoId);
+            if (!medico) throw new NotFoundError('Médico no encontrado');
+            filtros.medico = medicoId;
+        }
+
+        return await this.turnoRepository.obtenerPaginados(numeroPagina, limitePorPagina, filtros, ordenamiento)
+    }
+    
+    async obtenerTodosCobertura({ pacienteId, numeroPagina = 1, limitePorPagina = 10, filtros = {} } = {}) {
+
+        const paciente = await this.pacienteRepository.findById(pacienteId);
         if (!paciente) throw new NotFoundError('Paciente no encontrado');
 
         filtros.estado = EstadoTurno.DISPONIBLE;
-
+        
         const { turnos, totalTurnos, totalPaginas } = await this.turnoRepository.obtenerPaginados(
             numeroPagina,
             limitePorPagina,
@@ -94,7 +111,6 @@ export class TurnoService {
 
 
     async obtenerPorId(id) {
-        this.validarEnteroPositivo(id, "Id")
 
         const turno = await this.turnoRepository.findById(id)
 
@@ -130,7 +146,7 @@ export class TurnoService {
                 throw new NotFoundError("La especialidad solicitada no existe")
             }
         } else if (practicaId != null && especialidadId == null) {
-            servicio = await this.practicaRepository.findById(especialidadId)
+            servicio = await this.practicaRepository.findById(practicaId)
             if (!servicio) {
                 throw new NotFoundError("La practica solicitada no existe")
             }
@@ -139,7 +155,7 @@ export class TurnoService {
         }
 
         // 1.4 - verificamos que la disponibilidad exista y tenga ese servicio
-        const disponibilidad = await this.MedicoRepository.obtenerDisponibilidadPorId(
+        const disponibilidad = await this.medicoRepository.obtenerDisponibilidadPorId(
             turno.medico._id,
             turno.disponibilidad
         )
@@ -192,7 +208,7 @@ export class TurnoService {
         if (turnosNecesarios > 1) { 
             for (const t of turnosSiguientes) { 
                 t.actualizarEstado(EstadoTurno.COMBINADO, paciente.usuario, "El turno fue reservado, este turno se combina para el original")
-                t.paciente = pacienteId
+                //t.paciente = pacienteId
                 //t.costo = servicio.costo
                 //t.especialidad = turno.especialidadId
                 //t.practica = turno.practicaId
@@ -207,9 +223,27 @@ export class TurnoService {
 
         return turno;
     }           
-           
     // tecnicamente, como solo pedimos los turnos de la duracion de la especialidad, 
     // si la cantidad necesaria no matchea significa que no estan los contiguos disponibles
+
+    async solicitarCambioDeFecha(turnoId, usuarioId){
+        //Obtener turno
+        //Saber cual de los dos lo solicitó
+        
+        //Revisar que exista diponibilidad para el medico
+        //Revisar que no este ocupada la disponibilidad (en ninguno de los turnos a ocupar)
+        //confirmar que entre
+
+        //Generar una notificación al opuesto
+        //Poner el turno en estado por confirmación
+    }
+
+    async responderCambioDeFecha(turnoId, usuarioId){
+        //Sirve para confirmar o rechazar
+        //Si se rechaza -> Se queda con la fecha actual
+        //Si se acepta -> Se cancela el turno actual y se reserva en la nueva fecha
+        //Si el medico solicitó el cambio significa que no puede asistir, por ende si se acepta no deberiamos generar un nuevo turno en el horario viejo.
+    }
 
     async cancelar(turnoId, usuarioId, motivo) {
         const horasMinimasParaCancelar = parseInt(process.env.HORAS_MINIMAS_CANCELAR)
@@ -217,14 +251,16 @@ export class TurnoService {
         const turno = await this.turnoRepository.findById(turnoId)
         if (!turno) throw new NotFoundError('Turno no encontrado')
         
-        if (turno.estadoTurno != EstadoTurno.RESERVADO && !turno.sePuedeCancelar(new Date.now(), horasMinimasParaCancelar)){
-            throw new BusinessException ("No se puede cancelar el turno")
+        if (turno.estado != EstadoTurno.RESERVADO && !turno.sePuedeCancelar(new Date(), horasMinimasParaCancelar)){
+            throw new UnprocessableEntityError("No se puede cancelar el turno")
         } 
 
-        const usuario = await this.usuarioRepository.obtenerPorId(usuarioId)
-        if (!usuario) throw new NotFoundError('Usuario no encontrado')
-        if (usuarioId != turno.medico._id || usuarioId != turno.paciente._id) throw new BusinessException('El usuario que busca cancelar no es el paciente o medico asignado al turno')
-            
+        const usuario = await this.usuarioService.findById(usuarioId)
+
+        if (usuarioId != turno.medico._id && usuarioId != turno.paciente._id) { // estaba con || en vez de &&
+            throw new UnprocessableEntityError('El usuario que busca cancelar no es el paciente o medico asignado al turno')
+        }
+
         const turnosCombinados = await this.turnoRepository.obtenerCombinados(turnoId)
         // tiene que volver ordenado por fecha hora
 
@@ -269,7 +305,7 @@ export class TurnoService {
     }
 
     async refrescarTurnoCancelado(turnoCopia, turnosCombinados) {
-        const disponibilidad = await this.MedicoRepository.obtenerDisponibilidadPorId(
+        const disponibilidad = await this.medicoRepository.obtenerDisponibilidadPorId(
             turnoCopia.medico._id,
             turnoCopia.disponibilidad
         )
@@ -277,8 +313,8 @@ export class TurnoService {
         // p: 30 60
         
         const duracionMaxima = Math.max(
-            ...(disponibilidad.especialidad.map(e => e.duracionTurnoEnMins)),
-            ...(disponibilidad.practica.map(p => p.duracionTurnoEnMins))
+            ...(disponibilidad.especialidades.map(e => e.duracionTurnoEnMins)),
+            ...(disponibilidad.practicas.map(p => p.duracionTurnoEnMins))
         )
         
         const ultimoTurno = turnosCombinados[turnosCombinados.length-1]
@@ -298,7 +334,7 @@ export class TurnoService {
         }
         
         // actualizamos el inicial
-        let tiempoRestante = disponibilidad.mcdDuracion (1 + turnosCombinados.length + turnosSiguientes.length)
+        let tiempoRestante = disponibilidad.mcdDuracion * (1 + turnosCombinados.length + turnosSiguientes.length)
         turnoCopia.especialidad = disponibilidad.especialidad.filter(e => e.duracionTurnoEnMins <= tiempoRestante)
         turnoCopia.practica = disponibilidad.practica.filter(p => p.duracionTurnoEnMins <= tiempoRestante)
         // actualizamos tiempo restante
@@ -351,26 +387,68 @@ export class TurnoService {
         console.log("[Batch] Se generaron exitosamente " + turnosAGuardar.length + " turnos");
     }
 
+    async realizar(turnoId,medicoId) {
 
-
-
-
-    async eliminar(turnoId) {
-        // TODO que hacer cuando se elimina un turno reservado o cancelado?
-        this.validarEnteroPositivo(turnoId, "turnoId")
-        const turno = this.obtenerPorId(turnoId)
+        const turno = await this.turnoRepository.findById(turnoId)
+        if (!turno) throw new NotFoundError('Turno no encontrado')
+        if (turno.medico._id !== medicoId){ 
+            throw new UnprocessableEntityError(`El turno no le pertenece al medico id: ${medicoId}`)
+        }
+        if(turno.estado == EstadoTurno.RESERVADO ){
+            turno.actualizarEstado(EstadoTurno.REALIZADO, turno.medico.usuario, "Turno realizado con exito");
+            return await this.turnoRepository.update(turno._id, turno);
+        } 
+        throw new UnprocessableEntityError(`No se puede marcar como '${EstadoTurno.REALIZADO}' un turno que no esta ${EstadoTurno.RESERVADO}`)
     }
 
-    async obtenerHistorialDePaciente(pacienteId) {
-        const paciente = await this.pacienteRepository.findById(pacienteId)
-        if (!paciente) throw new NotFoundError('Paciente no encontrado')
+    async consultarAgenda(medicoId, especialidadId, practicaId) {
+        // sacamos las validaciones porque si devuelve vacio ya fue.
+        const filtros = {
+            estado: EstadoTurno.DISPONIBLE
+        };
+        if (especialidadId) filtros.especialidadId = especialidadId;
+        if (practicaId) filtros.practicaId = practicaId;
+        
+        return await this.turnoService.obtenerTodos({
+            medicoId: medicoId, 
+            numeroPagina: 1, 
+            limitePorPagina: 100, 
+            filtros: filtros 
+        }) 
 
-        return await this.turnoRepository.obtenerHistorialDePaciente(pacienteId)
     }
 
-    async obtenerAgendaPorMedicoYEspecialidadYPractica(medicoId, especialidadId, practicaId){
-        // TODO 
+
+
+    async refrescarTurnosBatch(){
+        const turnosModificados = this.turnoRepository.findAllDispoPopulado({modificado:true})
+        // si se reservo un turno, lo marcamos con un boolean y despues lo agarramos acá.
+        for (const t of turnosModificados) {
+            //encontrar los anteriores diponibles
+            const duracionMaxima = Math.max(
+            ...(t.disponibilidad.especialidades.map(e => e.duracionTurnoEnMins)),
+            ...(t.disponibilidad.practicas.map(p => p.duracionTurnoEnMins))
+            )
+            const fechaMinima = new Date(t.fechaHora - duracionMaxima * 60 * 1000) 
+            // si mi turno tiene duracion max de 1 hora, y su fecha es 19:00, la fechaMinima es 18:00
+            const turnosAnteriores = await this.turnoRepository.obtenerSiguientesDisponibles(fechaMinima, t.fechaHora, turnoCopia.medico._id)
+            turnosAnteriores.reverse()
+            
+            //arrancamos desde el turno anterior al reservado/cancelado. Vamos yendo para atras sumando el tiempo que se agrega
+            let tiempoRestante = disponibilidad.mcdDuracion
+            for (const ta of turnosAnteriores) {
+                
+                
+            }
+            
+            
+        }
+        // por cada turno tomo los turnos anteriores que esten en disponible
+        // itero hasta tener un turno con la lista de especialidad y practica igual que para disponibilidad
+        // o hasta encontrar un turno que no este disponible
+        // filtro para no traerme los cancelados
     }
+
 
     copiarTurnoCancelado(turno){
         return new Turno({
@@ -385,42 +463,4 @@ export class TurnoService {
         })
     }
 
-
-
-    // Métodos de validación y mapeo
-
-    validarDatosTurno(datos) {
-        if (!datos || typeof datos !== "object") {
-            throw new BadRequestError("Los datos del turno son requeridos")
-        }
-
-        const {medicoId, fechaHora, sedeId, costo} = datos
-
-        if (!Number.isInteger(medicoId)) {
-            throw new UnprocessableEntityError("medicoId inválido")
-        }   
-
-        if(!fechaHora || isNaN(new Date(fechaHora))) {
-            throw new UnprocessableEntityError("fechaHora inválida")
-        }
-
-        if (!Number.isInteger(sedeId)) {
-            throw new UnprocessableEntityError("sedeId inválido")
-        }
-
-        if (costo !== undefined && (!Number.isFinite(costo) || costo < 0)) {
-            throw new UnprocessableEntityError("costo inválido")    
-        }
-    }
-
-    validarPaginacion(numeroPagina, limitePorPagina) {
-        this.validarEnteroPositivo(numeroPagina, "Numero de página")
-        this.validarEnteroPositivo(limitePorPagina, "Límite por página")
-    }
-
-    validarEnteroPositivo(numero, parametro) {
-        if (!Number.isInteger(numero) || numero <= 0) {
-            throw new BadRequestError(`${parametro} debe ser un entero positivo`)
-        }
-    }
 }

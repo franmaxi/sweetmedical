@@ -1,7 +1,7 @@
 import { disponibilidadDomainSchema } from "../../validations/medicoValidation.js";
 
 export class DisponibilidadHoraria {
-    constructor( { diaSemana, horaDesde, horaHasta, sede , especialidades, practicas} ) {
+    constructor( { diaSemana, horaDesde, horaHasta, sede , especialidades = [], practicas = []} ) {
         const valid = disponibilidadDomainSchema.parse({ diaSemana, horaDesde, horaHasta, sede });
 
         // _id

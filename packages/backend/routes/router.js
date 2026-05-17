@@ -10,7 +10,7 @@ const router = express.Router()
 // Configuración de paths bases para cada recurso
 //router.use('/medicos', MedicoRouter)
 router.use('/pacientes', PacienteRouter)
-//router.use('/turnos', TurnoRouter)
+router.use('/turnos', TurnoRouter)
 router.use('/notificaciones', NotificacionRouter)
 router.use('/especialidades', EspecialidadRouter)
 router.use('/practicas', PracticaRouter)

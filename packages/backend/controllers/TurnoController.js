@@ -1,5 +1,10 @@
 import { TurnoService } from '../services/TurnoService.js';
-import {BadRequestError} from "../errors/AppErrors.js";
+import { paramsIdSchema,objectIdSchema} from "../validations/commonValidations.js";
+import {
+    turnoBodySchema,
+    estadosBodySchema,
+    turnoQuerySchema
+} from "../validations/turnoValidation.js";
 
 export class TurnoController {
     constructor( {turnoService = new TurnoService()} = {}) {
@@ -7,17 +12,27 @@ export class TurnoController {
     }
 
 // GET /turnos
+
+// GET /turnos
+
+// GET /turnos/{medico} -> /turnos/medico/{medico}
+// GET /turnos/{paciente} -> /turnos/paciente/{paciente}
+// GET /turnos?pacienteId=7
+
+// medicoId -> filtro medico = medicoId
+// pacienteId -> ...
+// estados -> filtro estado = ESTADOA || estado = ESTADOB
+
 findAll = async (req, res, next) => {
     try {
-        const paginacion = this.extraerPaginacion(req.query);
-        const filtros = this.extraerFiltros(req.query);
-        const pacienteId = req.query.pacienteId;
+        const { page: numeroPagina, limit: limitePorPagina, pacienteId, ...filtros } = turnoQuerySchema.parse(req.query);
 
-        const resultado = await this.turnoService.obtenerTodos({
+        // TODO revisar cuando se llama esto
+        const resultado = await this.turnoService.obtenerTodosCobertura({
             pacienteId,
-            ...paginacion,
+            numeroPagina,
+            limitePorPagina,
             filtros
-            
         });
 
         return res.status(200).json({
@@ -35,10 +50,12 @@ findAll = async (req, res, next) => {
     }
 };
 
+
+
 //POST /turnos
 create = async(req, res, next) => {
     try {
-        const datosTurno = this.extraerYValidarBodyTurno(req.body);
+        const datosTurno = turnoBodySchema.parse(req.body);
         const turnoCreado = await this.turnoService.crear(datosTurno);
 
         return res.status(201).json({
@@ -50,11 +67,11 @@ create = async(req, res, next) => {
     }
 };
 
-//GET /turnos/{id}
+// GET /turnos/{id}
 
 findById = async(req, res, next) => {
     try {
-        const id = this.parsearId(req.params.id)
+        const { id } = paramsIdSchema.parse(req.params);
         const turno = await this.turnoService.obtenerPorId(id);
 
         return res.status(200).json({
@@ -70,9 +87,8 @@ findById = async(req, res, next) => {
 // POST /turnos/:{id}/reservar
 reservar = async(req, res, next) =>  {
     try {
-        //TODO faltaria agregar la fecha, especialidad/practic
-        const turnoId = this.parsearId(req.params.id);
-        const { pacienteId, especialidadId, practicaId } = this.extraerBodyReserva(req.body);
+        const { id: turnoId } = paramsIdSchema.parse(req.params);
+        const { pacienteId, especialidadId, practicaId } = estadosBodySchema.parse(req.body);
 
         const turno = await this.turnoService.reservarTurno(turnoId, pacienteId, especialidadId, practicaId);
 
@@ -85,12 +101,11 @@ reservar = async(req, res, next) =>  {
     }
 };
 
-// POST /turnos/:id/cancelar
-
+// PATCH /turnos/:id/
 cancelar = async(req, res, next) => {
     try {
-        const turnoId = this.parsearId(req.params.id);
-        const { usuario, motivo } = this.extraerBodyCancelacion(req.body);
+        const { id: turnoId } = paramsIdSchema.parse(req.params);
+        const { usuario, motivo } = estadosBodySchema.parse(req.body);
 
         const turno = await this.turnoService.cancelar( turnoId, usuario, motivo )
 
@@ -103,138 +118,37 @@ cancelar = async(req, res, next) => {
     }
 };
 
-
-// DELETE /turnos/:id
-
-delete = async (req, res, next) => {
+// PATCH /turnos/:id
+realizar = async (req, res, next) => {
     try {
-        const id = this.parsearId(req.params.id);
-
-        const turnoEliminado = await this.turnoService.eliminar(id);
+        const { id: turnoId } = paramsIdSchema.parse(req.params);
+        const { medicoId } = estadosBodySchema.parse(req.body);
+        
+        const turno = await this.turnoService.realizar(turnoId, medicoId)
 
         return res.status(200).json({
             status: "success",
-            data: turnoEliminado
+            data: turno
         });
     } catch (error) {
         return next(error);
     }
-};
-
-//--------------------- auxiliares ---------------------
-
- parsearId(idParam) {
-    const id = Number(idParam);
-    this.validarEnteroPositivo(id, "id");
-    return id;
-};
-
- extraerYValidarBodyTurno(body) {
-    if (!body || typeof body !== 'object' || Array.isArray(body)) {
-        throw new BadRequestError("El cuerpo de la solicitud debe ser un objeto JSON válido.");
-    }
-
-    const camposPermitidos = [
-        "medicoID",
-        "fechaHora",
-        "sedeId", // puede ser opcional si se determina a través del médico o la especialidad
-        "especialidadId",
-        "practicaId",
-        "costo"
-    ];
-
-    const camposBody = Object.keys(body);
-    const camposNoPermitidos = camposBody.filter(campo => !camposPermitidos.includes(campo));
-
-    if (camposNoPermitidos.length > 0) {
-        throw new BadRequestError(`Campos no permitidos en el cuerpo de la solicitud: ${camposNoPermitidos.join(", ")}`);
-    }
-
-    const camposFaltantes = camposPermitidos.filter((campo) => body[campo] === undefined);
-    
-    if (camposFaltantes.length > 0) {
-        throw new BadRequestError(`Faltan campos obligatorios en el cuerpo de la solicitud: ${camposFaltantes.join(", ")}`);
-    }
-
-    return {
-        medicoId: body.medicoId,
-        fechaHora: body.fechaHora,
-        sedeId: body.sedeId,
-        especialidadId: body.especialidadId,
-        practicaId: body.practicaId,
-        costo: body.costo
-    };
-    }
-
- extraerBodyReserva(body) {
-    if (!body?.pacienteId) {
-        throw new BadRequestError("El campo 'pacienteId' es obligatorio para reservar un turno.");
-    }
-    return {
-        pacienteId: this.parsearId(body.pacienteId),
-        especialidadId: body.especialidadId ?? null,
-        practicaId: body.practicaId ?? null,
-    };
-}
- extraerBodyCancelacion(body) {
-    if (!body?.usuario) {
-        throw new BadRequestError("El campo 'usuario' es obligatorio para cancelar un turno.");
-    }
-
-    return {
-        usuario: body.usuario,
-        motivo: body.motivo ?? "cancelación sin motivo especificado"
-    };  
-}
- extraerFiltros(query) {
-    const filtros = {};
-    // Agregue especialidadId, sedeId y practicaId
-    if (query.medicoId !== undefined) {
-        filtros.medicoId = Number(query.medicoId);
-    }
-
-    if (query.estado !== undefined) {
-        filtros.estado = query.estado;
-    }
-
-    if (query.especialidadId !== undefined) {
-        filtros.especialidadId = query.especialidadId;
-    }
-
-    if (query.practicaId !== undefined) {
-        filtros.practicaId = query.practicaId;
-    }
-
-    if (query.sedeId !== undefined) {
-        filtros.sedeId = query.sedeId;
-    }
-
-    if (query.desde !== undefined) {
-        const fechaDesde = new Date(query.desde);
-        filtros.desde = isNaN(fechaDesde) ? null : fechaDesde;
-    }
-
-    if (query.hasta !== undefined) {
-        const fechaHasta = new Date(query.hasta);
-        filtros.hasta = isNaN(fechaHasta) ? null : fechaHasta;
-    }
-
-    return filtros;
 }
 
-    extraerPaginacion(query) {
-        const numeroPagina = query?.page === undefined ? 1 : Number(query.page);
-        const limitePorPagina = query?.limit === undefined ? 10 : Number(query.limit);
-
-        this.validarEnteroPositivo(numeroPagina, "page");
-        this.validarEnteroPositivo(limitePorPagina, "limit");
-
-        return { numeroPagina, limitePorPagina };
+consultarAgenda = async (req, res, next) => {
+    try {
+        const { medicoId: medicoId } = paramsIdSchema.parse(req.params);
+        const especialidadId = req.query.especialidadId ? objectIdSchema.parse(req.query.especialidadId) : null;
+        const practicaId = req.query.practicaId ? objectIdSchema.parse(req.query.practicaId) : null;
+            
+        const turnosDisponibles = await this.turnoService.consultarAgenda(medicoId, especialidadId, practicaId);
+        return res.status(200).json({
+            status: "success",
+            data: turnosDisponibles
+        });
+    } catch (error) {
+        return next(error);
     }
+}
 
-    validarEnteroPositivo(valor, nombreCampo) {
-        if (isNaN(valor) || valor <= 0 || !Number.isInteger(valor)) {
-            throw new BadRequestError(`El campo '${nombreCampo}' debe ser un entero positivo.`);
-        }
-    }
 }

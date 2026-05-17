@@ -1,8 +1,8 @@
-import { especialidadGenericaBodySchema } from "../../../validations/especialidadValidation.js"
+import { especialidadGenericaDomainSchema } from "../../../validations/especialidadValidation.js"
 
 export class EspecialidadGenerica {
     constructor({ nombre }) {
-        const valid = especialidadGenericaBodySchema.parse({ nombre });
+        const valid = especialidadGenericaDomainSchema.parse({ nombre });
 
         // _id
         this.nombre = valid.nombre;
