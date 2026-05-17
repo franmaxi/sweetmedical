@@ -434,6 +434,15 @@ export class TurnoService {
             const turnosAnteriores = await this.turnoRepository.obtenerSiguientesDisponibles(fechaMinima, t.fechaHora, turnoCopia.medico._id)
             turnosAnteriores.reverse()
             
+            // borramos los turnos no contiguos
+            for (let i = 0; i < turnosSiguientes.length; i++) {
+                let horaSupuesta = new Date(ultimoTurno.fechaHora + ( (i + 1) * disponibilidad.mcdDuracion) * 60 * 1000)
+                if (turnosSiguientes[i].fechaHora.getTime() !== horaSupuesta.getTime()) {
+                    turnosSiguientes.splice(i) // Cuando encuentra alguno que no sea disponible, corta desde esa posicion.
+                    break
+                }
+            }
+
             //arrancamos desde el turno anterior al reservado/cancelado. Vamos yendo para atras sumando el tiempo que se agrega
             let tiempoRestante = disponibilidad.mcdDuracion
             for (const ta of turnosAnteriores) {
