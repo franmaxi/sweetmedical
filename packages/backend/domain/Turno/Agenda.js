@@ -30,12 +30,7 @@ export class Agenda {
         // semana 2, genera 6
         // semana 3, genera 7
         // semana 4, genera 8
-        const turnosGenerados = []
-        
-        // Generamos por semana  -  2 semanas de antelacion minimo 
-        // fecha inicial = Date.now + 2 semanas
 
-        // TODO en el properties deberia estar: antelación minima, dia hora del cron y duración minima turnos.
         if(!medico?.disponibilidades || medico.disponibilidades.length === 0){
             return turnosGenerados
         }
@@ -50,6 +45,9 @@ export class Agenda {
         if (inicio >= fin) {
             throw new RangeError('La fecha inicial debe ser menor o igualque la final')
         }
+
+        const turnosGenerados = []
+
         medico.disponibilidades.forEach(dispo => {            
             const turnos = this.generarTurnosPorDisponibilidad(medico, dispo, inicio, fin)
             turnosGenerados.push(...turnos)
@@ -57,7 +55,6 @@ export class Agenda {
         });
         
         return turnosGenerados
-        
     }
 
     // dispo tiene 2 especialidades de 30 y 60 minutos
@@ -70,7 +67,6 @@ export class Agenda {
         para el sistema tenemos una dispo de 23 a 24 y otra de 0 a 2
         30 mins, 11.45 no existe
     */
-
 
     // cuando un turno se cancela:
     // el turno viejo se "archiva", se copian datos clave como medico y fecha y hora. 
@@ -98,21 +94,22 @@ export class Agenda {
         const diaHasta = new Date(fin)
         diaHasta.setHours(23,59,59,999)
 
-        //const cantTurnos = disponibilidad.obtenerDiferenciaEnMinutos() / duracionTurnos
+        // llevo la fecha de GMT-3 a UTC con un formatter
         
         // recorro cada dia entre el inicio y el fin
-        for (let fecha = new Date(diaDesde); fecha <= diaHasta; fecha.setDate(fecha.getDate() + 1)) {
+        for (let fecha = new Date(diaDesde); fecha <= diaHasta; fecha.setUTCDate(fecha.getUTCDate() + 1)) {
 
-            if(fecha.getDay() !== disponibilidad.diaSemana) continue;
+            if (this.obtenerDiaFechaArgentina(fecha) !== disponibilidad.diaSemana) continue;
 
             const [horaDesde, minutoDesde] = disponibilidad.horaDesde.split(':').map(Number)
             const [horaHasta, minutoHasta] = disponibilidad.horaHasta.split(':').map(Number)
 
+            // trabajamos en UTC por si el server no es argentino, sumamos +3 para que la hora sea argentina
+            //TODO revisar esto para ver que onda, tenemos que manejar UTC por las dudas del servidor
             const inicioSlot = new Date(fecha)
-            inicioSlot.setHours(horaDesde, minutoDesde, 0, 0)
-
+            inicioSlot.setUTCHours(horaDesde + 3, minutoDesde, 0, 0)
             const finSlot = new Date(fecha)
-            finSlot.setHours(horaHasta, minutoHasta, 0, 0)
+            finSlot.setUTCHours(horaHasta + 3, minutoHasta, 0, 0)
 
             // en el for de abajo podriamos usar la variable cantidad turnos, y tener un contador de turno actual
             for(
@@ -137,6 +134,16 @@ export class Agenda {
             }
         } 
         return turnosGenerados;
+    }
+
+
+    obtenerDiaFechaArgentina(fechaUTC) {
+        const formateador = new Intl.DateTimeFormat('es-AR', { 
+            timeZone: 'America/Argentina/Buenos_Aires', 
+            weekday: 'numeric' 
+        });
+        // Formatea y retorna: Domingo = 0, Lunes = 1, Martes = 2... 
+        return parseInt(formateador.format(fechaUTC)) % 7;
     }
 
     obtenerMatrizEspecialidadPracticaDuracion(especialidades, practicas, duracionesUnicas){

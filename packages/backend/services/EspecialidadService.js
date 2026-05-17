@@ -91,9 +91,7 @@ export class EspecialidadService {
     async eliminar(id){
         const validId = objectIdSchema.parse(id);
 
-        if (! this.validarExistenciaPorId(validId)){
-            throw new NotFoundError("Especialidad no encontrado");
-        }
+        await this.obtenerPorId(validId);
   
         return await this.especialidadRepository.delete(validId);
     }
@@ -150,6 +148,11 @@ export class EspecialidadService {
         };
     }
 
+     async obtenerPorNombreGenerica(nombre) {
+        const validNombre = stringNoNuloSchema.parse(nombre);
+        return await this.especialidadGenericaRepository.findOneByNombre(validNombre);
+    }
+
     async actualizarGenerica(id, datosNuevo) {
         const validId = objectIdSchema.parse(id);
         const nombreNuevo = typeof datosNuevo === "object" && datosNuevo !== null && "nombre" in datosNuevo
@@ -168,7 +171,7 @@ export class EspecialidadService {
 
         //Si actualizamos el nombre de una generica, las hijas deberán tener su mismo nombre
         if (especialidadesHijas.length > 0) {
-            const idsHijas = especialidadesHijas.map(e => e.id);
+            const idsHijas = especialidadesHijas.map(e => e._id);
             await this.especialidadRepository.updateManyNombres(idsHijas, nombreNuevo);
         }
 

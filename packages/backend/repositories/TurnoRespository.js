@@ -102,4 +102,9 @@ export class TurnoRepository{
         .populate('medico')
         .populate('paciente')
     }
+
+    async saveAllBatch(turnos) {
+        if (!turnos || turnos.length === 0) return [];
+        return await this.model.insertMany(turnos);
+    }
 }

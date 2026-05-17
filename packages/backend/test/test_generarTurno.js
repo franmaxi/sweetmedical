@@ -1,10 +1,12 @@
 import { Agenda } from "../domain/Turno/Agenda.js"
 import { DisponibilidadHoraria } from "../domain/Medico/DisponibilidadHoraria.js"
-import { Especialidad } from "../domain/Medico/Especialidad.js"
-import { Practica } from "../domain/Medico/Practica.js"
-
+import { Especialidad } from "../domain/Medico/Servicios/Especialidad.js"
+import { Practica } from "../domain/Medico/Servicios/Practica.js"
+import { Medico } from "../domain/Medico/Medico.js"
+import { Sede } from "../domain/Sede.js"
 
 const agenda = new Agenda()
+const sedeMock = new Sede({ nombre: "Sede Central", direccion: "Av. Corrientes 1234" })
 
 // TEST calculo MCD
 console.log('\n[TEST] calcularMCD')
@@ -19,9 +21,11 @@ console.log(mcd2 === 20 ? 'OK' : 'ERROR')
 // TEST Turnos de medico sin disponibilidad
 console.log('\n[TEST] generarTurnos SIN disponibilidades')
 
-const medicoSinDisponibilidades = {
-    disponibilidades: []
-}
+const medicoSinDisponibilidades = new Medico({
+    usuario: "000000000000000000000000",
+    matricula: "M-0000",
+    nombre: "Dr. Vacio"
+})
 const turnosVacios = agenda.generarTurnos(
     medicoSinDisponibilidades,
     new Date('2026-05-11'),
@@ -36,6 +40,7 @@ console.log(turnosVacios.length === 0 ? 'OK' : 'ERROR')
 console.log('\n[TEST] generarTurnosPorDisponibilidad')
 
 const especialidad15 = new Especialidad({
+    especialidadGenerica: "000000000000000000000000",
     nombre: 'Cardiologia',
     duracionTurnoEnMins: 15,
     costo: 1000
@@ -45,14 +50,17 @@ const disponibilidad15 = new DisponibilidadHoraria({
     diaSemana: 1, // lunes
     horaDesde: '10:00',
     horaHasta: '11:00',
-    sede: {}
+    sede: sedeMock
 })
 
 disponibilidad15.especialidades.push(especialidad15)
 
-const medico1 = {
-    disponibilidades: [disponibilidad15]
-}
+const medico1 = new Medico({
+    usuario: "000000000000000000000000",
+    matricula: "M-1234",
+    nombre: "Dr. Perez"
+})
+medico1.disponibilidades.push(disponibilidad15)
 
 const turnos15 = agenda.generarTurnosPorDisponibilidad(
     medico1,
@@ -65,12 +73,10 @@ console.log('\nCantidad de turnos generados - Esperado: 4')
 console.log('Resultado:', turnos15.length)
 
 turnos15.forEach((t, index) => {
-
     console.log(
         `Turno ${index + 1}:`,
         t.fechaHora.toLocaleTimeString()
     )
-
 })
 
 
@@ -79,12 +85,14 @@ turnos15.forEach((t, index) => {
 console.log('\n[TEST] MCD especialidades + practicas')
 
 const especialidad30 = new Especialidad({
+    especialidadGenerica: "000000000000000000000000",
     nombre: 'Clinica',
     duracionTurnoEnMins: 30,
     costo: 1000
 })
 
 const practica60 = new Practica({
+    practicaGenerica: "000000000000000000000000",
     codigo: 'RX01',
     nombre: 'Radiografia',
     duracionTurnoEnMins: 60,
@@ -95,15 +103,18 @@ const disponibilidadMixta = new DisponibilidadHoraria({
     diaSemana: 1,
     horaDesde: '10:00',
     horaHasta: '12:00',
-    sede: {}
+    sede: sedeMock
 })
 
 disponibilidadMixta.especialidades.push(especialidad30)
 disponibilidadMixta.practicas.push(practica60)
 
-const medico2 = {
-    disponibilidades: [disponibilidadMixta]
-}
+const medico2 = new Medico({
+    usuario: "000000000000000000000000",
+    matricula: "M-5678",
+    nombre: "Dr. Gomez"
+})
+medico2.disponibilidades.push(disponibilidadMixta)
 
 const turnosMixtos = agenda.generarTurnosPorDisponibilidad(
     medico2,
@@ -126,14 +137,17 @@ const disponibilidadViernes = new DisponibilidadHoraria({
     diaSemana: 5, // viernes
     horaDesde: '10:00',
     horaHasta: '11:00',
-    sede: {}
+    sede: sedeMock
 })
 
 disponibilidadViernes.especialidades.push(especialidad15)
 
-const medico3 = {
-    disponibilidades: [disponibilidadViernes]
-}
+const medico3 = new Medico({
+    usuario: "000000000000000000000000",
+    matricula: "M-9999",
+    nombre: "Dr. Viernes"
+})
+medico3.disponibilidades.push(disponibilidadViernes)
 
 const turnosViernes = agenda.generarTurnosPorDisponibilidad(
     medico3,
@@ -145,8 +159,3 @@ const turnosViernes = agenda.generarTurnosPorDisponibilidad(
 console.log('Esperado: 0')
 console.log('Resultado:', turnosViernes.length)
 console.log(turnosViernes.length === 0 ? 'OK' : 'ERROR')
-
-
-
-
-

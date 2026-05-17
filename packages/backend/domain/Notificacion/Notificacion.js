@@ -4,7 +4,7 @@ export class Notificacion {
     constructor({ destinatario, remitente, mensaje }) {
         const valid = notificacionDomainSchema.parse({ destinatario, remitente, mensaje });
 
-        this.id = null; //todo revisar como se asigna el id para persistir
+        // _id
         this.destinatario = valid.destinatario;
         this.remitente = valid.remitente;
         this.mensaje = valid.mensaje;

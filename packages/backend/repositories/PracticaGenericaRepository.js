@@ -12,19 +12,16 @@ export class PracticaGenericaRepository {
     async findPaginados(pagina, limite, filtros = {}) {
         const salto = (pagina-1) * limite
 
-         const filtrosAplicados = { eliminado: false, ...filtros };
+        const filtrosAplicados = { eliminado: false, ...filtros };
 
         let practicasGenericas = await this.findByFiltersLocal(filtrosAplicados).skip(salto).limit(limite)
 
-        const total = await this.model.countDocuments({
-            filtrosAplicados
-        })
+        const total = await this.model.countDocuments(filtrosAplicados)
 
         return {
             practicasGenericas: practicasGenericas,
             totalPracticasGenericas: total,
-            pagina,
-            totalPages: Math.ceil(total/limite)
+            pagina
         }
     }
 

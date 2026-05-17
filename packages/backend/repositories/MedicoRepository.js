@@ -20,17 +20,16 @@ export class MedicoRepository{
     async obtenerPaginados(pagina, limite, filtros = {}) {
         const salto = (pagina-1) * limite
 
-        let medicos = await this.findByFilters(filtros).skip(salto).limit(limite)
+        const filtrosAplicados = { eliminado: false, ...filtros };
 
-        const total = await this.model.countDocuments({
-            eliminado: false
-        })
+        let medicos = await this.findByFilters(filtrosAplicados).skip(salto).limit(limite)
+
+        const total = await this.model.countDocuments(filtrosAplicados)
 
         return {
             medicos: medicos,
             totalMedicos: total,
-            pagina,
-            totalPages: Math.ceil(total/limite)
+            pagina
         }
     }
 

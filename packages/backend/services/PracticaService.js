@@ -148,6 +148,12 @@ export class PracticaService {
         };
     }
 
+    async obtenerPorCodigoGenerica(nombre) {
+        const validNombre = stringNoNuloSchema.parse(nombre);
+        return await this.practicaGenericaRepository.findByCodigo(validNombre);
+    }
+
+
     async crearGenerica(datosPGenerica) {
         const validDatos = practicaGenericaBodySchema.parse(datosPGenerica);
 
@@ -182,7 +188,7 @@ export class PracticaService {
                 nombre: validDatos.nombre, 
                 codigo: validDatos.codigo 
             };
-            const idsHijas = practicasHijas.map(e => e.id);
+            const idsHijas = practicasHijas.map(e => e._id);
             await this.practicaRepository.updateMany(idsHijas, cambios);
         }
 
@@ -207,10 +213,10 @@ export class PracticaService {
         const practicaExistentePorNombre = await this.practicaGenericaRepository.findOneByNombre(validDatos.nombre);
         const practicaExistentePorCodigo = await this.practicaGenericaRepository.findByCodigo(validDatos.codigo);
         
-        if (practicaExistentePorNombre && practicaExistentePorNombre.id !== validId) {
+        if (practicaExistentePorNombre && practicaExistentePorNombre._id !== validId) {
             throw new ConflictError("Ya existe una practica de nombre: " + validDatos.nombre);
         }
-        if (practicaExistentePorCodigo && practicaExistentePorCodigo.id !== validId) {
+        if (practicaExistentePorCodigo && practicaExistentePorCodigo._id !== validId) {
             throw new ConflictError("Ya existe una practica de codigo: " + validDatos.codigo);
         }
     }

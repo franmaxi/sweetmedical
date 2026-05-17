@@ -5,7 +5,7 @@ export class Paciente {
         const os = obraSocial || obrasocial;
         const valid = pacienteDomainSchema.parse({ usuario, dni, nombre, obraSocial: os, plan });
 
-        this.id = null; //todo
+        // _id
         this.usuario = valid.usuario;
         this.dni = valid.dni;
         this.nombre = valid.nombre;

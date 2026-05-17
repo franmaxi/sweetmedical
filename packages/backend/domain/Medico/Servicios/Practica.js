@@ -5,7 +5,7 @@ export class Practica {
     constructor({ codigo, practicaGenerica, nombre, duracionTurnoEnMins, costo }) {
         const valid = practicaDomainSchema.parse({ codigo, practicaGenerica, nombre, duracionTurnoEnMins, costo });
         
-        this.id = null; //todo
+        // _id
         this.practicaGenerica = valid.practicaGenerica;
         this.codigo = valid.codigo;
         this.nombre = valid.nombre;

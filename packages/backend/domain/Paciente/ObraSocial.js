@@ -4,7 +4,7 @@ export class ObraSocial {
     constructor({ nombre }) {
         const valid = obraSocialDomainSchema.parse({ nombre });
 
-        this.id = null; //todo
+        // _id
         this.nombre = valid.nombre;
         this.planes = [];
     }

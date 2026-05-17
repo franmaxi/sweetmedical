@@ -16,15 +16,12 @@ export class EspecialidadGenericaRepository{
 
         let especialidadesGenericas = await this.findByFiltersLocal(filtrosAplicados).skip(salto).limit(limite)
 
-        const total = await this.model.countDocuments({
-            filtrosAplicados
-        })
+        const total = await this.model.countDocuments(filtrosAplicados);
 
         return {
             especialidadesGenericas: especialidadesGenericas,
             totalEspecialidadesGenericas: total,
-            pagina,
-            totalPages: Math.ceil(total/limite)
+            pagina
         }
     }
 

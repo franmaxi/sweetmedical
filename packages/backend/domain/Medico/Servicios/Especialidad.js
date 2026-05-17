@@ -5,7 +5,7 @@ export class Especialidad {
     constructor({ especialidadGenerica, nombre, duracionTurnoEnMins, costo }) {
         const valid = especialidadDomainSchema.parse({ especialidadGenerica, nombre, duracionTurnoEnMins, costo });
 
-        this.id = null; //TODO
+        // _id
         this.especialidadGenerica = valid.especialidadGenerica;
         this.nombre = valid.nombre;
         this.duracionTurnoEnMins = valid.duracionTurnoEnMins;

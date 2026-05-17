@@ -4,7 +4,7 @@ export class Sede {
     constructor({ nombre, direccion }) {
         const valid = sedeDomainSchema.parse({ nombre, direccion });
 
-        this.id = null; //todo
+        // _id
         this.nombre = valid.nombre;
         this.direccion = valid.direccion;
     }

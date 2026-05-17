@@ -4,7 +4,7 @@ export class Plan {
     constructor({ nombre }) {
         const valid = planDomainSchema.parse({ nombre });
 
-        this.id = null; //todo
+        // _id
         this.nombre = valid.nombre;
         this.coberturaEspecialidad = [];
         this.coberturaPractica = [];

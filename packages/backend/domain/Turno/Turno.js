@@ -16,7 +16,7 @@ export class Turno{
         this.validarPractica(practica);
         this.validarEspecialidad(especialidad);
 
-        this.id = null; //todo
+        // _id
         this.medico = medico;
         this.paciente = null;
         this.fechaHora = fechaHora; //DateTime
@@ -57,14 +57,24 @@ export class Turno{
     }
 
     validarPractica(practica){
-        if (!(practica instanceof Practica)) { // Preguntar si esta bien que sea un objeto.
-            throw new BadRequestError('La práctica debe ser una cadena de texto válida')
+        if (practica == null) return;
+        if (Array.isArray(practica)) {
+            if (!practica.every(p => p instanceof Practica)) {
+                throw new BadRequestError('Cada práctica en la lista debe ser una instancia válida de Practica')
+            }
+        } else if (!(practica instanceof Practica)) {
+            throw new BadRequestError('La práctica debe ser una instancia válida de Practica')
         }
     }
     
     validarEspecialidad(especialidad){
-        if (!(especialidad instanceof Especialidad)) { // Preguntar si esta bien que sea un objeto.
-            throw new BadRequestError('La especialidad debe ser una cadena de texto válida')
+        if (especialidad == null) return;
+        if (Array.isArray(especialidad)) {
+            if (!especialidad.every(e => e instanceof Especialidad)) {
+                throw new BadRequestError('Cada especialidad en la lista debe ser una instancia válida de Especialidad')
+            }
+        } else if (!(especialidad instanceof Especialidad)) {
+            throw new BadRequestError('La especialidad debe ser una instancia válida de Especialidad')
         }
     }
 

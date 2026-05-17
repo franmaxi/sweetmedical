@@ -34,7 +34,6 @@
 - [x] Alta de servicios         
 - [ ] Modificación de servicios
 - [ ] Baja de servicios
-- [ ] Relación médico ↔ servicios
 - [ ] Gestión de especialidades
 - [ ] Gestión de prácticas
 

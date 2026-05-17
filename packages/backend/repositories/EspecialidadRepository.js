@@ -18,8 +18,7 @@ export class EspecialidadRepository{
         return {
             especialidades: especialidades,
             totalEspecialidades: total,
-            pagina,
-            totalPages: Math.ceil(total/limite)
+            pagina
         }
     }
     

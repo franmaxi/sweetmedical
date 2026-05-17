@@ -6,22 +6,32 @@ export class NotificacionRepository{
     }
 
     async obtenerPaginados(numeroPagina, limitePorPagina, filtros = {}) {
-    //Armamos la query para filtrar
-    
-    const query = {};
-    query.destinatario = filtros.usuarioId;
-    if (filtros.leida !== undefined) {
-        query.leida = filtros.leida;
-    }
+        const query = {};
+        
+        if (filtros.usuarioId) {
+            query.destinatario = filtros.usuarioId; 
+        }
+        
+        if (filtros.leida !== undefined) {
+            query.leida = filtros.leida;
+        }
 
-    const skip = (numeroPagina - 1) * limitePorPagina;
-    const totalNotificaciones = await this.model.countDocuments(query);
-    const totalPaginas = totalNotificaciones === 0 ? 0 : Math.ceil(totalNotificaciones / limitePorPagina);
-    const notificaciones = await NotificacionModel.find(query)
-        .sort({ fechaHoraCreacion: -1 }) // las más recientes primero
-        .skip(skip)
-        .limit(limitePorPagina);
-        return { notificaciones, totalNotificaciones, totalPaginas };
+        const skip = (numeroPagina - 1) * limitePorPagina;
+        
+        const totalNotificaciones = await this.model.countDocuments(query);
+        
+        const totalPaginas = totalNotificaciones === 0 ? 0 : Math.ceil(totalNotificaciones / limitePorPagina);
+        
+        const notificaciones = await this.model.find(query)
+            .sort({ fechaHoraCreacion: -1 })
+            .skip(skip)
+            .limit(limitePorPagina);
+            
+        return { 
+            notificaciones, 
+            totalNotificaciones, 
+            totalPaginas 
+        };
     }
 
     async crear(notificacion) { //Esto es para guardarlo por primera vez

@@ -5,7 +5,7 @@ export class Usuario {
         const valid = usuarioDomainSchema.parse({ nombreUsuario, password });
         
         this.idioma = 'es';
-        this.id = null; //todo
+        // _id
         this.nombreUsuario = valid.nombreUsuario;
         this.password = valid.password;
         this.eliminado = false;

@@ -1,4 +1,6 @@
 import { Turno } from "../domain/Turno/Turno.js"
+import { EstadoTurno } from "../domain/Enumerados/EstadoTurno.js"
+import { Agenda } from "../domain/Turno/Agenda.js"
 import {
     BadRequestError,
     NotFoundError,
@@ -11,9 +13,10 @@ import { MedicoRepository } from "../repositories/MedicoRepository.js"
 import { PacienteRepository } from "../repositories/PacienteRepository.js"
 import { PracticaRepository } from "../repositories/PracticaRepository.js"
 import { EspecialidadRepository } from "../repositories/EspecialidadRepository.js"
-import { EstadoTurno } from "../domain/Enumerados/EstadoTurno.js"
-import { NotificacionService } from "./NotificacionService.js"
 import { UsuarioRepository } from "../repositories/UsuarioRepository.js"
+
+import { NotificacionService } from "./NotificacionService.js"
+
 
 export class TurnoService {
     constructor({
@@ -53,26 +56,26 @@ export class TurnoService {
             const especialidadesConCosto = turno.especialidad.map(e => {
                 const nivelCobertura = paciente.plan.obtenerCoberturaEspecialidad(e);
                 const costoFinal = e.calcularCostoSegunCobertura(nivelCobertura);
-                return { id: e.id, nombre: e.nombre, cobertura: nivelCobertura, costoFinal };
+                return { id: e._id, nombre: e.nombre, cobertura: nivelCobertura, costoFinal };
             });
 
             const practicasConCosto = turno.practica.map(p => {
                 const nivelCobertura = paciente.plan.obtenerCoberturaPractica(p);
                 const costoFinal = p.calcularCostoSegunCobertura(nivelCobertura);
-                return { id: p.id, nombre: p.nombre, cobertura: nivelCobertura, costoFinal };
+                return { id: p._id, nombre: p.nombre, cobertura: nivelCobertura, costoFinal };
             });
 
             return {
-                id: turno.id,
+                id: turno._id,
                 profesional: {
-                    id: turno.medico.id,
+                    id: turno.medico._id,
                     nombre: turno.medico.nombre
                 },
                 especialidades: especialidadesConCosto,
                 practicas: practicasConCosto,
                 fechaHora: turno.fechaHora,
                 sede: {
-                    id: turno.sede.id,
+                    id: turno.sede._id,
                     nombre: turno.sede.nombre,
                     direccion: turno.sede.direccion,
                 },
@@ -175,6 +178,7 @@ export class TurnoService {
         turno.actualizarEstado(EstadoTurno.RESERVADO, paciente.usuario, "El turno fue reservado")
         turno.paciente = pacienteId
         turno.costo = servicio.costo
+        // supuestamente Mongoose admite y entiende el especialidadId como ObjectId y lo permite, para no tener que buscar y meter el objeto
         if (especialidadId != null) {
             turno.especialidad = especialidadId;
             turno.practica = null; 
@@ -204,14 +208,8 @@ export class TurnoService {
         return turno;
     }           
            
-
-    // tecnicamente, como solo pedimos los turnos de la duracion de la especialidad, si la cantidad necesaria no matchea significa que no estan los contiguos disponibles
-    // Esto estaria dentro del FOR de la linea 151, tenemos que ver que funcione correctamente, 
-    // 
-    // let fechaEsperada = new Date(fechaAnterior + disponibilidad.mcdDuracion * 60 * 1000)
-    // if( fechaEsperada != turnosSiguientes[i].fechaHora){
-    //     throw new UnprocessableEntityError("No existe tiempo suficiente para el servicio solicitado")
-    // }
+    // tecnicamente, como solo pedimos los turnos de la duracion de la especialidad, 
+    // si la cantidad necesaria no matchea significa que no estan los contiguos disponibles
 
     async cancelar(turnoId, usuarioId, motivo) {
         const horasMinimasParaCancelar = parseInt(process.env.HORAS_MINIMAS_CANCELAR)
@@ -316,13 +314,46 @@ export class TurnoService {
                 turnosCombinados: turnosCombinados}
     }
 
-    /*
-    T1 R T2 Com T3 Com T4 D T5 R 
-    1 + 2 + 1 -> tiempoRestante = 15*4 = 60
-    T1 -> revisamos -> para T2 turno restante = 45
-    T2 -> revisamos -> para T3 turno restante = 30
-    T3 -> revisamos -> termina
-    */
+    async generarTurnosBatch(){
+        const diasAntelacionTurno = parseInt(process.env.DIAS_ANTELACION_TURNO)
+        const agenda = new Agenda()
+
+        // determinar fecha inicio y fin
+        // IMPORTANTE -> se trabaja con UTC para no tener problemas con el desfasaje de argentina
+        // TODO testear
+        const fechaInicio = new Date()
+        fechaInicio.setUTCDate(fechaInicio.getUTCDate() + diasAntelacionTurno)
+        fechaInicio.setUTCHours(0, 0, 0, 0)
+
+        const fechaFin = new Date(fechaInicio.getTime())
+        fechaFin.setUTCDate(fechaInicio.getUTCDate() + 6)
+        fechaFin.setUTCHours(23, 59, 59, 999)
+
+        console.log("Iniciamos Proceso Generacion Turnos Batch");
+        console.log("Fecha Inicio (UTC): " + fechaInicio.toISOString());
+        console.log("Fecha Fin (UTC): " + fechaFin.toISOString());
+        
+        // obtenemos medicos
+        const medicos = await this.medicoRepository.findAll()
+        console.log("Medicos obtenidos: " + medicos.length);
+
+        // llamamos a agenda y guardamos los turnos de cada medico
+        const turnosAGuardar = []
+        for (const m of medicos) { 
+            const turnosMedico = agenda.generarTurnos(m, fechaInicio, fechaFin)
+            turnosAGuardar.push(...turnosMedico)
+        }
+
+        if (turnosAGuardar.length > 0) {
+            await this.turnoRepository.saveAllBatch(turnosAGuardar)
+        }
+        
+        console.log("[Batch] Se generaron exitosamente " + turnosAGuardar.length + " turnos");
+    }
+
+
+
+
 
     async eliminar(turnoId) {
         // TODO que hacer cuando se elimina un turno reservado o cancelado?

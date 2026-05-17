@@ -4,7 +4,7 @@ export class EspecialidadGenerica {
     constructor({ nombre }) {
         const valid = especialidadGenericaBodySchema.parse({ nombre });
 
-        this.id = null;
+        // _id
         this.nombre = valid.nombre;
         this.eliminado = false
     }
