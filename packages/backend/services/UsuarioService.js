@@ -45,4 +45,10 @@ export class UsuarioService{
 
         return this.usuarioRepository.update(validId, validUser)
     }
+
+    async eliminar(id) {
+        const validId = objectIdSchema.parse(id);
+        await this.obtenerPorId(validId);
+        return await this.usuarioRepository.delete(validId);
+    }
 }

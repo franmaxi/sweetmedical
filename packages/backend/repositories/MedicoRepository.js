@@ -1,4 +1,7 @@
 import { MedicoModel } from "../schemas/medicoSchema.js";
+import { SedeModel } from "../schemas/sedeSchema.js";
+import { EspecialidadModel } from "../schemas/especialidadSchema.js";
+import { PracticaModel } from "../schemas/practicaSchema.js";
 
 export class MedicoRepository{
     constructor(){
@@ -11,6 +14,9 @@ export class MedicoRepository{
             .populate("practicas")
             .populate("sedes")
             .populate("disponibilidades")
+            .populate("disponibilidades.sede")
+            .populate("disponibilidades.especialidades")
+            .populate("disponibilidades.practicas")
     }
 
     async findAll() {
@@ -22,7 +28,7 @@ export class MedicoRepository{
 
         const filtrosAplicados = { eliminado: false, ...filtros };
 
-        let medicos = await this.findByFilters(filtrosAplicados).skip(salto).limit(limite)
+        let medicos = await this.#populate(this.model.find(filtrosAplicados).skip(salto).limit(limite))
 
         const total = await this.model.countDocuments(filtrosAplicados)
 
@@ -34,7 +40,7 @@ export class MedicoRepository{
     }
 
     async findById(id) {
-        return await this.#populate(this.model.findById(id))
+        return await this.#populate(this.model.findOne({ _id: id, eliminado: false }))
     }
 
     async findByFilters(filtros = {}) {

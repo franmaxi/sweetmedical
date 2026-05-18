@@ -15,7 +15,7 @@ const especialidadGenericaSchema = new mongoose.Schema({
 }, {
     timestamps: true,
     versionKey: false,
-    collection: 'especialidadesGenericas'
+    collection: 'especialidades-genericas'
 });
 
 especialidadGenericaSchema.loadClass(EspecialidadGenerica);

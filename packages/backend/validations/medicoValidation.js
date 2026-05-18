@@ -40,7 +40,14 @@ export const medicoBodyUpdateSchema = z.object({
     sedes: z.array(objectIdSchema, {
         invalid_type_error: "sedes debe ser una lista de IDs de Mongoose."
     }).default([]),
-    disponibilidades: z.array(z.any()).default([])
+    disponibilidades: z.array(z.any()).default([]),
+    nombreUsuario: z.string({
+        required_error: "El nombre de usuario es requerido.",
+        invalid_type_error: "El nombre de usuario debe ser un texto."
+    }).trim().min(1, "El nombre de usuario no puede estar vacío."),
+    password: z.string({
+        invalid_type_error: "La contraseña debe ser un texto."
+    }).min(6, "La contraseña debe tener al menos 6 caracteres.").optional()
 }).strict("No se permiten campos adicionales en la solicitud.");
 
 export const disponibilidadBodySchema = z.object({
