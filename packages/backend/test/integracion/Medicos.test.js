@@ -182,8 +182,7 @@ beforeAll(async () => {
                 especialidades: [],
                 practicas: [],
                 sedes: [],
-                disponibilidades: [],
-                usuario: createRes.body.data.usuario
+                disponibilidades: []
             });
         
         console.log(response)
@@ -211,7 +210,7 @@ beforeAll(async () => {
             .delete(`/medicos/${medicoId}`);
             
         console.log("DELETE /medicos/:id response.body:", deleteRes.body);
-
+        console.log(deleteRes.body)
         expect(deleteRes.status).toBe(200);
         expect(deleteRes.body.status).toBe('success');
 

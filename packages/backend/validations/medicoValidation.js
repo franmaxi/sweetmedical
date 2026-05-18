@@ -33,7 +33,6 @@ export const medicoBodyUpdateSchema = z.object({
     especialidades: z.array(objectIdSchema, {
         invalid_type_error: "especialidades debe ser una lista de IDs de Mongoose."
     }).default([]),
-    usuario: objectIdSchema,
     practicas: z.array(objectIdSchema, {
         invalid_type_error: "practicas debe ser una lista de IDs de Mongoose."
     }).default([]),

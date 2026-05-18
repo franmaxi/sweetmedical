@@ -97,7 +97,7 @@ export class MedicoService {
             password: datosMedico.password || medicoExistente.usuario.password 
         };
 
-        await this.usuarioService.actualizar(datosMedico.usuario._id,datosUsuario);
+        await this.usuarioService.actualizar(medicoExistente.usuario._id,datosUsuario);
 
         const datosMedicoParaActualizar = {
             matricula: datosMedico.matricula,
