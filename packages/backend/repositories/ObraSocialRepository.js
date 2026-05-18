@@ -11,17 +11,20 @@ export class ObraSocialRepository{
 
      }
     async findAll() {
-        return await this.#populate(this.model.find()); 
+        return await this.#populate(this.model.find())
     }
     async findById(id) {
-        return await this.#populate(this.model.findById(id));
+        return await this.#populate(this.model.findById(id))
     }
-     async save(obraSocial) {
+    async findByNombre(nombre){
+        return await this.model.find({nombre: nombre})
+    }
+    async save(obraSocial) {
         const nuevaObraSocial = new this.model(obraSocial);
         return await nuevaObraSocial.save();
     }
     async update(id, obraSocial) {
-        return await this.#populate(this.model.findByIdAndUpdate(id, obraSocial, { new: true }));
+        return await this.#populate(this.model.findByIdAndUpdate(id, obraSocial, { new: true }))
     }
     async delete(id) {
         return await this.#populate(this.model.findByIdAndDelete(id));

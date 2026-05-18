@@ -17,7 +17,6 @@ export class DisponibilidadHoraria {
         return this.calcularMCDDuraciones();
     }
 
-
     convertirHoraEnMinutos(hora){
         const [horas, minutos] = hora.split(':').map(Number);
         return horas * 60 + minutos;
@@ -40,6 +39,7 @@ export class DisponibilidadHoraria {
             ...this.practicas.map(p => p.duracionTurnoEnMins),
             ...this.especialidades.map(e => e.duracionTurnoEnMins)
         ];
+        //Math.max(15, this.calcularMCD(duracionesServicios))
         return this.calcularMCD(duracionesServicios);
     }
 

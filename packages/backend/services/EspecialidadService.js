@@ -57,7 +57,11 @@ export class EspecialidadService {
 
     
     async crear(datosEspecialidad) {
+        if (datosEspecialidad.duracionTurnoEnMins % 15 !== 0) {
+            throw new BadRequestError("La duración de la especialidad debe ser múltiplo de 15 minutos");
+        }
         const validDatos = especialidadBodySchema.parse(datosEspecialidad);
+        
         const especialidadGenerica = await this.especialidadGenericaRepository.findOneByNombre(validDatos.nombre);
         if (especialidadGenerica == null) {
             throw new BadRequestError("No existe una especialidad generica de nombre: " + validDatos.nombre + ". No se podrá asociar una concreta");
@@ -92,6 +96,7 @@ export class EspecialidadService {
         const validId = objectIdSchema.parse(id);
 
         await this.obtenerPorId(validId);
+
   
         return await this.especialidadRepository.delete(validId);
     }

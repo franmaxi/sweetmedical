@@ -1,4 +1,4 @@
-import { planDomainSchema } from "../../validations/pacienteValidation.js";
+import { planDomainSchema } from "../../validations/obraSocialValidation.js";
 
 export class Plan {
     constructor({ nombre }) {
@@ -19,4 +19,6 @@ export class Plan {
         const cobertura = this.coberturaPractica.find(c => c.practica === practica);
         return cobertura ? cobertura.nivel : null;
     }
+
+
 }

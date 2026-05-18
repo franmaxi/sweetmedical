@@ -70,6 +70,9 @@ export class PracticaService {
     }
 
     async crear(datosPractica) {
+         if (datosPractica.duracionTurnoEnMins % 15 !== 0) {
+            throw new BadRequestError("La duración de la practica debe ser múltiplo de 15 minutos");
+        }
         const validDatos = practicaBodySchema.parse(datosPractica);
         
         const practicaGenerica = await this.practicaGenericaRepository.findByCodigo(validDatos.codigo);
@@ -215,10 +218,10 @@ export class PracticaService {
         const practicaExistentePorNombre = await this.practicaGenericaRepository.findOneByNombre(validDatos.nombre);
         const practicaExistentePorCodigo = await this.practicaGenericaRepository.findByCodigo(validDatos.codigo);
         
-        if (practicaExistentePorNombre && practicaExistentePorNombre._id !== validId) {
+        if (practicaExistentePorNombre && practicaExistentePorNombre._id.toString() !== validId) {
             throw new ConflictError("Ya existe una practica de nombre: " + validDatos.nombre);
         }
-        if (practicaExistentePorCodigo && practicaExistentePorCodigo._id !== validId) {
+        if (practicaExistentePorCodigo && practicaExistentePorCodigo._id.toString() !== validId) {
             throw new ConflictError("Ya existe una practica de codigo: " + validDatos.codigo);
         }
     }

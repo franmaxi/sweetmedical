@@ -492,6 +492,11 @@ export class TurnoService {
         const medicos = await this.medicoRepository.findAll()
         console.log("Medicos obtenidos: " + medicos.length);
 
+        if (medicos == null || medicos.length == 0) {
+            console.log("[Batch] No se encontraron ");
+            return
+        }
+
         // llamamos a agenda y guardamos los turnos de cada medico
         const turnosAGuardar = []
         for (const m of medicos) { 
@@ -542,6 +547,10 @@ export class TurnoService {
     async refrescarTurnosBatch(){
         //console.log("Iniciamos Proceso Refresco Turnos Batch");
         const turnosModificados = await this.turnoRepository.findAllDispoPopulado({refrescarAnteriores:true})
+        if(turnosModificados == null || turnosModificados.length == 0){
+            console.log('[REFRESH] No se encontraron turnos modificados para refrescar')
+            return
+        }
         // si se reservo un turno, lo marcamos con un boolean y despues lo agarramos acá.
         for (const t of turnosModificados) {
             const duracionMaxima = Math.max(
@@ -573,6 +582,7 @@ export class TurnoService {
             }
         }
     }
+
     async refrescarTurnosAnteriores(t, tiempoRestanteInicial,duracionMaxima){
         const turnosAModificar = []
 
@@ -608,6 +618,18 @@ export class TurnoService {
         t.refrescarAnteriores = false
         await this.turnoRepository.updateAll(t, ...turnosAModificar)
     }
+
+    async modificarTurnosPorDisponibilidadModificada(disponibilidad){
+        // turnos existentes reservados/cancelados/combinados/confirmados no hacemos nada
+
+        // solamente para los disponibles, a partir de de la fecha de ahora modificamos los datos
+
+        // ! Puede llevar a la perdida de tiempo en los turnos -> si tengo los turnos separados de a 1 hora, y agrego una especialidad
+        // de 15 minutos, me va a ocupar toda la hora con esos 15 minutos, no divide el tiempo de forma dinamica 
+        // si agregamos una de 45 minutos a turnos de a 
+
+    }
+
 
     copiarTurnoCancelado(turno){
         return new Turno({

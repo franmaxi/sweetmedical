@@ -17,4 +17,7 @@ router.route('/')
 router.route('/:id')
     .patch((req, res, next) => notificacionController.marcarComoLeida(req, res, next))
 
+router.route('/:id')
+    .get((req, res, next) => notificacionController.findById(req, res, next))
+
 export default router

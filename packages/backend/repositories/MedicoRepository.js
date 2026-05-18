@@ -1,7 +1,4 @@
 import { MedicoModel } from "../schemas/medicoSchema.js";
-import { SedeModel } from "../schemas/sedeSchema.js";
-import { EspecialidadModel } from "../schemas/especialidadSchema.js";
-import { PracticaModel } from "../schemas/practicaSchema.js";
 
 export class MedicoRepository{
     constructor(){
@@ -17,6 +14,7 @@ export class MedicoRepository{
             .populate("disponibilidades.sede")
             .populate("disponibilidades.especialidades")
             .populate("disponibilidades.practicas")
+            .populate("usuario","-password")
     }
 
     async findAll() {

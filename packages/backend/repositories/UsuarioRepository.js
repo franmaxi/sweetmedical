@@ -6,7 +6,7 @@ export class UsuarioRepository{
     }
 
     async findByNombre(nombre){
-        return await this.model.findOne({nombreUsuario:nombre})
+        return await this.model.findOne({nombreUsuario:nombre, eliminado: true})
     }
 
     async save(usuario){
@@ -20,7 +20,7 @@ export class UsuarioRepository{
 
     
     async findById(id) {
-        return await this.model.findById(id);
+        return await this.model.findById(id).where({eliminado:false});
     }
 
     async update(id, usuarioModificado) {

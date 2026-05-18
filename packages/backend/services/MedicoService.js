@@ -251,6 +251,9 @@ export class MedicoService {
         dispo._id = validDispoId;
 
         await this.medicoRepository.updateDisponibilidad(validMedicoId, validDispoId, dispo);
+
+        // llamar al turno service para decirle que se modifico una disponibilidad y que haga lo necesario
+
         return await this.medicoRepository.obtenerDisponibilidadPorId(validMedicoId, validDispoId);
     }
 }

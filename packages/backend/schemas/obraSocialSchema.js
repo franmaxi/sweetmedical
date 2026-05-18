@@ -16,7 +16,7 @@ const obraSocialSchema = new mongoose.Schema({
 },{
     timestamps: true,
     versionKey: false,
-    collection: 'obras-sociales'
+    collection: 'obras_sociales'
 });
 
 obraSocialSchema.loadClass(ObraSocial);

@@ -26,21 +26,21 @@ export class PracticaRepository {
     }
 
     async findById(id) {
-        return await this.model.findById(id);
+        return await this.model.findById(id).where({ eliminado: false }).populate('practicaGenerica');
     }
 
     async findByNombre(nombre) {
-        const practicas = await this.model.find({ nombre: nombre });
+        const practicas = await this.model.find({ nombre: nombre, eliminado: false }).populate('practicaGenerica');
         return practicas;
     }
 
     async findByPracticaGenerica(idPracticaGenerica) {
-        const practicas = await this.model.find({ practicaGenerica: idPracticaGenerica });
+        const practicas = await this.model.find({ practicaGenerica: idPracticaGenerica , eliminado: false}).populate('practicaGenerica')    ;
         return practicas;
     }
 
     findByFilters(filtros = {}) {
-        return this.model.find(filtros)
+        return this.model.find(filtros).populate('practicaGenerica');
     }
 
     async save(Practica) {
@@ -49,7 +49,7 @@ export class PracticaRepository {
     }
 
     async update(id, Practica) {
-        return await this.model.findByIdAndUpdate(id, Practica, { new: true });
+        return await this.model.findByIdAndUpdate(id, Practica, { new: true }).populate('practicaGenerica') ;
     }
 
     //Datos a actualizar tendrá unicamente los datos q se modificaran, por ej nombre y codigo.
@@ -57,15 +57,15 @@ export class PracticaRepository {
         return await this.model.updateMany(
             { _id: { $in: ids } }, 
             { $set: datosAActualizar }
-        );
+        ).populate('practicaGenerica');
     }
 
     async delete(id) {
-        return await this.model.findByIdAndUpdate(id, { eliminado: true }, { new: true });
+        return await this.model.findByIdAndUpdate(id, { eliminado: true }, { new: true }).populate('practicaGenerica');
     }
 
     //auxiliar
     findByFiltersLocal(filtros = {}) {
-        return this.model.find(filtros); 
+        return this.model.find(filtros).populate('practicaGenerica'); 
     }
 }

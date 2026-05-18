@@ -45,7 +45,7 @@ export class PacienteRepository {
 
     async update(id, paciente) {
         return await this.model.findByIdAndUpdate(id, paciente, { new: true })
-            .populate("usuario")
+            .populate("usuario","-password")
             .populate("obrasocial")
             .populate("plan");
     }

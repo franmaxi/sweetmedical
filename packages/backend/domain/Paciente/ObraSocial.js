@@ -1,4 +1,4 @@
-import { obraSocialDomainSchema } from "../../validations/pacienteValidation.js";
+import { obraSocialDomainSchema } from "../../validations/obraSocialValidation.js";
 
 export class ObraSocial {
     constructor({ nombre }) {

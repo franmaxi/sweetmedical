@@ -23,22 +23,22 @@ export class EspecialidadRepository{
     }
     
     async findById(id) {
-        return await this.model.findById(id)
+        return await this.model.findById(id).where({ eliminado: false }).populate('especialidadGenerica');
     }
 
     async findByIdEspecialidadGenerica(idEspecialidadGenerica) {
-        const especialidades = await this.model.find({ especialidadGenerica: idEspecialidadGenerica });
+        const especialidades = await this.model.find({ especialidadGenerica: idEspecialidadGenerica , eliminado: false}).populate('especialidadGenerica');
         return especialidades;
     }
 
     async findByNombre(nombre) {
-        const especialidades = await this.model.find({ nombre: nombre });
+        const especialidades = await this.model.find({ nombre: nombre , eliminado: false}).populate('especialidadGenerica');
         return especialidades;
     }
 
 
     async findByFilters(filtros = {}) {
-        return await this.model.find(filtros)
+        return await this.model.find(filtros).populate('especialidadGenerica');
     }
     
     async save(especialidad) {
@@ -47,14 +47,14 @@ export class EspecialidadRepository{
     }
 
     async update(id, especialidad) {
-        return await this.model.findByIdAndUpdate(id, especialidad, { new: true })
+        return await this.model.findByIdAndUpdate(id, especialidad, { new: true }).populate('especialidadGenerica');
     }
 
     async updateManyNombres(ids, nuevoNombre) {
         return await this.model.updateMany(
             { _id: { $in: ids } }, 
             { nombre: nuevoNombre }
-        );
+        ).populate('especialidadGenerica');
     }
 
     async delete(id) {
@@ -63,6 +63,6 @@ export class EspecialidadRepository{
 
     //auxiliar
     findByFiltersLocal(filtros = {}) {
-        return this.model.find(filtros); 
+        return this.model.find(filtros).populate('especialidadGenerica'); 
     }
 }

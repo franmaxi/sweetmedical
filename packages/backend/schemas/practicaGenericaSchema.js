@@ -22,7 +22,7 @@ const practicaGenericaSchema = new mongoose.Schema({
 }, {
     timestamps: true,
     versionKey: false,
-    collection: 'practicas-genericas'
+    collection: 'practicas_genericas'
 });
 
 practicaGenericaSchema.loadClass(PracticaGenerica);

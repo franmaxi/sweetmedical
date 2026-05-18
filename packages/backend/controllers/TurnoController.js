@@ -192,4 +192,17 @@ consultarAgenda = async (req, res, next) => {
     }
 }
 
+generarBatchForzado = async(req, res, next) => {
+    try {
+        await this.turnoService.generarTurnosBatch();
+
+        return res.status(200).json({
+            status: "success"
+        });
+    } catch (error) {
+        return next(error);
+    }
+};
+
+
 }

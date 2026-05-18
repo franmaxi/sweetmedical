@@ -2,6 +2,7 @@ import { Types } from "mongoose"
 import { z } from "zod"
 import { NivelCobertura } from "../domain/Enumerados/NivelCobertura.js"
 
+
 //PACIENTE 
 export const pacienteBodySchema = z.object({
     dni: z.coerce.number({
@@ -54,19 +55,6 @@ export const pacienteDomainSchema = z.object({
     })
 })
 
-export const obraSocialDomainSchema = z.object({
-    nombre: z.string({
-        required_error: "El nombre es requerido.",
-        invalid_type_error: "El nombre debe ser un texto."
-    }).trim().min(1, "El nombre no puede estar vacío.")
-})
-
-export const planDomainSchema = z.object({
-    nombre: z.string({
-        required_error: "El nombre del plan es requerido.",
-        invalid_type_error: "El nombre del plan debe ser un texto."
-    }).trim().min(1, "El nombre del plan no puede estar vacío.")
-})
 
 // ---- DOMINIO: Schema para CoberturaEspecialidad ----
 export const coberturaEspecialidadDomainSchema = z.object({

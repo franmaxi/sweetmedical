@@ -20,7 +20,13 @@ export class TurnoRepository{
     }
 
     async findAll(filtros = {}) {
-        return await this.model.find(filtros); 
+        return await this.model.find(filtros)
+            .populate("medico")
+            .populate("paciente")
+            .populate("sede")
+            .populate('disponibilidad')
+            .populate('especialidad')
+            .populate('practica'); 
     }
     
     async findAllDispoPopulado(filtros = {}) {

@@ -50,6 +50,10 @@ export class EspecialidadGenericaRepository{
         return await this.model.findByIdAndUpdate(id, { eliminado: true }, { new: true });
     }
 
+    async obtenerEspecialidadIds() {
+        return await this.model.find({}, { _id: 1 } ).lean()
+    }
+
     //auxiliar
     findByFiltersLocal(filtros = {}) {
         return this.model.find(filtros); 

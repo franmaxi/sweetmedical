@@ -24,6 +24,8 @@ export class NotificacionRepository{
         
         const notificaciones = await this.model.find(query)
             .sort({ fechaHoraCreacion: -1 })
+            .populate("destinatario","-password")
+            .populate("remitente","-password")
             .skip(skip)
             .limit(limitePorPagina);
             
@@ -44,11 +46,15 @@ export class NotificacionRepository{
     }
     
     async obtenerPorId(id) {
-        return await this.model.findById(id);
+        return await this.model.findById(id)
+            .populate("destinatario")
+            .populate("remitente");
     }
 
     async findById(id) {
-        return await this.model.findById(id);
+        return await this.model.findById(id)
+            .populate("destinatario")
+            .populate("remitente");
     }
 }
 
