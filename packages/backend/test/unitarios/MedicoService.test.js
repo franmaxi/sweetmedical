@@ -1,10 +1,17 @@
-import { describe, expect, test, beforeEach } from '@jest/globals';
+import { describe, expect, jest, test, beforeEach } from '@jest/globals';
+import { Types } from 'mongoose';
 import { MedicoService } from '../../services/MedicoService.js';
 import { Medico } from '../../domain/Medico/Medico.js';
 import { DisponibilidadHoraria } from '../../domain/Medico/DisponibilidadHoraria.js';
 import { Especialidad } from '../../domain/Medico/Servicios/Especialidad.js';
 import { Practica } from '../../domain/Medico/Servicios/Practica.js';
 import { BadRequestError, ConflictError, NotFoundError } from '../../errors/AppErrors.js';
+
+const MEDICO_ID = new Types.ObjectId().toString();
+const MEDICO_ID_INEXISTENTE = new Types.ObjectId().toString();
+const DISP_ID = new Types.ObjectId().toString();
+const DISP_ID_INEXISTENTE = new Types.ObjectId().toString();
+const ESP_ID = new Types.ObjectId().toString();
 
 // Mocks
 const createMockMedicoRepository = () => ({
@@ -95,14 +102,14 @@ describe('MedicoService', () => {
   test('obtenerPorId lanza NotFoundError cuando no existe', async () => {
     mockMedicoRepository.findById.mockResolvedValue(null);
 
-    await expect(medicoService.obtenerPorId('medico-invalido')).rejects.toThrow(NotFoundError);
+    await expect(medicoService.obtenerPorId(MEDICO_ID_INEXISTENTE)).rejects.toThrow(NotFoundError);
   });
 
   test('obtenerPorId retorna médico existente', async () => {
     const medico = createMedico();
     mockMedicoRepository.findById.mockResolvedValue(medico);
 
-    const resultado = await medicoService.obtenerPorId('medico-1');
+    const resultado = await medicoService.obtenerPorId(MEDICO_ID);
 
     expect(resultado).toEqual(medico);
   });
@@ -150,7 +157,7 @@ describe('MedicoService', () => {
     mockEspecialidadService.findById.mockResolvedValue(null);
 
     await expect(
-      medicoService.actualizar('medico-1', {
+      medicoService.actualizar(MEDICO_ID, {
         usuario: medico.usuario,
         matricula: 'M-123',
         nombre: 'Dr. House Updated',
@@ -198,12 +205,12 @@ describe('MedicoService', () => {
     mockEspecialidadService.crear.mockResolvedValue(especialidadCreada);
     mockMedicoRepository.save.mockResolvedValue(medico);
 
-    await medicoService.agregarServicio('medico-1', especialidad, null);
+    await medicoService.agregarServicio(MEDICO_ID, especialidad, null);
 
     // Intentar agregar de nuevo
     mockMedicoRepository.findById.mockResolvedValue(medico);
     await expect(
-      medicoService.agregarServicio('medico-1', especialidad, null)
+      medicoService.agregarServicio(MEDICO_ID, especialidad, null)
     ).rejects.toThrow(BadRequestError);
   });
 
@@ -213,7 +220,7 @@ describe('MedicoService', () => {
     ];
     mockMedicoRepository.getDisponibilidades.mockResolvedValue(disponibilidades);
 
-    const resultado = await medicoService.obtenerDisponibilidades('medico-1');
+    const resultado = await medicoService.obtenerDisponibilidades(MEDICO_ID);
 
     expect(resultado).toEqual(disponibilidades);
   });
@@ -236,7 +243,7 @@ describe('MedicoService', () => {
 
     mockMedicoRepository.addDisponibilidad.mockResolvedValue(medicoActualizado);
 
-    const resultado = await medicoService.crearDisponibilidad('medico-1', datosDisponibilidad);
+    const resultado = await medicoService.crearDisponibilidad(MEDICO_ID, datosDisponibilidad);
 
     expect(resultado).toEqual(medicoActualizado.disponibilidades[0]);
     expect(mockMedicoRepository.addDisponibilidad).toHaveBeenCalled();
@@ -246,7 +253,7 @@ describe('MedicoService', () => {
     mockMedicoRepository.obtenerDisponibilidadPorId.mockResolvedValue(null);
 
     await expect(
-      medicoService.obtenerDisponibilidad('medico-1', 'disp-no-existe')
+      medicoService.obtenerDisponibilidad(MEDICO_ID, DISP_ID_INEXISTENTE)
     ).rejects.toThrow(NotFoundError);
   });
 
@@ -254,7 +261,7 @@ describe('MedicoService', () => {
     const dispo = { _id: 'disp-1', diaSemana: 1, horaDesde: '10:00', horaHasta: '11:00' };
     mockMedicoRepository.obtenerDisponibilidadPorId.mockResolvedValue(dispo);
 
-    const resultado = await medicoService.obtenerDisponibilidad('medico-1', 'disp-1');
+    const resultado = await medicoService.obtenerDisponibilidad(MEDICO_ID, DISP_ID);
 
     expect(resultado).toEqual(dispo);
   });
@@ -277,23 +284,23 @@ describe('MedicoService', () => {
       ...datosDisponibilidad
     });
 
-    const resultado = await medicoService.modificarDisponibilidad('medico-1', 'disp-1', datosDisponibilidad);
+    const resultado = await medicoService.modificarDisponibilidad(MEDICO_ID, DISP_ID, datosDisponibilidad);
 
     expect(resultado).toEqual({ _id: 'disp-1', ...datosDisponibilidad });
     expect(mockMedicoRepository.updateDisponibilidad).toHaveBeenCalled();
   });
 
   test('eliminarServicios elimina especialidad', async () => {
-    const medico = createMedico();
-    medico.especialidades = [{ _id: 'esp-1', nombre: 'Cardiología' }];
+    const medico = new Medico({ usuario: 'user-1', matricula: 'M-123', nombre: 'Dr. House' });
+    medico.especialidades = [{ _id: ESP_ID, nombre: 'Cardiología' }];
 
     mockMedicoRepository.findById.mockResolvedValue(medico);
     mockMedicoRepository.save.mockResolvedValue(medico);
     mockEspecialidadService.eliminar.mockResolvedValue(true);
 
-    const resultado = await medicoService.eliminarServicios('medico-1', 'esp-1', null);
+    await medicoService.eliminarServicios(MEDICO_ID, ESP_ID, null);
 
-    expect(mockEspecialidadService.eliminar).toHaveBeenCalledWith('esp-1');
+    expect(mockEspecialidadService.eliminar).toHaveBeenCalledWith(ESP_ID);
     expect(mockMedicoRepository.save).toHaveBeenCalled();
   });
 });

@@ -1,7 +1,9 @@
 import request from "supertest";
-import { describe, expect, jest, test, beforeEach, afterEach } from "@jest/globals";
+import { describe, expect, jest, test, beforeEach, afterEach, beforeAll, afterAll } from "@jest/globals";
 import { buildTestApp } from "./Utils/buildApp.js";
+import { BadRequestError, ConflictError, NotFoundError } from '../../errors/AppErrors.js';
 import mongoose from "mongoose";
+import { MongoMemoryServer } from "mongodb-memory-server";//sacar cuando funcion la conexion a mongo real
 import dotenv from "dotenv";
 
 dotenv.config();
@@ -10,32 +12,44 @@ describe("Medicos API - Integración", () => {
     let app;
     let medicoCreado;
     let usuarioCreado;
+    let mongoServer;
+
+beforeAll(async () => {
+    // Iniciar servidor MongoDB en memoria
+    mongoServer = await MongoMemoryServer.create();  //todo: sacar cuando funcione la conexion a mongo real
+    const mongoUri = mongoServer.getUri();
+    
+    // Conectar mongoose a la instancia en memoria
+    if (mongoose.connection.readyState === 0) {
+        await mongoose.connect(mongoUri, {
+            dbName: 'test-medicos'
+        });
+    }
+});
+
+    afterAll(async () => {
+        // Desconectar mongoose
+        await mongoose.connection.close();
+        // Detener servidor MongoDB en memoria
+        await mongoServer.stop();
+    });
 
     beforeEach(async () => {
         app = buildTestApp();
-        
-        // Conectar a MongoDB para tests
-        if (mongoose.connection.readyState === 0) {
-            await mongoose.connect(process.env.MONGODB_URI, {
-                dbName: process.env.MONGODB_NAME || 'test-medicos'
-            });
-        }
 
         // Limpiar colecciones antes de cada test
-        await Promise.all(
-            Object.keys(mongoose.connection.collections).map(key =>
-                mongoose.connection.collections[key].deleteMany({})
-            )
-        );
+        const collections = mongoose.connection.collections;
+        for (const key in collections) {
+            await collections[key].deleteMany({});
+        }
     });
 
     afterEach(async () => {
         // Limpiar después de cada test
-        await Promise.all(
-            Object.keys(mongoose.connection.collections).map(key =>
-                mongoose.connection.collections[key].deleteMany({})
-            )
-        );
+        const collections = mongoose.connection.collections;
+        for (const key in collections) {
+            await collections[key].deleteMany({});
+        }
     });
 
     test('POST /medicos - crea un nuevo médico', async () => {
