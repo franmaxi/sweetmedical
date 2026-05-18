@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
-
-const solicitudCambioSchema = new mongoose.Schema({
+import { Usuario } from '../domain/Usuario';
+import { Turno } from '../domain/Turno/Turno';
+export const solicitudCambioSchema = new mongoose.Schema({
     usuario: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Usuario',
@@ -16,3 +17,4 @@ const solicitudCambioSchema = new mongoose.Schema({
         required: true
     }
 }, { _id: false })
+

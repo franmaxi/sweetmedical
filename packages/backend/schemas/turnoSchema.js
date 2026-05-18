@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { Turno } from '../domain/Turno/Turno.js';
 import { EstadoTurno } from '../domain/Enumerados/EstadoTurno.js';
+import { solicitudCambioSchema } from '../validations/turnoValidation.js';
 
 const historialEstadoSchema = new mongoose.Schema({
     estado:{ type: String, enum:Object.values(EstadoTurno), required: true},
@@ -20,7 +21,7 @@ const turnoSchema = new mongoose.Schema({
         ref: 'paciente',
         default: null
     },
-    fechahora:{
+    fechaHora:{
         type: Date,
         required: true
     },

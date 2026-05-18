@@ -104,9 +104,9 @@ export class EspecialidadController {
                 data: resultado.especialidadesGenericas,
                 paginacion: {
                     numeroPagina: resultado.numeroPagina,
-                    limitePagina: resultado.limitePagina,
+                    limitePagina: resultado.limitePorPagina,
                     totalPaginas: resultado.totalPaginas,
-                    totalEspecialidadesGenericas: resultado.totalEspecialidades
+                    totalEspecialidadesGenericas: resultado.totalEspecialidadesGenericas
                 }
             })
         } catch (error) {

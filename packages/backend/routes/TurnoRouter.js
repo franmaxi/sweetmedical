@@ -33,7 +33,7 @@ router.route('/:id/solicitar-cambio-fecha')
 router.route('/:id/responder-cambio-fecha')
 	.patch((req, res, next) => turnoController.responderCambioDeFecha(req, res, next));
 
-router.route('/:medicoId') // Hacemos referencia a los servicios (practica/especialidad) propios del medico (hijas)
+router.route('/medico/:medicoId') // Hacemos referencia a los servicios (practica/especialidad) propios del medico (hijas)
 	.get((req, res, next) =>	turnoController.consultarAgenda(req, res, next))
 
 export default router

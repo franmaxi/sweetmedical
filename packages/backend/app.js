@@ -6,7 +6,7 @@ import swaggerSpec from "./swagger.js";
 import { NotFoundHandler } from "./middlewares/notFoundHandler.js";
 import { errorLogger } from "./middlewares/errorLogger.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
-import iniciarTurnosCron from "./src/crons/cronTurnos.js"; // ← Cambiado a import (revisá si lleva .js al final según tu config)
+import iniciarTurnosCron from "./crons/cronTurnos.js"; // ← Cambiado a import (revisá si lleva .js al final según tu config)
 
 const app = express();
 

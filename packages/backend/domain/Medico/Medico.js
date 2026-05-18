@@ -53,9 +53,9 @@ export class Medico {
     }
 
     practicaGenericaPertenece(idPadre) {
-        return this.especialidades.some(e => {
+        return this.practicas.some(p => {
 
-            const idGenerica = e.practicaGenerica?._id || e.practicaGenerica;
+            const idGenerica = p.practicaGenerica?._id || p.practicaGenerica;
 
             return String(idGenerica) === String(idPadre);
         });
@@ -77,8 +77,8 @@ export class Medico {
     }
 
     tienePracticasConNombre(nombre) {
-        return this.especialidades.some(esp => 
-            String(esp.nombre).toLowerCase() === String(nombre).toLowerCase()
+        return this.practicas.some(prac => 
+            String(prac.nombre).toLowerCase() === String(nombre).toLowerCase()
         );
     }
 

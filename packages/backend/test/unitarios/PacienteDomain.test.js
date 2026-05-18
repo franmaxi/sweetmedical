@@ -29,16 +29,6 @@ describe('Paciente domain', () => {
     expect(paciente.eliminado).toBe(false);
   });
 
-  test('constructor acepta el alias obrasocial', () => {
-    const datos = datosPacienteValidos();
-    delete datos.obraSocial;
-    datos.obrasocial = { _id: 'os-2', nombre: 'Galeno' };
-
-    const paciente = new Paciente(datos);
-
-    expect(paciente.obraSocial).toEqual(datos.obrasocial);
-  });
-
   test('constructor lanza si el DNI no es positivo', () => {
     const datos = datosPacienteValidos();
     datos.dni = -1;

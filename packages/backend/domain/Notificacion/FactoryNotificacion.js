@@ -1,5 +1,6 @@
 import { EstadoTurno } from '../Enumerados/EstadoTurno.js'
 import { Notificacion } from './Notificacion.js'
+import { Turno } from '../Turno/Turno.js'
 import i18next from '../../i18n/i18n.js'
 
 export class FactoryNotificacion {
@@ -30,7 +31,7 @@ export class FactoryNotificacion {
             })
             case EstadoTurno.CANCELADO: {
                 const usuarioContrario = this.obtenerContrario(turno)
-                const ultimoCambio = this.obtenerUltimoHistorialEstado(turno)
+                const ultimoCambio = turno.ultimoHistorialEstado()
                 return new Notificacion({
                     destinatario: usuarioContrario.usuario,
                     remitente: null, 
@@ -77,14 +78,10 @@ export class FactoryNotificacion {
         listaNotificaciones.push(notificacionPaciente)
         return listaNotificaciones
     }
-
-    obtenerUltimoHistorialEstado(turno){
-        return turno.obtenerUltimoHistorialEstado();
-    }
     
     obtenerContrario(turno){
         // devuelve el usuario contrario al que hizo el cambio de estado del turno, para enviarle la notificacion
-        const ultimoHETurno = this.obtenerUltimoHistorialEstado(turno)
+        const ultimoHETurno = turno.ultimoHistorialEstado()
         if(ultimoHETurno.usuario._id.equals(turno.paciente.usuario._id)){
             return turno.medico
         } else {

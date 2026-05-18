@@ -1,4 +1,4 @@
-import { solicitudCambioSchema } from "../../validations/turnoValidation";
+import { solicitudCambioSchema } from "../../validations/turnoValidation.js";
 
 export class SolicitudCambio{
     constructor({usuario, turnoNuevo, motivo}){

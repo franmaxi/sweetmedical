@@ -1,12 +1,14 @@
 import { z } from "zod";
 import { Types } from "mongoose";
-import { objectId } from "./commonValidations.js";
+import { Usuario } from "../domain/Usuario.js";
+import { Turno } from "../domain/Turno/Turno.js";
 import { EstadoTurno } from "../domain/Enumerados/EstadoTurno.js";
+import { objectIdSchema } from "./commonValidations.js";
 
 // Helper reutilizable para ObjectId
-const objectId = z.string().refine(val => Types.ObjectId.isValid(val), {
-    message: "Debe ser un ID válido de Mongoose."
-});
+const objectId = z.string({ required_error: "El ID es requerido." }).refine(val => Types.ObjectId.isValid(val), {
+     message: "Debe ser un ID válido de Mongoose."
+ });
 
 // ─── Controller-level schemas (input HTTP) ───
 
@@ -35,10 +37,7 @@ export const estadosBodySchema = z.object({
 
 // PATCH /turnos/:id/solicitar-cambio-fecha
 export const solicitudFechaCambioBodySchema = z.object({
-    usuarioId: objectId({
-        required_error: "El campo usuarioId es requerido.",
-        invalid_type_error: "El campo usuarioId debe ser un identificador válido."
-    }),
+    usuarioId: objectId,
     fechaPropuesta: z.coerce.date({
         required_error: "La fecha y hora propuesta son requeridas.",
         invalid_type_error: "Debe ser una fecha y hora válida (formato ISO 8601 o timestamp)."
@@ -51,13 +50,9 @@ export const solicitudFechaCambioBodySchema = z.object({
 
 //ESTO SIRVE UNICAMENTE PARA LA CLASE SOLICITUDCAMBIO.JS
 export const solicitudCambioSchema = z.object({
-  usuario: z.instanceof(Usuario, {
-    message: "El usuario debe ser una instancia válida de la clase Usuario."
-  }),
+  usuario: objectIdSchema,
   
-  turnoNuevo: z.instanceof(Turno, {
-    message: "El turno nuevo debe ser una instancia válida de la clase Turno."
-  }),
+  turnoNuevo: objectIdSchema,
     
   motivo: z
     .string({ required_error: "El motivo es obligatorio." })
@@ -68,10 +63,7 @@ export const solicitudCambioSchema = z.object({
 
 // PATCH /turnos/:id/responder-cambio-fecha
 export const responderCambioDeFecha = z.object({
-    usuarioId: objectId({
-        required_error: "El campo usuarioId es requerido.",
-        invalid_type_error: "El campo usuarioId debe ser un identificador válido."
-    }),
+    usuarioId: objectIdSchema,
     cambioAceptado: z.boolean({
         required_error: "El campo cambioAceptado es requerido.",
         invalid_type_error: "El campo cambioAceptado debe ser true o false."
@@ -105,24 +97,18 @@ export const turnoQuerySchema = z.object({
 
 // Turno domain — valida los parámetros del constructor
 export const turnoDomainSchema = z.object({
-    medico: objectId({
-        required_error: "El médico es requerido.",
-        invalid_type_error: "El médico debe ser un identificador válido."
-    }),
+    medico: objectId,
     fechaHora: z.coerce.date({
         required_error: "La fecha/hora es requerida.",
         invalid_type_error: "La fecha/hora debe ser una fecha válida (formato ISO o timestamp)."
     }),
 
     
-    sede: objectId({
-        required_error: "La sede es requerida.",
-        invalid_type_error: "La sede debe ser un identificador válido."
-    }),
+    sede: objectId,
 
-    practica: objectId().nullable().optional().default(null),
-    especialidad: objectId().nullable().optional().default(null),
-    disponibilidad: objectId().nullable().optional().default(null),
+    practica: objectId.nullable().optional().default(null),
+    especialidad: objectId.nullable().optional().default(null),
+    disponibilidad: objectId.nullable().optional().default(null),
 }).strict("No se permiten campos adicionales en el turno.");
 
 // CambioEstadoTurno domain — valida parámetros del constructor

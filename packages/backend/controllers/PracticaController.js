@@ -18,7 +18,7 @@ export class PracticaController {
                 data: resultado.practicas,
                 paginacion: {
                     numeroPagina: resultado.numeroPagina,
-                    limitePagina: resultado.limitePagina,
+                    limitePagina: resultado.limitePorPagina,
                     totalPaginas: resultado.totalPaginas,
                     totalPracticas: resultado.totalPracticas
                 }
@@ -104,9 +104,9 @@ export class PracticaController {
                 data: resultado.practicasGenericas,
                 paginacion: {
                     numeroPagina: resultado.numeroPagina,
-                    limitePagina: resultado.limitePagina,
+                    limitePagina: resultado.limitePorPagina,
                     totalPaginas: resultado.totalPaginas,
-                    totalPracticasGenericas: resultado.totalPracticas
+                    totalPracticasGenericas: resultado.totalPracticasGenericas
                 }
             });
         } catch (error) {

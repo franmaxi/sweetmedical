@@ -1,8 +1,11 @@
 import { Paciente} from "../domain/Paciente/Paciente.js";
+
 import { PacienteRepository } from "../repositories/PacienteRepository.js";
 import { PlanRepository } from "../repositories/PlanRepository.js";
 import { ObraSocialRepository } from "../repositories/ObraSocialRepository.js";
+
 import { UsuarioService } from "./UsuarioService.js";
+
 import { NotFoundError} from "../errors/AppErrors.js";
 
 export class PacienteService {
@@ -54,7 +57,10 @@ export class PacienteService {
         const obraSocial = await this.obraSocialRepository.findById(datosPaciente.obraSocialId)
         if(!obraSocial) throw new NotFoundError(`No se encontró una obraSocial con el id ${datosPaciente.obraSocialId}`)
 
-        const usuarioGuardado = await this.usuarioService.save(datosPaciente.usuario)
+        const usuarioGuardado = await this.usuarioService.crear({
+            nombreUsuario: datosPaciente.nombreUsuario,
+            password: datosPaciente.password
+        })
 
         const paciente= new Paciente({
             dni: datosPaciente.dni,

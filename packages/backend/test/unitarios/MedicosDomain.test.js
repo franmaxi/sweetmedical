@@ -180,8 +180,9 @@ describe('Medico domain', () => {
   test('practicaGenericaPertenece identifica practica por id padre', () => {
     const medico = createMedico();
     // Nota: Medico.practicaGenericaPertenece itera sobre this.especialidades, no sobre this.practicas.
-    medico.especialidades.push({ practicaGenerica: 'gen-2', _id: 'prac-2' });
+    medico.agregarPractica({ practicaGenerica: 'gen-2', _id: 'prac-2' });
 
+    
     expect(medico.practicaGenericaPertenece('gen-2')).toBe(true);
     expect(medico.practicaGenericaPertenece('otro')).toBe(false);
   });

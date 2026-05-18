@@ -34,7 +34,8 @@ export class PracticaService {
             practicas,
             numeroPagina: page,
             limitePorPagina: limit,
-            totalPaginas
+            totalPaginas,
+            totalPracticas
         };
     }
 
@@ -144,7 +145,8 @@ export class PracticaService {
             practicasGenericas,
             numeroPagina: page,
             limitePorPagina: limit,
-            totalPaginas
+            totalPaginas,
+            totalPracticasGenericas
         };
     }
 

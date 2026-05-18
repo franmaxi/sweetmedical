@@ -114,7 +114,7 @@ export class MedicoService {
     async eliminar(id) {
         const validId = objectIdSchema.parse(String(id));
         const medico = await this.obtenerPorId(validId);
-        const usuario = await this.obtenerUsuarioPorId(validId);
+        const usuario = await this.usuarioService.obtenerPorId(validId);
         
         await this.usuarioService.delete(usuario);
         return await this.medicoRepository.delete(medico);

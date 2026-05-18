@@ -35,11 +35,11 @@ export class TurnoRepository{
         return await this.model.find({
             medico: medicoId, // estaba como medico id, pero el turno tiene atributo medico
             estado: EstadoTurno.DISPONIBLE,
-            fechahora:{
+            fechaHora:{
                 $gt: fechaTurno,
                 $lt: fechaMaximo
             }
-        }).sort({fechahora : 1})
+        }).sort({fechaHora : 1})
     }
     
     async save(turno) {
@@ -91,9 +91,9 @@ export class TurnoRepository{
         }
 
         if (filtros.desde || filtros.hasta) {
-            query.fechahora = {};
-            if (filtros.desde) query.fechahora.$gte = filtros.desde
-            if (filtros.hasta) query.fechahora.$lte = filtros.hasta
+            query.fechaHora = {};
+            if (filtros.desde) query.fechaHora.$gte = filtros.desde
+            if (filtros.hasta) query.fechaHora.$lte = filtros.hasta
         }
 
         const skip = (numeroPagina - 1) * limitePorPagina;
@@ -117,14 +117,14 @@ export class TurnoRepository{
 
     async obtenerCombinados(turno) {
         const duracion = turno.especialidad?.duracionTurnoEnMins ?? turno.practica?.duracionTurnoEnMins
-        const fechaFin = new Date(turno.fechahora.getTime() + duracion * 60 * 1000)
+        const fechaFin = new Date(turno.fechaHora.getTime() + duracion * 60 * 1000)
 
         return await this.model.find({
             medico: turno.medico._id,
             estado: EstadoTurno.COMBINADO,
-            fechahora: { $gt: turno.fechahora, $lt: fechaFin }
+            fechaHora: { $gt: turno.fechahora, $lt: fechaFin }
         })
-        .sort({ fechahora: 1 })
+        .sort({ fechaHora: 1 })
         .populate('medico')
         .populate('paciente')
     }

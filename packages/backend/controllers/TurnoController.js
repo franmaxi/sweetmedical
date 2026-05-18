@@ -3,7 +3,9 @@ import { paramsIdSchema,objectIdSchema} from "../validations/commonValidations.j
 import {
     turnoBodySchema,
     estadosBodySchema,
-    turnoQuerySchema
+    solicitudFechaCambioBodySchema,
+    responderCambioDeFecha,
+    turnoQuerySchema,
 } from "../validations/turnoValidation.js";
 
 export class TurnoController {
@@ -25,7 +27,8 @@ export class TurnoController {
 
 findAll = async (req, res, next) => {
     try {
-        const { page: numeroPagina, limit: limitePorPagina, pacienteId, ...filtros } = turnoQuerySchema.parse(req.query);
+        // el (...filtros) recolecta todo lo que no entró
+        const { page: numeroPagina, limit: limitePorPagina, pacienteId, ...filtros } = turnoQuerySchema.parse(req.query); 
 
         // TODO revisar cuando se llama esto
         const resultado = await this.turnoService.obtenerTodosCobertura({
@@ -138,7 +141,13 @@ solicitarCambioDeFecha = async (req, res, next) => {
         const { turnoId: turnoId } = paramsIdSchema.parse(req.params)
         const { usuarioId, fechaPropuesta, motivo } = solicitudFechaCambioBodySchema.parse(req.body);
 
-        return await this.turnoService.solicitarCambioDeFecha(turnoId, usuarioId, fechaPropuesta, motivo)
+        const data = await this.turnoService.solicitarCambioDeFecha(turnoId, usuarioId, fechaPropuesta, motivo)
+
+        return res.status(200).json({
+            status: "success",
+            data: data
+        });
+
     } catch (error) {
         return next(error);
     }
@@ -148,13 +157,19 @@ solicitarCambioDeFecha = async (req, res, next) => {
 responderCambioDeFecha = async (req, res, next) => {
     try {
         const { turnoId: turnoId } = paramsIdSchema.parse(req.params)
-        const { usuarioId, cambioAceptado } = respuestaFechaCambioBodySchema.parse(req.body);
+        const { usuarioId, cambioAceptado } = responderCambioDeFecha.parse(req.body);
+        let data
 
-        if(cambioAceptado == true){
-            return await this.turnoService.aceptarCambioDeFecha(turnoId, usuarioId)
+        if(cambioAceptado){
+            data = await this.turnoService.aceptarCambioDeFecha(turnoId, usuarioId)
         } else {
-            return await this.turnoService.rechazarCambioDeFecha(turnoId, usuarioId)
+            data = await this.turnoService.rechazarCambioDeFecha(turnoId, usuarioId)
         }
+
+        return res.status(200).json({
+            status: "success",
+            data: data
+        });
 
     } catch (error) {
         return next(error);

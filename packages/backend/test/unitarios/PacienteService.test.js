@@ -105,7 +105,7 @@ describe('PacienteService', () => {
 
       mocks.planRepository.findById.mockResolvedValue(plan);
       mocks.obraSocialRepository.findById.mockResolvedValue(obraSocial);
-      mocks.usuarioService.save.mockResolvedValue(usuarioGuardado);
+      mocks.usuarioService.crear.mockResolvedValue(usuarioGuardado);
       mocks.pacienteRepository.save.mockImplementation(p => Promise.resolve(p));
 
       const resultado = await service.crear(datos);

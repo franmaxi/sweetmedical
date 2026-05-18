@@ -97,7 +97,7 @@ describe('FactoryNotificacion', () => {
       medico,
       paciente,
       // el último cambio lo hizo el paciente -> notificar al médico
-      obtenerUltimoHistorialEstado: () => ({
+      ultimoHistorialEstado: () => ({
         usuario: { _id: pacienteUsuarioId },
         motivo: 'No puedo asistir'
       })
@@ -116,7 +116,7 @@ describe('FactoryNotificacion', () => {
     const turno = {
       medico: { usuario: { _id: medicoUsuarioId } },
       paciente: { usuario: { _id: pacienteUsuarioId } },
-      obtenerUltimoHistorialEstado: () => ({ usuario: { _id: medicoUsuarioId } })
+      ultimoHistorialEstado: () => ({ usuario: { _id: medicoUsuarioId } })
     };
 
     expect(factory.obtenerContrario(turno)).toBe(turno.paciente);

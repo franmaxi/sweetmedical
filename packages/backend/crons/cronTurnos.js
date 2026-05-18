@@ -1,5 +1,6 @@
 import cron from 'node-cron'
-import TurnoService from '../services/turnoService.js'
+import { TurnoService } from '../services/TurnoService.js'
+
 function iniciarTurnosCron() {
     // Creo que esto funciona asi, ya que no estamos creando una clase
   const turnoService = new TurnoService();
@@ -8,7 +9,7 @@ function iniciarTurnosCron() {
   cron.schedule('*/30 * * * *', async () => {
     console.log(`[CRON] [${new Date().toLocaleTimeString()}] Iniciando refresco de turnos...`)
     try {
-      await this.turnoService.refrescarTurnos();
+      await turnoService.refrescarTurnosBatch();
       console.log('[CRON] Refresco de turnos completado con éxito.')
     } catch (error) {
       console.error('[CRON ERROR] Falló el refresco de turnos:', error)
@@ -23,7 +24,7 @@ function iniciarTurnosCron() {
   cron.schedule('0 3 * * 0', async () => {
     console.log(`[CRON] [${new Date().toLocaleString()}] Iniciando generación semanal de turnos...`)
     try {
-      await this.turnoService.generarTurnosBatch();
+      await turnoService.generarTurnosBatch();
       console.log('[CRON] Generación semanal de turnos completada con éxito.')
     } catch (error) {
       console.error('[CRON ERROR] Falló la generación de turnos:', error)
@@ -34,4 +35,4 @@ function iniciarTurnosCron() {
 
 }
 
-module.exports = iniciarTurnosCron; // Esto nos permite llamarlo desde al app.js /index.js
+export default iniciarTurnosCron; // Esto nos permite llamarlo desde al app.js /index.js

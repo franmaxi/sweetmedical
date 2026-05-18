@@ -8,9 +8,9 @@ const notificacionSchema = new mongoose.Schema({
         required: true
     },
     remitente:{
-        type: String,
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'Usuario',
-        required: true
+        default: null
     },
     mensaje:{
         type: String,
@@ -22,7 +22,7 @@ const notificacionSchema = new mongoose.Schema({
     },
     fechaHoraLeida: {
         type: Date,
-        required: true
+        default:null
     },
     leida: {
         type: Boolean,

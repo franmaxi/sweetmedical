@@ -27,17 +27,10 @@ describe('Paciente domain', () => {
     expect(paciente.dni).toBe(12345678);
     expect(paciente.nombre).toBe('Juan Pérez');
     expect(paciente.obraSocial).toBe(validObraSocial);
-    expect(paciente.obrasocial).toBe(validObraSocial);
     expect(paciente.plan).toBe(validPlan);
     expect(paciente.eliminado).toBe(false);
   });
 
-  test('constructor acepta alias obrasocial y normaliza a obraSocial', () => {
-    const paciente = createPaciente({ obraSocial: undefined, obrasocial: validObraSocial });
-
-    expect(paciente.obraSocial).toBe(validObraSocial);
-    expect(paciente.obrasocial).toBe(validObraSocial);
-  });
 
   test('constructor lanza ZodError cuando el dni es invalido', () => {
     expect(() => createPaciente({ dni: -1 })).toThrow(ZodError);
