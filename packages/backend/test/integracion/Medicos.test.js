@@ -119,6 +119,8 @@ beforeAll(async () => {
         const response = await request(app)
             .get('/medicos')
             .query({ page: 1, limit: 10 });
+        
+        console.log("GET /medicos response.body:", response.body);
 
         expect(response.status).toBe(200);
         expect(response.body.status).toBe('success');
@@ -165,11 +167,7 @@ beforeAll(async () => {
                 nombre: 'Dr. House',
                 matricula: 'M-00123',
                 nombreUsuario: 'house',
-                password: 'pass123456',
-                especialidades: [],
-                practicas: [],
-                sedes: [],
-                disponibilidades: []
+                password: 'pass123456'
             });
 
         const medicoId = createRes.body.data._id;
@@ -184,8 +182,11 @@ beforeAll(async () => {
                 especialidades: [],
                 practicas: [],
                 sedes: [],
-                disponibilidades: []
+                disponibilidades: [],
+                usuario: createRes.body.data.usuario
             });
+            
+        console.log("PUT /medicos/:id response.body:", response.body);
 
         expect(response.status).toBe(200);
         expect(response.body.status).toBe('success');
@@ -206,6 +207,8 @@ beforeAll(async () => {
 
         const deleteRes = await request(app)
             .delete(`/medicos/${medicoId}`);
+            
+        console.log("DELETE /medicos/:id response.body:", deleteRes.body);
 
         expect(deleteRes.status).toBe(200);
         expect(deleteRes.body.status).toBe('success');
@@ -306,6 +309,9 @@ beforeAll(async () => {
                     nombre: 'Sede Central'
                 }
             });
+        
+        console.log("dispoRes.body:", dispoRes.body);
+
 
         const dispoId = dispoRes.body.data._id;
 

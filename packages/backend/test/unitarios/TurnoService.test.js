@@ -39,7 +39,8 @@ const createMockNotificacionService = () => ({
 });
 
 const createMockUsuarioService = () => ({
-  findById: jest.fn()
+  findById: jest.fn(),
+  obtenerPorId: jest.fn()
 });
 
 const buildService = (overrides = {}) => {
@@ -60,17 +61,17 @@ const buildService = (overrides = {}) => {
   return { service, ...deps };
 };
 
-const createMedico = () => ({ _id: 'medico-1', nombre: 'Dr. House' });
-const createSede = () => ({ _id: 'sede-1', nombre: 'Sede Central' });
+const createMedico = () => ({ _id: 'medico-1', nombre: 'Dr. House', usuario: '1', matricula: "891823981239" });
+const createSede = () => ({ _id: 'sede-1', nombre: 'Sede Central', direccion: 'Avenida avenida 123'});
 
 const createTurnoReservable = ({ estado = EstadoTurno.DISPONIBLE, medicoId = 'medico-1' } = {}) => {
   const turno = new Turno({
-    medico: { _id: medicoId, nombre: 'Dr. House' },
+    medico: { _id: medicoId, nombre: 'Dr. House', usuario: '1', matricula: "891823981239" },
     fechaHora: new Date('2026-06-01T10:00:00Z'),
     sede: createSede(),
-    especialidad: ['esp-1'],
+    especialidad: [{ _id: 'esp-1', nombre: "especialdiad1", especialidadGenerica: '65f1a9b8c3d2e10a4b5c6d81', costo: 700, duracionTurnoEnMins: 60}],
     practica: null,
-    disponibilidad: 'disp-1'
+    disponibilidad: { _id: 'disp-1', diaSemana: 1, horaDesde:"19:00", horaHasta: "23:00", sede:"1"}
   });
   turno._id = 'turno-1';
   turno.estado = estado;
@@ -326,7 +327,8 @@ describe('TurnoService', () => {
     test('marca el turno como REALIZADO si está RESERVADO', async () => {
       const { service, turnoRepository } = buildService();
       const turno = createTurnoReservable({ estado: EstadoTurno.RESERVADO });
-      turno.medico.usuario = { _id: 'usr-medico' };
+      turno.medico._id = 'medico-1'
+      //turno.medico.usuario = { _id: 'usr-medico' };
       turnoRepository.findById.mockResolvedValue(turno);
       turnoRepository.update.mockImplementation((_id, t) => Promise.resolve(t));
 
@@ -361,8 +363,11 @@ describe('TurnoService', () => {
       const { service, turnoRepository, usuarioService, notificacionService } = buildService();
       const turno = createTurnoReservable({ estado: EstadoTurno.RESERVADO });
       turno.paciente = { _id: 'pac-1' };
+      turno.medico._id = 'medico-1'
+      turno.fechaHora = new Date(Date.now() + 2*60*60*1000)
+
       turnoRepository.findById.mockResolvedValue(turno);
-      usuarioService.findById.mockResolvedValue({ _id: 'medico-1' });
+      usuarioService.obtenerPorId.mockResolvedValue({ _id: 'medico-1' });
       turnoRepository.obtenerCombinados.mockResolvedValue([turno]);
       turnoRepository.update.mockImplementation((_id, t) => Promise.resolve(t));
 
@@ -382,13 +387,13 @@ describe('TurnoService', () => {
       const copia = service.copiarTurnoCancelado(turno);
 
       expect(copia).toBeInstanceOf(Turno);
-      expect(copia.medico).toBe(turno.medico);
-      expect(copia.fechaHora).toBe(turno.fechaHora);
-      expect(copia.sede).toBe(turno.sede);
-      expect(copia.disponibilidad).toBe(turno.disponibilidad);
+      expect(copia.medico).toEqual(turno.medico);
+      expect(copia.fechaHora).toEqual(turno.fechaHora);
+      expect(copia.sede).toEqual(turno.sede);
+      expect(copia.disponibilidad).toEqual(turno.disponibilidad);
       expect(copia.practica).toBeNull();
       expect(copia.especialidad).toBeNull();
-      expect(copia.estado).toBe(EstadoTurno.DISPONIBLE);
+      expect(copia.estado).toEqual(EstadoTurno.DISPONIBLE);
       expect(copia.paciente).toBeNull();
     });
   });

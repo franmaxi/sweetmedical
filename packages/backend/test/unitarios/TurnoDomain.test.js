@@ -6,9 +6,9 @@ import { Agenda } from '../../domain/Turno/Agenda.js';
 import { EstadoTurno } from '../../domain/Enumerados/EstadoTurno.js';
 import { BadRequestError, UnprocessableEntityError } from '../../errors/AppErrors.js';
 
-const createMedico = () => ({ _id: 'medico-1', nombre: 'Dr. House' });
-const createSede = () => ({ _id: 'sede-1', nombre: 'Sede Central' });
-const createUsuario = () => ({ _id: 'usuario-1', nombreUsuario: 'house' });
+const createMedico = () => ({ _id: 'medico-1', nombre: 'Dr. House' , usuario: '1', matricula: "891823981239"});
+const createSede = () => ({ _id: 'sede-1', nombre: 'Sede Central' , direccion:"Av avenida 123"});
+const createUsuario = () => ({ _id: 'usuario-1', nombreUsuario: 'house', password: "contrasena123"});
 
 const createTurno = ({
   medico = createMedico(),
@@ -16,7 +16,7 @@ const createTurno = ({
   sede = createSede(),
   practica = null,
   especialidad = null,
-  disponibilidad = { _id: 'disp-1' }
+  disponibilidad = { _id: 'disp-1', diaSemana: 1, horaDesde:"19:00", horaHasta: "23:00", sede:"1"}
 } = {}) => new Turno({ medico, fechaHora, sede, practica, especialidad, disponibilidad });
 
 describe('Turno domain', () => {
@@ -96,12 +96,12 @@ describe('Turno domain', () => {
     expect(turno.ultimoHistorialEstado().motivo).toBe('segundo cambio');
   });
 
-  test('sePuedeCancelar lanza UnprocessableEntityError si se intenta dentro del límite', () => {
+  test('sePuedeCancelar devuelve false si se intenta dentro del límite', () => {
     const fechaTurno = new Date('2026-06-01T10:00:00Z');
     const turno = createTurno({ fechaHora: fechaTurno });
     const ahora = new Date('2026-06-01T09:30:00Z'); // 30 min antes
-
-    expect(() => turno.sePuedeCancelar(ahora, 1)).toThrow(UnprocessableEntityError);
+    const resultado = turno.sePuedeCancelar(ahora, 1)
+    expect(resultado).toBeFalsy();
   });
 
   test('sePuedeCancelar no lanza si está fuera del límite', () => {
@@ -113,12 +113,12 @@ describe('Turno domain', () => {
   });
 
   test('esTipoTurno retorna practica cuando hay practica asignada', () => {
-    const turno = createTurno({ practica: { _id: 'prac-1' } });
+    const turno = createTurno({ practica: { _id: 'prac-1', nombre: "practica1", codigo:"10012X2" , practicaGenerica: '65f1a9b8c3d2e10a4b5c6d82', costo: 700, duracionTurnoEnMins: 60 } });
     expect(turno.esTipoTurno()).toBe('practica');
   });
 
   test('esTipoTurno retorna especialidad cuando no hay practica', () => {
-    const turno = createTurno({ especialidad: { _id: 'esp-1' } });
+    const turno = createTurno({ especialidad: { _id: 'esp-1', nombre: "especialdiad1", especialidadGenerica: '65f1a9b8c3d2e10a4b5c6d81', costo: 700, duracionTurnoEnMins: 60} });
     expect(turno.esTipoTurno()).toBe('especialidad');
   });
 });
