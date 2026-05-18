@@ -1,11 +1,9 @@
-export default {
+export default [
     {
-        ignores: ["node_modules/**", "index.js","funcions.js"],
-
-    }
-
-    languageOptions: {
-        parserOptions: {
+        ignores: ["node_modules/**", "index.js", "functions.js"],
+    },
+    {
+        languageOptions: {
             ecmaVersion: 2024,
             sourceType: "module",
             globals: {
@@ -13,11 +11,10 @@ export default {
                 process: "readonly",
             },
         },
+        rules: {
+            "no-unused-vars": "warn",
+            "no-console": "off",
+            "no-undef": "error",
+        },
     },
-    rules: {
-        "no-unused-vars": "warn",
-        "no-console": "off",
-        "no-undef": "error",
-    }
-
-}
+];
