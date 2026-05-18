@@ -60,17 +60,17 @@ const buildService = (overrides = {}) => {
   return { service, ...deps };
 };
 
-const createMedico = () => ({ _id: 'medico-1', nombre: 'Dr. House' });
-const createSede = () => ({ _id: 'sede-1', nombre: 'Sede Central' });
+const createMedico = () => ({ _id: 'medico-1', nombre: 'Dr. House', usuario: '1', matricula: "891823981239" });
+const createSede = () => ({ _id: 'sede-1', nombre: 'Sede Central', direccion: 'Avenida avenida 123'});
 
 const createTurnoReservable = ({ estado = EstadoTurno.DISPONIBLE, medicoId = 'medico-1' } = {}) => {
   const turno = new Turno({
-    medico: { _id: medicoId, nombre: 'Dr. House' },
+    medico: { _id: medicoId, nombre: 'Dr. House', usuario: '1', matricula: "891823981239" },
     fechaHora: new Date('2026-06-01T10:00:00Z'),
     sede: createSede(),
-    especialidad: ['esp-1'],
+    especialidad: [{ _id: 'esp-1', nombre: "especialdiad1", especialidadGenerica: '65f1a9b8c3d2e10a4b5c6d81', costo: 700, duracionTurnoEnMins: 60}],
     practica: null,
-    disponibilidad: 'disp-1'
+    disponibilidad: { _id: 'disp-1', diaSemana: 1, horaDesde:"19:00", horaHasta: "23:00", sede:"1"}
   });
   turno._id = 'turno-1';
   turno.estado = estado;

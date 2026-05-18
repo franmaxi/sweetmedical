@@ -4,6 +4,10 @@ import { Usuario } from "../domain/Usuario.js";
 import { Turno } from "../domain/Turno/Turno.js";
 import { EstadoTurno } from "../domain/Enumerados/EstadoTurno.js";
 import { objectIdSchema } from "./commonValidations.js";
+import { medicoDomainSchema, disponibilidadDomainSchema } from "./medicoValidation.js";
+import { sedeDomainSchema } from "./sedeValidation.js";
+import { practicaDomainSchema } from "./practicaValidation.js";
+import { especialidadDomainSchema } from "./especialidadValidation.js";
 
 // Helper reutilizable para ObjectId
 const objectId = z.string({ required_error: "El ID es requerido." }).refine(val => Types.ObjectId.isValid(val), {
@@ -96,19 +100,21 @@ export const turnoQuerySchema = z.object({
 // ─── Domain-level schemas (constructor validation) ───
 
 // Turno domain — valida los parámetros del constructor
+const practicaElemento = z.union([objectId, practicaDomainSchema]);
+const especialidadElemento = z.union([objectId, especialidadDomainSchema]);
+
 export const turnoDomainSchema = z.object({
-    medico: objectId,
+    medico: z.union([objectId, medicoDomainSchema]),
     fechaHora: z.coerce.date({
         required_error: "La fecha/hora es requerida.",
         invalid_type_error: "La fecha/hora debe ser una fecha válida (formato ISO o timestamp)."
     }),
 
-    
-    sede: objectId,
+    sede: z.union([objectId, sedeDomainSchema]),
 
-    practica: objectId.nullable().optional().default(null),
-    especialidad: objectId.nullable().optional().default(null),
-    disponibilidad: objectId.nullable().optional().default(null),
+    practica: z.union([practicaElemento, z.array(practicaElemento)]).nullable().optional().default(null),
+    especialidad: z.union([especialidadElemento, z.array(especialidadElemento)]).nullable().optional().default(null),
+    disponibilidad: z.union([objectId, disponibilidadDomainSchema]).nullable().optional().default(null),
 }).strict("No se permiten campos adicionales en el turno.");
 
 // CambioEstadoTurno domain — valida parámetros del constructor
