@@ -257,3 +257,6 @@ export class MedicoService {
         return await this.medicoRepository.obtenerDisponibilidadPorId(validMedicoId, validDispoId);
     }
 }
+
+
+//TODO validar usuario nuevo al crear medico y capaz dni

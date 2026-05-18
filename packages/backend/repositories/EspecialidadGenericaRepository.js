@@ -51,7 +51,7 @@ export class EspecialidadGenericaRepository{
     }
 
     async obtenerEspecialidadIds() {
-        return await this.model.find({}, { _id: 1 } ).lean()
+        return await this.model.distinct('_id');
     }
 
     //auxiliar

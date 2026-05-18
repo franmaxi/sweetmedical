@@ -500,7 +500,9 @@ export class TurnoService {
         // llamamos a agenda y guardamos los turnos de cada medico
         const turnosAGuardar = []
         for (const m of medicos) { 
+            console.log("[Batch] Accediendo al medico")
             const turnosMedico = agenda.generarTurnos(m, fechaInicio, fechaFin)
+            console.log(turnosMedico)
             turnosAGuardar.push(...turnosMedico)
         }
 

@@ -8,8 +8,8 @@ export class ObraSocialRepository{
     #populate(query) {
         return query
             .populate("planes") 
+    }
 
-     }
     async findAll() {
         return await this.#populate(this.model.find())
     }
@@ -17,7 +17,7 @@ export class ObraSocialRepository{
         return await this.#populate(this.model.findById(id))
     }
     async findByNombre(nombre){
-        return await this.model.find({nombre: nombre})
+        return await this.model.findOne({ nombre: nombre })
     }
     async save(obraSocial) {
         const nuevaObraSocial = new this.model(obraSocial);

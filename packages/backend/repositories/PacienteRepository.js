@@ -10,7 +10,7 @@ export class PacienteRepository {
         let query = { eliminado: false, ...filtros };
         let pacientes = await this.model.find(query)
             .populate("usuario")
-            .populate("obrasocial")
+            .populate("obraSocial")
             .populate("plan")
             .skip(salto)
             .limit(limite);
@@ -27,14 +27,14 @@ export class PacienteRepository {
     async findAll() {
         return await this.model.find({ eliminado: false })
             .populate("usuario")
-            .populate("obrasocial")
+            .populate("obraSocial")
             .populate("plan");
     }
 
     async findById(id) {
         return await this.model.findOne({ _id: id, eliminado: false })
             .populate("usuario")
-            .populate("obrasocial")
+            .populate("obraSocial")
             .populate("plan");
     }
 
@@ -46,7 +46,7 @@ export class PacienteRepository {
     async update(id, paciente) {
         return await this.model.findByIdAndUpdate(id, paciente, { new: true })
             .populate("usuario","-password")
-            .populate("obrasocial")
+            .populate("obraSocial")
             .populate("plan");
     }
 

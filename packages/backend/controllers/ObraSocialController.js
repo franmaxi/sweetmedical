@@ -1,4 +1,4 @@
-import { paramsIdSchema } from "../validations/commonValidations.js";
+import { paginacionSchema, paramsIdSchema } from "../validations/commonValidations.js";
 import { ObraSocialService } from "../services/ObraSocialService.js";
 import { obraSocialDomainSchema, planBodySchema } from "../validations/obraSocialValidation.js";
 
@@ -25,7 +25,7 @@ export class ObraSocialController{
     createObraSocial = async (req, res, next) => {
         try {
             const datos = obraSocialDomainSchema.parse(req.body);
-            const obraSocial = await this.obraSocialService.crearObraSocial(datos);
+            const obraSocial = await this.obraSocialService.crearObraSocial(datos.nombre);
             return res.status(201).json({
                 status: "success",
                 data: obraSocial
@@ -51,10 +51,11 @@ export class ObraSocialController{
     // ------------  Plan ------------ 
     findAllPlan = async (req, res, next) => {
         try {
-            const resultado = await this.obraSocialService.obtenerTodosPlan();
+            const { page: numeroPagina, limit: limitePorPagina } = paginacionSchema.parse(req.query);
+            const resultado = await this.obraSocialService.obtenerTodosPlan({ numeroPagina, limitePorPagina });
             return res.status(200).json({
                 status: "success",
-                data: resultado
+                data: resultado.planes
             });
         } catch (error) {
             return next(error);
@@ -64,10 +65,10 @@ export class ObraSocialController{
     createPlan = async (req, res, next) => {
         try {
             const datos = planBodySchema.parse(req.body);
-            const obraSocial = await this.obraSocialService.crearObraSocial(datos);
+            const resp = await this.obraSocialService.cargarNuevoPlan(datos);
             return res.status(201).json({
                 status: "success",
-                data: obraSocial
+                data: resp
             });
         } catch (error) {
             return next(error)

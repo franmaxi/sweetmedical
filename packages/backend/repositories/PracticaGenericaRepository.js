@@ -56,7 +56,7 @@ export class PracticaGenericaRepository {
         return await this.model.findByIdAndUpdate(id, { eliminado: true }, { new: true });
     }
     async obtenerPracticaIds() {
-        return await this.model.find({}, { _id: 1 } ).lean()
+        return await this.model.distinct('_id');
     }
 
     //auxiliar

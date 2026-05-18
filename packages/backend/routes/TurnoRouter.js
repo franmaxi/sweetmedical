@@ -8,6 +8,14 @@ const router = express.Router()
 router.route('/')
     .get((req, res, next) => turnoController.findAll(req, res, next))
 
+router.route('/generarBatch')
+    .get((req, res, next) => turnoController.generarBatchForzado(req, res, next))
+
+    
+router.route('/medico/:medicoId') // Hacemos referencia a los servicios (practica/especialidad) propios del medico (hijas)
+	.get((req, res, next) =>	turnoController.consultarAgenda(req, res, next))
+
+
 router.route('/:id')
 	.get((req, res, next) => turnoController.findById(req, res, next))
 
@@ -31,10 +39,5 @@ router.route('/:id/solicitar-cambio-fecha')
 router.route('/:id/responder-cambio-fecha')
 	.patch((req, res, next) => turnoController.responderCambioDeFecha(req, res, next));
 
-router.route('/medico/:medicoId') // Hacemos referencia a los servicios (practica/especialidad) propios del medico (hijas)
-	.get((req, res, next) =>	turnoController.consultarAgenda(req, res, next))
-
-router.route('/generarBatch')
-    .get((req, res, next) => turnoController.generarBatchForzado(req, res, next))
 
 export default router

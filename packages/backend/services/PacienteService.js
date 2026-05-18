@@ -61,7 +61,6 @@ export class PacienteService {
             nombreUsuario: datosPaciente.nombreUsuario,
             password: datosPaciente.password
         })
-
         const paciente= new Paciente({
             dni: datosPaciente.dni,
             nombre: datosPaciente.nombre,
@@ -92,3 +91,5 @@ export class PacienteService {
     }
 
 }
+
+//TODO validar usuario nuevo al crear paciente y capaz dni

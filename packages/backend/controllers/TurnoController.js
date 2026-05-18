@@ -30,13 +30,22 @@ findAll = async (req, res, next) => {
         // el (...filtros) recolecta todo lo que no entró
         const { page: numeroPagina, limit: limitePorPagina, pacienteId, ...filtros } = turnoQuerySchema.parse(req.query); 
 
-        // TODO revisar cuando se llama esto
-        const resultado = await this.turnoService.obtenerTodosCobertura({
-            pacienteId,
-            numeroPagina,
-            limitePorPagina,
-            filtros
-        });
+        let resultado = null
+
+        if (pacienteId) {
+            resultado = await this.turnoService.obtenerTodosCobertura({
+                pacienteId,
+                numeroPagina,
+                limitePorPagina,
+                filtros
+            });
+        } else {
+            resultado = await this.turnoService.obtenerTodos({
+                numeroPagina,
+                limitePorPagina,
+                filtros
+            })
+        }
 
         return res.status(200).json({
             status: "success",

@@ -18,7 +18,7 @@ export class MedicoRepository{
     }
 
     async findAll() {
-        return await this.#populate(this.model.find())
+        return await this.#populate(this.model.find({eliminado:false}))
     }
 
     async obtenerPaginados(pagina, limite, filtros = {}) {

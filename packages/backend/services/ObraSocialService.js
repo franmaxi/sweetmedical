@@ -64,13 +64,13 @@ export class ObraSocialService {
     // ---------- Planes ----------
    
     async obtenerTodosPlan({ numeroPagina = 1, limitePorPagina = 10 } = {}) {
-        const { medicos, totalPlanes } = await this.planRepository.obtenerPaginados(
+        const { planes, totalPlanes } = await this.planRepository.findPaginados(
             numeroPagina,
             limitePorPagina,
         );
         const totalPaginas = totalPlanes === 0 ? 0 : Math.ceil(totalPlanes / limitePorPagina);
         return {
-            medicos,
+            planes,
             numeroPagina,
             limitePorPagina,
             totalPaginas,
@@ -88,26 +88,34 @@ export class ObraSocialService {
 
     //async cargarNuevoPlan(idObraSocial, nombre, coberturasEspecialidades = null, coberturasPracticas = null){
     async cargarNuevoPlan(datosPlan){
-        const obraSocial = await this.obtenerPorId(datosPlan.idObraSocial)
+        const obraSocial = await this.obtenerPorIdObraSocial(datosPlan.idObraSocial)
 
-        if (datosPlan.coberturasEspecialidades != null) {
-            const idsEspecialidadesGenericas = this.especialidadGenericaRepository.obtenerEspecialidadIds()
-            const idsCoberturasEspecialidadesGenericas = datosPlan.coberturasEspecialidades.map(c => c.especialidadGenerica)
+        // Validación de Especialidades
+        if (datosPlan.coberturasEspecialidades != null && datosPlan.coberturasEspecialidades.length > 0) {
+            console.log("\n Encontramos Especialidades")
+            const idsEspecialidadesGenericas = await this.especialidadGenericaRepository.obtenerEspecialidadIds()
             
-            const hayElementosNoPermitidos =idsCoberturasEspecialidadesGenericas.some(
-                id => !idsEspecialidadesGenericas.includes(id)
+            const idsDbStrings = idsEspecialidadesGenericas.map(id => id.toString());
+            const idsCoberturasEspecialidadesGenericas = datosPlan.coberturasEspecialidades.map(c => c.especialidadGenerica.toString())
+            
+            const hayElementosNoPermitidos = idsCoberturasEspecialidadesGenericas.some(
+                id => !idsDbStrings.includes(id)
             )
             if (hayElementosNoPermitidos) {              
                 throw new BadRequestError("Una o más especialidades no pertenecen a las prácticas genéricas permitidas");
             }
         }
 
-        if (datosPlan.coberturasPracticas != null) {
-            const idsPracticasGenericas = this.practicaGenericaRepository.obtenerPracticaIds()
-            const idsCoberturasPracticasGenericas = datosPlan.coberturasPracticas.map(c => c.practicaGenerica)
+        // Validación de Prácticas
+        if (datosPlan.coberturasPracticas != null && datosPlan.coberturasPracticas.length > 0) {
+            console.log("\n Encontramos Practicas")
+            const idsPracticasGenericas = await this.practicaGenericaRepository.obtenerPracticaIds()
             
-            const hayElementosNoPermitidos =idsCoberturasPracticasGenericas.some(
-                id => !idsPracticasGenericas.includes(id)
+            const idsPracticasGenericasStrings = idsPracticasGenericas.map(id => id.toString());
+            const idsCoberturasPracticasGenericas = datosPlan.coberturasPracticas.map(c => c.practicaGenerica.toString())
+            
+            const hayElementosNoPermitidos = idsCoberturasPracticasGenericas.some(
+                id => !idsPracticasGenericasStrings.includes(id)
             )
             if (hayElementosNoPermitidos) {              
                 throw new BadRequestError("Una o más prácticas no pertenecen a las prácticas genéricas permitidas");
@@ -119,12 +127,17 @@ export class ObraSocialService {
             coberturaEspecialidad: datosPlan.coberturasEspecialidades,
             coberturaPractica: datosPlan.coberturasPracticas
         })
-        await this.planRepository.save(plan)
+        const planNuevo = await this.planRepository.save(plan)
 
         obraSocial.planes.push(plan)
+
         await this.obraSocialRepository.update(obraSocial._id, obraSocial)
+        
+        return planNuevo
     }
 
     //TODO pendiente eliminar y cambiar un plan
 
 }
+
+//TODO validar nombre nuevo al crear plan

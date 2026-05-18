@@ -24,3 +24,4 @@ export const stringNoNuloSchema = z.string({
     invalid_type_error: "Debe ser un texto válido."
 }).trim().min(1, "El texto no puede estar vacío.")
 
+// Si no es un string, o objectid debe fallar la validacion de ids

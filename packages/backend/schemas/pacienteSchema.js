@@ -17,8 +17,7 @@ const pacienteSchema = new mongoose.Schema({
         required: true,
         trim:true
     },
-
-    obrasocial:{
+    obraSocial:{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'ObraSocial',
         required: true

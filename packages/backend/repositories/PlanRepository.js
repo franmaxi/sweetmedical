@@ -12,11 +12,11 @@ export class PlanRepository{
     }
     
     async findAll() {
-        return await this.#populate(this.model.find({ eliminado: false }));
+        return await this.#populate(this.model.find());
     }
     async findById(id) {
         return await this.#populate(
-            this.model.findOne({ _id: id, eliminado: false })
+            this.model.findOne({ _id: id})
         );
     }
 
@@ -32,21 +32,20 @@ export class PlanRepository{
     async delete(id) {
         return await this.model.findByIdAndUpdate(id, { eliminado: true }, { new: true });
     }
-    findByFilters(filtros = {}) {
+    async findByFilters(filtros = {}) {
         return this.#populate(this.model.find(filtros));
     }
 
     async findPaginados(pagina, limite) {
-    const salto = (pagina - 1) * limite;
-    const filtros = { eliminado: false };
+        const salto = (pagina - 1) * limite;
 
-    const planes = await this.findByFilters(filtros).skip(salto).limit(limite);
-    const total = await this.model.countDocuments(filtros);
+        const planes = await this.findByFilters().skip(salto).limit(limite);
+        const total = await this.model.countDocuments();
 
-    return {
-        planes,
-        totalPlanes: total,
-        pagina
-    };
-}
+        return {
+            planes,
+            totalPlanes: total,
+            pagina
+        };
+    }
 }

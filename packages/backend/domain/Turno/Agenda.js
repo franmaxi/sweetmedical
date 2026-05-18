@@ -33,6 +33,7 @@ export class Agenda {
         const turnosGenerados = []
 
         if(!medico?.disponibilidades || medico.disponibilidades.length === 0){
+            console.log("[Batch] El medico no tiene disponibilidades")
             return turnosGenerados
         }
 
@@ -50,7 +51,6 @@ export class Agenda {
         medico.disponibilidades.forEach(dispo => {            
             const turnos = this.generarTurnosPorDisponibilidad(medico, dispo, inicio, fin)
             turnosGenerados.push(...turnos)
-
         });
         
         return turnosGenerados
@@ -74,6 +74,9 @@ export class Agenda {
 
 
     generarTurnosPorDisponibilidad(medico, disponibilidad, inicio, fin){
+        console.log("[Batch] Generando Turnos para disponibilidad")
+        console.log(disponibilidad)
+        
         const turnosGenerados = [] 
         const duracionesUnicas = [
             ...new Set([

@@ -8,31 +8,31 @@ export class SedeRepository {
     async findAll() {
         return await this.model.find(); 
     }
-async findPaginados(pagina, limite) {
-    const salto = (pagina - 1) * limite;
-    const filtros = { eliminado: false };
+    async findPaginados(pagina, limite) {
+        const salto = (pagina - 1) * limite;
+        const filtros = { eliminado: false };
 
-    const sedes = await this.findByFiltersLocal(filtros).skip(salto).limit(limite);
-    const total = await this.model.countDocuments(filtros);
+        const sedes = await this.model.find(filtros).skip(salto).limit(limite);
+        const total = await this.model.countDocuments(filtros);
 
-    return {
-        sedes,
-        totalSedes: total,
-        pagina
-    };
-}
+        return {
+            sedes,
+            totalSedes: total,
+            pagina
+        };
+    }
 
     async findById(id) {
         return await this.model.findById(id)
             .where({ eliminado: false })
     }
-async findByNombre(nombre) {
-    return await this.model.findOne({ nombre: nombre, eliminado: false });
-}
+    async findByNombre(nombre) {
+        return await this.model.findOne({ nombre: nombre, eliminado: false });
+    }
 
-async findByDireccion(direccion) {
-    return await this.model.findOne({ direccion: direccion, eliminado: false }); // ← era "sede"
-}
+    async findByDireccion(direccion) {
+        return await this.model.findOne({ direccion: direccion, eliminado: false }); // ← era "sede"
+    }
 
     findByFilters(filtros = {}) {
         return this.model.find(filtros)
