@@ -185,6 +185,8 @@ beforeAll(async () => {
                 disponibilidades: [],
                 usuario: createRes.body.data.usuario
             });
+        
+        console.log(response)
             
         console.log("PUT /medicos/:id response.body:", response.body);
 

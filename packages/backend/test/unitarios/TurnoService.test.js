@@ -360,6 +360,8 @@ describe('TurnoService', () => {
     });
 
     test('cancela el turno cuando lo solicita el médico y no hay combinados', async () => {
+      process.env.HORAS_MINIMAS_CANCELAR = '1';
+      
       const { service, turnoRepository, usuarioService, notificacionService } = buildService();
       const turno = createTurnoReservable({ estado: EstadoTurno.RESERVADO });
       turno.paciente = { _id: 'pac-1' };
