@@ -26,6 +26,12 @@ router.patch('/:id/', (req, res, next) => {
     }
     res.status(400).json({ error: 'Acción no válida' });
     });
+    
+router.route('/:id/solicitar-cambio-fecha')
+	.patch((req, res, next) => turnoController.solicitarCambioDeFecha(req, res, next));
+    
+router.route('/:id/responder-cambio-fecha')
+	.patch((req, res, next) => turnoController.responderCambioDeFecha(req, res, next));
 
 router.route('/:medicoId') // Hacemos referencia a los servicios (practica/especialidad) propios del medico (hijas)
 	.get((req, res, next) =>	turnoController.consultarAgenda(req, res, next))

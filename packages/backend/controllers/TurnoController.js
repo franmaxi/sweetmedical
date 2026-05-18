@@ -50,8 +50,6 @@ findAll = async (req, res, next) => {
     }
 };
 
-
-
 //POST /turnos
 create = async(req, res, next) => {
     try {
@@ -68,7 +66,6 @@ create = async(req, res, next) => {
 };
 
 // GET /turnos/{id}
-
 findById = async(req, res, next) => {
     try {
         const { id } = paramsIdSchema.parse(req.params);
@@ -84,7 +81,7 @@ findById = async(req, res, next) => {
     }
 };
 
-// POST /turnos/:{id}/reservar
+// PATCH /turnos/:{id}/reservar
 reservar = async(req, res, next) =>  {
     try {
         const { id: turnoId } = paramsIdSchema.parse(req.params);
@@ -130,6 +127,35 @@ realizar = async (req, res, next) => {
             status: "success",
             data: turno
         });
+    } catch (error) {
+        return next(error);
+    }
+}
+
+// PATCH /turnos/:id/solicitar-cambio-fecha
+solicitarCambioDeFecha = async (req, res, next) => {
+    try {
+        const { turnoId: turnoId } = paramsIdSchema.parse(req.params)
+        const { usuarioId, fechaPropuesta, motivo } = solicitudFechaCambioBodySchema.parse(req.body);
+
+        return await this.turnoService.solicitarCambioDeFecha(turnoId, usuarioId, fechaPropuesta, motivo)
+    } catch (error) {
+        return next(error);
+    }
+}
+
+// PATCH /turnos/:id/responder-cambio-fecha
+responderCambioDeFecha = async (req, res, next) => {
+    try {
+        const { turnoId: turnoId } = paramsIdSchema.parse(req.params)
+        const { usuarioId, cambioAceptado } = respuestaFechaCambioBodySchema.parse(req.body);
+
+        if(cambioAceptado == true){
+            return await this.turnoService.aceptarCambioDeFecha(turnoId, usuarioId)
+        } else {
+            return await this.turnoService.rechazarCambioDeFecha(turnoId, usuarioId)
+        }
+
     } catch (error) {
         return next(error);
     }

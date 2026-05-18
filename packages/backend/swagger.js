@@ -921,29 +921,7 @@ const swaggerSpec = {
           },
           404: { description: "No encontrado", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
         },
-      },
-      delete: {
-        tags: ["Turnos"],
-        summary: "Eliminar un turno",
-        parameters: [{ $ref: "#/components/parameters/idParam" }],
-        responses: {
-          200: {
-            description: "Turno eliminado",
-            content: {
-              "application/json": {
-                schema: {
-                  type: "object",
-                  properties: {
-                    status: { type: "string", example: "success" },
-                    data: { $ref: "#/components/schemas/Turno" },
-                  },
-                },
-              },
-            },
-          },
-          404: { description: "No encontrado", content: { "application/json": { schema: { $ref: "#/components/schemas/Error" } } } },
-        },
-      },
+      }
     },
     "/turnos/{id}/reservar": {
         post: {

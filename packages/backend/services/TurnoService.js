@@ -2,6 +2,7 @@ import { Turno } from "../domain/Turno/Turno.js"
 import { EstadoTurno } from "../domain/Enumerados/EstadoTurno.js"
 import { Agenda } from "../domain/Turno/Agenda.js"
 import {
+    BadRequestError,
     NotFoundError,
     UnprocessableEntityError,
 } from "../errors/AppErrors.js"
@@ -14,6 +15,7 @@ import { EspecialidadRepository } from "../repositories/EspecialidadRepository.j
 import { UsuarioService } from "./UsuarioService.js"
 import { NotificacionService } from "./NotificacionService.js"
 import { objectIdSchema } from "../validations/commonValidations.js";
+import { SolicitudCambio } from "../domain/Turno/SolicitudCambio.js"
 
 
 export class TurnoService {
@@ -159,7 +161,7 @@ export class TurnoService {
             turno.medico._id,
             turno.disponibilidad
         )
-        if (!disponibilidad) {
+        if (!disponibilidad || disponibilidad == null) {
             throw new NotFoundError("La disponibilidad horaria configurada para este turno ya no existe");
         }
         // verificar que el servicio este contenido en la disponibilidad
@@ -226,23 +228,132 @@ export class TurnoService {
     // tecnicamente, como solo pedimos los turnos de la duracion de la especialidad, 
     // si la cantidad necesaria no matchea significa que no estan los contiguos disponibles
 
-    async solicitarCambioDeFecha(turnoId, usuarioId){
-        //Obtener turno
-        //Saber cual de los dos lo solicitó
-        
-        //Revisar que exista diponibilidad para el medico
-        //Revisar que no este ocupada la disponibilidad (en ninguno de los turnos a ocupar)
-        //confirmar que entre
 
-        //Generar una notificación al opuesto
+    // Solo se puede solicitar para días que el medico atiende los servicios
+    async solicitarCambioDeFecha(turnoId, usuarioId, fechaPropuesta, motivo){
+        //Obtener turno
+        const turno = await this.obtenerPorId(turnoId)
+        if(turno.estado != EstadoTurno.RESERVADO){
+            throw new BadRequestError(`El turno id ${turnoId} esta en estado ${turno.estado}, deberia ser ${EstadoTurno.RESERVADO}`)
+        }
+
+        //Validacion de usuarioId, que sea el medico o paciente
+        if(!(turno.medico.usuario_id == usuarioId || turno.paciente.usuario._id == usuarioId)){
+            throw new BadRequestError(`El usuario con id ${usuarioId} no pertenece al turno ${turnoId}`)
+        }
+
+        //Revisar que no exista una solicitud de cambio de fecha existente para ese turno.
+        if(turno.solicitudCambio != null){
+            throw new BadRequestError(`El turno ${turnoId} ya tiene una solicitud de cambio pendiente`)
+        }
+
+        //Obtener la disponibilidad nueva; con la fecha y hora, y el medico
+        const dispoNueva = await this.existeDisponibilidadPorFechaYHora(turno.medico._id, fechaPropuesta)
+        if(!dispoNueva){
+            throw new BadRequestError(`El medico con id ${turno.medico._id} no tiene disponibilidad para ${fechaPropuesta}`)
+        }
+
+        //Validar con obtenerSiguientesDisponibles
+        const duracionServicio
+
+        //debemos confirmar que el medico atiende esa especialidad o practica. Pero no es necesario que sea en el dia
+        if(turno.especialidad) duracionServicio = turno.especialidad.duracionTurnoEnMins
+    
+
+        if(turno.practica) duracionServicio = turno.practica.duracionTurnoEnMins
+
+        if(!duracionServicio) throw new BadRequestError(`La duracion no debe ser nula`)
+        
+        //fecha inicio(la tenemos), fecha fin() = fechainicio + servicioDuracionEnMins, medicoid
+        const milisegundosDuracion = duracionServicio * 60 * 1000
+
+        const fechaFin = new Date(fechaPropuesta.getTime() + milisegundosDuracion);
+
+        //Revisar que los turnos existan
+        //Revisar que todos los turnos esten en estado disponible
+        const listaTurnos = await this.turnoRepository.obtenerSiguientesDisponibles(fechaPropuesta, fechaFin, turno.medico._id)
+        const turnosNecesarios = duracionServicio / dispoNueva.mcdDuracion
+        //confirmar que entre en el espacio
+        if (listaTurnos.length < turnosNecesarios ) throw new UnprocessableEntityError('No hay turnos disponibles suficientes')
+    
+        if(turno.especialidad){
+            const especialidadPertenece = listaTurnos.every(n=>n.especialidad.some(m=>m.especialidadGenerica._id = turno.especialidad.especialidadGenerica._id))
+            if(!especialidadPertenece) throw new BadRequestError(`El medico no atiende la especialidad ${turno.especialidad.nombre} en todos los turnos necesarios`)
+        }
+        if(turno.practica){
+            const practicaPertenece = listaTurnos.every(n=>n.practica.some(m=>m.practicaGenerica._id = turno.practica.practicaGene.ica_id))
+            if(!practicaPertenece) throw new BadRequestError(`El médico no atiende la practica ${turno.practica.nombre} en todos los turnos necesarios `)      
+        }
+    
+        //modificar solicitudCambio en el turno
+        const solicitudCambio = new SolicitudCambio({
+            usuario: usuario,
+            turnoNuevo: turno,
+            motivo: motivo
+        })
+
+        turno.asignarSolicitud(solicitudCambio)
+
+        const usuario = await this.usuarioService.obtenerPorId(usuarioId)
         //Poner el turno en estado por confirmación
+        turno.actualizarEstado(EstadoTurno.POR_CONFIRMAR,usuario,"El turno esta pendiente de confirmacion")
+        //Generar una notificación al opuesto
+        await this.notificacionService.notificarCambioEstadoTurno(turno)
+        return await this.turnoService.update(turnoId, turno)
+    }
+    
+    async aceptarCambioDeFecha(turnoId, usuarioId){
+         const turno = await this.obtenerPorId(turnoId)
+        if(turno.estado != EstadoTurno.POR_CONFIRMAR){
+            throw new BadRequestError(`El turno id ${turnoId} esta en estado ${turno.estado}, deberia ser ${EstadoTurno.POR_CONFIRMAR}`)
+        }
+
+        //Validacion de usuarioId, que sea el medico o paciente
+        if(!(turno.medico.usuario_id == usuarioId || turno.paciente.usuario._id == usuarioId)){
+            throw new BadRequestError(`El usuario con id ${usuarioId} no pertenece al turno ${turnoId}`)
+        }
+
+        //Revisar que no exista una solicitud de cambio de fecha existente para ese turno.
+        if(turno.solicitudCambio == null){
+            throw new BadRequestError(`El turno ${turnoId} no tiene una solicitud de cambio pendiente`)
+        }
+        
+        const turnoNuevo = await this.reservarTurno(turnoId, turno.paciente._id, turno.especialidad?._id, turno.practica?._id)
+
+        await this.cancelar(turnoId, usuarioId, turno.solicitudCambio.motivo)
+
+        return turnoNuevo
     }
 
-    async responderCambioDeFecha(turnoId, usuarioId){
-        //Sirve para confirmar o rechazar
+    async rechazarCambioDeFecha(turnoId, usuarioId){
+        //Obtener turno
+        const turno = await this.obtenerPorId(turnoId)
+        if(turno.estado != EstadoTurno.POR_CONFIRMAR){
+            throw new BadRequestError(`El turno id ${turnoId} esta en estado ${turno.estado}, deberia ser ${EstadoTurno.POR_CONFIRMAR}`)
+        }
+
+        //Validacion de usuarioId, que sea el medico o paciente
+        if(!(turno.medico.usuario_id == usuarioId || turno.paciente.usuario._id == usuarioId)){
+            throw new BadRequestError(`El usuario con id ${usuarioId} no pertenece al turno ${turnoId}`)
+        }
+
+        //Revisar que no exista una solicitud de cambio de fecha existente para ese turno.
+        if(turno.solicitudCambio == null){
+            throw new BadRequestError(`El turno ${turnoId} no tiene una solicitud de cambio pendiente`)
+        }
+
+        //Poner en null el solicitud cambio
+        turno.eliminarSolicitud()
+
         //Si se rechaza -> Se queda con la fecha actual
-        //Si se acepta -> Se cancela el turno actual y se reserva en la nueva fecha
-        //Si el medico solicitó el cambio significa que no puede asistir, por ende si se acepta no deberiamos generar un nuevo turno en el horario viejo.
+        const usuario = await this.usuarioService.obtenerPorId(usuarioId)
+
+        //Poner el turno en estado por confirmación
+        turno.actualizarEstado(EstadoTurno.RESERVADO,usuario,"Se rechazó la modificación de fecha, quedará la fecha actual.")
+
+        //Generar una notificación al opuesto
+        await this.notificacionService.notificarCambioEstadoTurno(turno)
+        return await this.turnoService.update(turnoId, turno)
     }
 
     async cancelar(turnoId, usuarioId, motivo) {
@@ -281,21 +392,23 @@ export class TurnoService {
             turno.actualizarEstado(EstadoTurno.CANCELADO, usuario, motivo)
             await this.turnoRepository.update(turno._id,turno)
 
-            const turnoCopia = this.copiarTurnoCancelado(turno) // especialidad y practica estan null
-            if( turnosCombinados.length > 1) {
-                for(const t of turnosCombinados){
-                    t.actualizarEstado(EstadoTurno.DISPONIBLE,usuario,motivo)
-                    t.paciente = null
+            if (turno.disponibilidad) { //disponibilidad si existe, osea no esta en null
+                const turnoCopia = this.copiarTurnoCancelado(turno) // especialidad y practica estan null
+                if( turnosCombinados.length > 1) {
+                    for(const t of turnosCombinados){
+                        t.actualizarEstado(EstadoTurno.DISPONIBLE,usuario,motivo)
+                        t.paciente = null
+                    }
                 }
-            }
-            // refrescamos turno y combinados
-            const respuesta = this.refrescarTurnoCancelado(turnoCopia, turnosCombinados)
-            
-            // guardar el turno nuevo y updateamos los combinados
-            await this.turnoRepository.save(respuesta.turnoCopia);
-            if (respuesta.turnosCombinados.length > 1) { 
-                for (const t of respuesta.turnosCombinados) { 
-                    await this.turnoRepository.update(t._id, t)
+                // refrescamos turno y combinados
+                const respuesta = this.refrescarTurnoCancelado(turnoCopia, turnosCombinados)
+
+                // guardar el turno nuevo y updateamos los combinados
+                await this.turnoRepository.save(respuesta.turnoCopia);
+                if (respuesta.turnosCombinados.length > 1) { 
+                    for (const t of respuesta.turnosCombinados) { 
+                        await this.turnoRepository.update(t._id, t)
+                    }
                 }
             }
         }
@@ -362,12 +475,13 @@ export class TurnoService {
         fechaInicio.setUTCHours(0, 0, 0, 0)
 
         const fechaFin = new Date(fechaInicio.getTime())
+        
         fechaFin.setUTCDate(fechaInicio.getUTCDate() + 6)
         fechaFin.setUTCHours(23, 59, 59, 999)
 
-        console.log("Iniciamos Proceso Generacion Turnos Batch");
-        console.log("Fecha Inicio (UTC): " + fechaInicio.toISOString());
-        console.log("Fecha Fin (UTC): " + fechaFin.toISOString());
+        // console.log("Iniciamos Proceso Generacion Turnos Batch");
+        // console.log("Fecha Inicio (UTC): " + fechaInicio.toISOString());
+        // console.log("Fecha Fin (UTC): " + fechaFin.toISOString());
         
         // obtenemos medicos
         const medicos = await this.medicoRepository.findAll()
@@ -386,6 +500,7 @@ export class TurnoService {
         
         console.log("[Batch] Se generaron exitosamente " + turnosAGuardar.length + " turnos");
     }
+
 
     async realizar(turnoId,medicoId) {
 
@@ -421,43 +536,74 @@ export class TurnoService {
 
 
     async refrescarTurnosBatch(){
-        const turnosModificados = this.turnoRepository.findAllDispoPopulado({modificado:true})
+        //console.log("Iniciamos Proceso Refresco Turnos Batch");
+        const turnosModificados = await this.turnoRepository.findAllDispoPopulado({refrescarAnteriores:true})
         // si se reservo un turno, lo marcamos con un boolean y despues lo agarramos acá.
         for (const t of turnosModificados) {
-            //encontrar los anteriores diponibles
             const duracionMaxima = Math.max(
-            ...(t.disponibilidad.especialidades.map(e => e.duracionTurnoEnMins)),
-            ...(t.disponibilidad.practicas.map(p => p.duracionTurnoEnMins))
+                ...(t.disponibilidad.especialidades.map(e => e.duracionTurnoEnMins)),
+                ...(t.disponibilidad.practicas.map(p => p.duracionTurnoEnMins))
             )
-            const fechaMinima = new Date(t.fechaHora - duracionMaxima * 60 * 1000) 
-            // si mi turno tiene duracion max de 1 hora, y su fecha es 19:00, la fechaMinima es 18:00
-            const turnosAnteriores = await this.turnoRepository.obtenerSiguientesDisponibles(fechaMinima, t.fechaHora, turnoCopia.medico._id)
-            turnosAnteriores.reverse()
             
-            // borramos los turnos no contiguos
-            for (let i = 0; i < turnosSiguientes.length; i++) {
-                let horaSupuesta = new Date(ultimoTurno.fechaHora + ( (i + 1) * disponibilidad.mcdDuracion) * 60 * 1000)
-                if (turnosSiguientes[i].fechaHora.getTime() !== horaSupuesta.getTime()) {
-                    turnosSiguientes.splice(i) // Cuando encuentra alguno que no sea disponible, corta desde esa posicion.
-                    break
+            if (t.estado == EstadoTurno.RESERVADO) {
+                await this.refrescarTurnosAnteriores(t, t.disponibilidad.mcdDuracion, duracionMaxima)
+            }
+            else if(t.estado == EstadoTurno.CANCELADO){
+                // calculamos el tiempo disponible luego de cancelar los turnos
+                //turno cancelado a las 18:00 / mcd = 30 / duracionMaxima = 2h = 120m / fechaMinima = 17:30 (arranco a contar desde el turno de las 18) -> fechaMaxima = 19:30 (cuento hasta el de las 20, sin incluirlo)
+                //cancelado a las 18:00 mcd 30 duracionMaxima 30 fechaMinima = 17:30 fechaMaxima= 18:00
+                const fechaMinima = new Date(t.fechaHora - t.disponibilidad.mcdDuracion * 60 * 1000) // desde el primero que refrescamos sin considerarlo
+                const fechaMaxima = new Date(t.fechaHora + (duracionMaxima - t.disponibilidad.mcdDuracion) * 60 * 1000) // hasta el ultimo posible que necesitemos para calcular el tiempo
+                const turnosSiguientes = await this.turnoRepository.obtenerSiguientesDisponibles(fechaMinima, fechaMaxima, turnoCopia.medico._id)
+                
+                let tiempoRestante = t.disponibilidad.mcdDuracion
+                // borramos los turnos no contiguos
+                for (let i = 0; i < turnosSiguientes.length; i++) {
+                    let horaSupuesta = new Date(fechaMinima + ( (i + 1) * t.disponibilidad.mcdDuracion) * 60 * 1000)
+                    tiempoRestante = tiempoRestante + t.disponibilidad.mcdDuracion
+                    if (turnosSiguientes[i].fechaHora.getTime() !== horaSupuesta.getTime()) {
+                        break
+                    }
                 }
+                await this.refrescarTurnosAnteriores(t, tiempoRestante ,duracionMaxima)
             }
-
-            //arrancamos desde el turno anterior al reservado/cancelado. Vamos yendo para atras sumando el tiempo que se agrega
-            let tiempoRestante = disponibilidad.mcdDuracion
-            for (const ta of turnosAnteriores) {
-                
-                
-            }
-            
-            
         }
-        // por cada turno tomo los turnos anteriores que esten en disponible
-        // itero hasta tener un turno con la lista de especialidad y practica igual que para disponibilidad
-        // o hasta encontrar un turno que no este disponible
-        // filtro para no traerme los cancelados
     }
+    async refrescarTurnosAnteriores(t, tiempoRestanteInicial,duracionMaxima){
+        const turnosAModificar = []
 
+        //encontrar los anteriores diponibles
+        const fechaMinima = new Date(t.fechaHora - duracionMaxima * 60 * 1000) 
+        // si mi turno tiene duracion max de 1 hora, y su fecha es 19:00, la fechaMinima es 18:00
+
+        // obtengo los turnos anteriores en orden inverso (osea 17:30 - 17:00 - 16:30 - 16:00)
+        const turnosAnteriores = await this.turnoRepository.obtenerSiguientesDisponibles(fechaMinima, t.fechaHora, turnoCopia.medico._id)
+        turnosAnteriores.reverse()
+        
+        // borramos los turnos no contiguos
+        for (let i = 0; i < turnosAnteriores.length; i++) {
+            let horaSupuesta = new Date(t.fechaHora - (i+1) * t.disponibilidad.mcdDuracion * 60 * 1000) 
+            // si el turno fue a las 18:00, la hora del anterior deberia ser 17:30
+            
+            if (turnosAnteriores[i].fechaHora.getTime() !== horaSupuesta.getTime()) {
+                turnosAnteriores.splice(i) // Cuando encuentra alguno que no sea disponible, corta desde esa posicion.
+                break
+            }
+        }
+
+        //arrancamos desde el turno anterior al reservado/cancelado. Vamos yendo para atras sumando el tiempo que se agrega
+        //let tiempoRestante = t.disponibilidad.mcdDuracion // empieza en 30
+        let tiempoRestante = tiempoRestanteInicial
+        for (const ta of turnosAnteriores) {
+            ta.especialidad = t.disponibilidad.especialidades.filter(e => e.duracionTurnoEnMins <= tiempoRestante)
+            ta.practica = t.disponibilidad.practicas.filter(p => p.duracionTurnoEnMins <= tiempoRestante)
+            tiempoRestante = tiempoRestante + t.disponibilidad.mcdDuracion 
+            turnosAModificar.push(ta)
+        }
+        
+        t.refrescarAnteriores = false
+        await this.turnoRepository.updateAll(t, ...turnosAModificar)
+    }
 
     copiarTurnoCancelado(turno){
         return new Turno({
@@ -472,4 +618,21 @@ export class TurnoService {
         })
     }
 
+
+    async existeDisponibilidadPorFechaYHora(medicoId, fechaCompleta) {
+        const disponibilidades = await this.obtenerDisponibilidades(medicoId);
+
+        const diaSolicitado = fechaCompleta.getDay(); 
+        
+        const horas = String(fechaCompleta.getHours()).padStart(2, '0');
+        const minutos = String(fechaCompleta.getMinutes()).padStart(2, '0');
+        const horaSolicitada = `${horas}:${minutos}`;
+
+        return disponibilidades.find(dispo => {
+            const mismoDia = dispo.diaSemana === diaSolicitado;
+            const enHorario = horaSolicitada >= dispo.horaDesde && horaSolicitada <= dispo.horaHasta;
+            
+            return mismoDia && enHorario;
+        });
+    }
 }

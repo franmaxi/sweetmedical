@@ -2,6 +2,7 @@ import { CambioEstadoTurno } from "./CambioEstadoTurno.js";
 import { EstadoTurno } from "../Enumerados/EstadoTurno.js";
 import { BadRequestError, UnprocessableEntityError } from "../../errors/AppErrors.js";
 import { turnoDomainSchema } from "../../validations/turnoValidation.js";
+import { SolicitudCambio } from "./SolicitudCambio.js";
 
 export class Turno{
     constructor( {medico, fechaHora, sede, practica, especialidad, disponibilidad} 
@@ -19,6 +20,7 @@ export class Turno{
         this.historialEstados = []
         this.costo = null
         this.disponibilidad = valid.disponibilidad // disponibilidad por la q el turno se creó
+        this.solicitudCambio = null
         this.modificado = false
     }
 
@@ -34,6 +36,14 @@ export class Turno{
         })
         this.historialEstados.push(itemHistorial)
         this.estado = nuevoEstado
+    }
+
+    asignarSolicitud(solicitud){
+        this.solicitudCambio = solicitud
+    }
+
+    eliminarSolicitud(){
+        this.solicitudCambio = null
     }
 
     ultimoHistorialEstado(){

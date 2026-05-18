@@ -22,6 +22,7 @@ export class TurnoRepository{
     async findAll(filtros = {}) {
         return await this.model.find(filtros); 
     }
+    
     async findAllDispoPopulado(filtros = {}) {
         return await this.model.find(filtros)
         .populate("disponibilidad")
@@ -40,6 +41,7 @@ export class TurnoRepository{
             }
         }).sort({fechahora : 1})
     }
+    
     async save(turno) {
         const nuevoTurno = new this.model(turno);
         return await nuevoTurno.save();
@@ -76,14 +78,14 @@ export class TurnoRepository{
         // filtra por la especialidad generica ID
         if (filtros.especialidadId) {
             const especialidadesHijasIds = await EspecialidadModel
-                .find({ especialidadGenerica: filtros.especialidadId, eliminado: false})
+                .find({ especialidadGenerica: filtros.especialidadId})
                 .distinct('_id');
             query.especialidad = { $in: especialidadesHijasIds };
         }
         // filtramos por la practica generica ID
         if (filtros.practicaId) {
             const practicasHijasIds = await PracticaModel
-            .find({ practicaGenerica: filtros.practicaId, eliminado: false})
+            .find({ practicaGenerica: filtros.practicaId})
             .distinct('_id');
             query.practica = { $in: practicasHijasIds}
         }
