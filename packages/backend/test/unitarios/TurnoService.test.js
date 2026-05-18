@@ -39,7 +39,8 @@ const createMockNotificacionService = () => ({
 });
 
 const createMockUsuarioService = () => ({
-  findById: jest.fn()
+  findById: jest.fn(),
+  obtenerPorId: jest.fn()
 });
 
 const buildService = (overrides = {}) => {
@@ -326,7 +327,8 @@ describe('TurnoService', () => {
     test('marca el turno como REALIZADO si está RESERVADO', async () => {
       const { service, turnoRepository } = buildService();
       const turno = createTurnoReservable({ estado: EstadoTurno.RESERVADO });
-      turno.medico.usuario = { _id: 'usr-medico' };
+      turno.medico._id = 'medico-1'
+      //turno.medico.usuario = { _id: 'usr-medico' };
       turnoRepository.findById.mockResolvedValue(turno);
       turnoRepository.update.mockImplementation((_id, t) => Promise.resolve(t));
 
@@ -361,8 +363,11 @@ describe('TurnoService', () => {
       const { service, turnoRepository, usuarioService, notificacionService } = buildService();
       const turno = createTurnoReservable({ estado: EstadoTurno.RESERVADO });
       turno.paciente = { _id: 'pac-1' };
+      turno.medico._id = 'medico-1'
+      turno.fechaHora = new Date(Date.now() + 2*60*60*1000)
+
       turnoRepository.findById.mockResolvedValue(turno);
-      usuarioService.findById.mockResolvedValue({ _id: 'medico-1' });
+      usuarioService.obtenerPorId.mockResolvedValue({ _id: 'medico-1' });
       turnoRepository.obtenerCombinados.mockResolvedValue([turno]);
       turnoRepository.update.mockImplementation((_id, t) => Promise.resolve(t));
 
@@ -382,13 +387,13 @@ describe('TurnoService', () => {
       const copia = service.copiarTurnoCancelado(turno);
 
       expect(copia).toBeInstanceOf(Turno);
-      expect(copia.medico).toBe(turno.medico);
-      expect(copia.fechaHora).toBe(turno.fechaHora);
-      expect(copia.sede).toBe(turno.sede);
-      expect(copia.disponibilidad).toBe(turno.disponibilidad);
+      expect(copia.medico).toEqual(turno.medico);
+      expect(copia.fechaHora).toEqual(turno.fechaHora);
+      expect(copia.sede).toEqual(turno.sede);
+      expect(copia.disponibilidad).toEqual(turno.disponibilidad);
       expect(copia.practica).toBeNull();
       expect(copia.especialidad).toBeNull();
-      expect(copia.estado).toBe(EstadoTurno.DISPONIBLE);
+      expect(copia.estado).toEqual(EstadoTurno.DISPONIBLE);
       expect(copia.paciente).toBeNull();
     });
   });

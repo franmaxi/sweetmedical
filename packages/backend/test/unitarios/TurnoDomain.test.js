@@ -96,12 +96,12 @@ describe('Turno domain', () => {
     expect(turno.ultimoHistorialEstado().motivo).toBe('segundo cambio');
   });
 
-  test('sePuedeCancelar lanza UnprocessableEntityError si se intenta dentro del límite', () => {
+  test('sePuedeCancelar devuelve false si se intenta dentro del límite', () => {
     const fechaTurno = new Date('2026-06-01T10:00:00Z');
     const turno = createTurno({ fechaHora: fechaTurno });
     const ahora = new Date('2026-06-01T09:30:00Z'); // 30 min antes
-
-    expect(() => turno.sePuedeCancelar(ahora, 1)).toThrow(UnprocessableEntityError);
+    const resultado = turno.sePuedeCancelar(ahora, 1)
+    expect(resultado).toBeFalsy();
   });
 
   test('sePuedeCancelar no lanza si está fuera del límite', () => {

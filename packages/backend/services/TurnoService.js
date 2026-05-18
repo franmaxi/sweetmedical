@@ -363,8 +363,12 @@ export class TurnoService {
         const turno = await this.turnoRepository.findById(turnoId)
         if (!turno) throw new NotFoundError('Turno no encontrado')
         
-        if (turno.estado !== EstadoTurno.RESERVADO || !turno.sePuedeCancelar(new Date(), horasMinimasParaCancelar)){
-            throw new UnprocessableEntityError("No se puede cancelar el turno")
+        if (turno.estado !== EstadoTurno.RESERVADO){
+            throw new UnprocessableEntityError("No se puede cancelar el turno porque no esta reservado")
+        } 
+
+        if (!turno.sePuedeCancelar(new Date(), horasMinimasParaCancelar)){
+            throw new UnprocessableEntityError(`El turno debe cancelarse con al menos ${horasMinimasParaCancelar} hora/s de anticipación`)
         } 
 
         const usuario = await this.usuarioService.obtenerPorId(usuarioId)

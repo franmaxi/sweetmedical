@@ -52,10 +52,12 @@ export class Turno{
     
     sePuedeCancelar(ahora, horasMinimasParaCancelar) {
         const limiteMinimo = new Date(this.fechaHora.getTime() - horasMinimasParaCancelar * 60 * 60 * 1000)
-        if (ahora >= limiteMinimo) {
-            throw new UnprocessableEntityError(`El turno debe cancelarse con al menos ${horasMinimasParaCancelar} hora/s de anticipación`)
-        }
-    }
+        console.log("Ahora: " + ahora)
+        console.log("Limite: " + limiteMinimo)
+        console.log(ahora + " >= " + limiteMinimo)
+        return ahora<=limiteMinimo
+        // si la fecha actual es menor a la fecha maxima permitida puedo cancelar
+    } 
 
     esTipoTurno(){
         return this.practica ? 'practica' : 'especialidad';
