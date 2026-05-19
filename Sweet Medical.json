@@ -1,0 +1,1226 @@
+{
+  "v": 12,
+  "id": "cmpbn1vh212qgjn1mbx5j87mq",
+  "name": "Sweet Medical",
+  "folders": [
+    {
+      "v": 12,
+      "id": "cmpbn1vjc12qwjn1mcapdws9j",
+      "name": "Notificacion",
+      "folders": [],
+      "requests": [
+        {
+          "v": "17",
+          "name": "FindAll",
+          "method": "GET",
+          "endpoint": "http://localhost:8080/notificaciones",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "MarcarLeido",
+          "method": "PATCH",
+          "endpoint": "http://localhost:8080/notificaciones",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "FindById",
+          "method": "GET",
+          "endpoint": "http://localhost:8080/notificaciones/{id}",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "FiltrarPorUsuarioYLeido",
+          "method": "GET",
+          "endpoint": "http://localhost:8080/notificaciones?usuario={usuarioId}&leida=false",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        }
+      ],
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "headers": [],
+      "variables": [],
+      "description": null,
+      "preRequestScript": "",
+      "testScript": ""
+    },
+    {
+      "v": 12,
+      "id": "cmpbn1vjx12qxjn1mv4ih8pcv",
+      "name": "Paciente",
+      "folders": [],
+      "requests": [
+        {
+          "v": "17",
+          "name": "create",
+          "method": "POST",
+          "endpoint": "http://localhost:8080/pacientes",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": "application/json",
+            "body": "{\n  \"dni\": 4000122,\n  \"nombre\": \"Nicolas Scatolon\",\n  \"obraSocialId\": {id},\n  \"planId\": {id},\n  \"nombreUsuario\": \"nicoSC\",\n  \"password\": \"1234\"\n}"
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "findAllPaginado",
+          "method": "GET",
+          "endpoint": "http://localhost:8080/pacientes",
+          "params": [
+            {
+              "key": "page",
+              "value": "1",
+              "active": true,
+              "description": ""
+            },
+            {
+              "key": "limit",
+              "value": "10",
+              "active": true,
+              "description": ""
+            }
+          ],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "findbyId",
+          "method": "GET",
+          "endpoint": "http://localhost:8080/pacientes/{id}",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "actualizar",
+          "method": "PUT",
+          "endpoint": "http://localhost:8080/pacientes/{id}",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": "application/json",
+            "body": "{\n  \"dni\": 4000122,\n  \"nombre\": \"Franco Ibañez\",\n  \"obraSocialId\": 2,\n  \"planId\": 1,\n  \"nombreUsuario\": \"nicoSC\",\n  \"password\": \"1234\"\n}"
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "eliminar",
+          "method": "DELETE",
+          "endpoint": "http://localhost:8080/pacientes/{id}",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        }
+      ],
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "headers": [],
+      "variables": [],
+      "description": null,
+      "preRequestScript": "",
+      "testScript": ""
+    },
+    {
+      "v": 12,
+      "id": "cmpbn1vhy12qljn1muxxxy3wy",
+      "name": "Medico",
+      "folders": [
+        {
+          "v": 12,
+          "id": "cmpbn1vod12rpjn1m42jygnvt",
+          "name": "Disponibilidades",
+          "folders": [],
+          "requests": [
+            {
+              "v": "17",
+              "name": "consultar",
+              "method": "GET",
+              "endpoint": "http://localhost:8080/medicos/6a0b5a4326389c352219a847/disponibilidades",
+              "params": [],
+              "headers": [],
+              "preRequestScript": "",
+              "testScript": "",
+              "auth": {
+                "authType": "inherit",
+                "authActive": true
+              },
+              "body": {
+                "contentType": "text/plain",
+                "body": "{\n  \"nombre\": \"Nicolas Scatoln\",\n  \"matricula\": \"2223\",\n  \"nombreUsuario\": \"nicoScat\",\n  \"password\": \"123456\"\n}"
+              },
+              "requestVariables": [],
+              "responses": {},
+              "description": null
+            },
+            {
+              "v": "17",
+              "name": "crear",
+              "method": "POST",
+              "endpoint": "http://localhost:8080/medicos/6a0b5a4326389c352219a847/disponibilidades",
+              "params": [],
+              "headers": [],
+              "preRequestScript": "",
+              "testScript": "",
+              "auth": {
+                "authType": "inherit",
+                "authActive": true
+              },
+              "body": {
+                "contentType": "application/json",
+                "body": "{\n  \"diaSemana\":0,\n  \"horaDesde\":\"11:30\",\n  \"horaHasta\":\"12:30\",\n  \"sede\":\"\",\n  \"especialidades\":\"\",\n  \"practicas\":\"\"\n}"
+              },
+              "requestVariables": [],
+              "responses": {},
+              "description": null
+            }
+          ],
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "headers": [],
+          "variables": [],
+          "description": null,
+          "preRequestScript": "",
+          "testScript": ""
+        }
+      ],
+      "requests": [
+        {
+          "v": "17",
+          "name": "create",
+          "method": "POST",
+          "endpoint": "http://localhost:8080/medicos",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": "application/json",
+            "body": "{\n  \"nombre\": \"Nicolas Scatoln\",\n  \"matricula\": \"22234\",\n  \"nombreUsuario\": \"nicoScat\",\n  \"password\": \"123456\"\n}"
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "findall",
+          "method": "GET",
+          "endpoint": "http://localhost:8080/medicos",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": "text/plain",
+            "body": "{\n  \"nombre\": \"Nicolas Scatolon\",\n  \"matricula\": \"2222\",\n  \"nombreUsuario\": \"nicoSC\",\n  \"password\": \"1234\"\n}"
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "findbyId",
+          "method": "GET",
+          "endpoint": "http://localhost:8080/medicos/6a0b586a26389c352219a845",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": "text/plain",
+            "body": "{\n  \"nombre\": \"Nicolas Scatoln\",\n  \"matricula\": \"2223\",\n  \"nombreUsuario\": \"nicoScat\",\n  \"password\": \"123456\"\n}"
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "actualizar",
+          "method": "PUT",
+          "endpoint": "http://localhost:8080/medicos/6a0b586a26389c352219a845",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": "application/json",
+            "body": "{\n    \"nombre\": \"azul\",\n    \"nombreUsuario\": \"pedro-sanchez\",\n    \"matricula\":\"2223\",\n    \"password\": \"pedrito123\"\n}"
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "delete",
+          "method": "DELETE",
+          "endpoint": "http://localhost:8080/medicos/6a0b586a26389c352219a845",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": "text/plain",
+            "body": "{\n  \"nombre\": \"Nicolas Scatoln\",\n  \"matricula\": \"2223\",\n  \"nombreUsuario\": \"nicoScat\",\n  \"password\": \"123456\"\n}"
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        }
+      ],
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "headers": [],
+      "variables": [],
+      "description": null,
+      "preRequestScript": "",
+      "testScript": ""
+    },
+    {
+      "v": 12,
+      "id": "cmpbn1vkr12r0jn1m0ujxgmmu",
+      "name": "Turno",
+      "folders": [],
+      "requests": [
+        {
+          "v": "17",
+          "name": "get ObtenerTurnosTodos",
+          "method": "GET",
+          "endpoint": "http://localhost:8080/turnos/",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "get ObtenerTurnoPorId",
+          "method": "GET",
+          "endpoint": "http://localhost:8080/turnos/{id}",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "generarBatchForzado",
+          "method": "GET",
+          "endpoint": "http://localhost:8080/turnos/generarBatch",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "Reservar Turno",
+          "method": "PATCH",
+          "endpoint": "http://localhost:8080/turnos/:id",
+          "params": [],
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "appication/json",
+              "active": true,
+              "description": ""
+            }
+          ],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": "application/json",
+            "body": "{\n  \"estado\": \"RESERVADO\",\n  \"medicoId\": \"<medicoId>\"\n}"
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "Cancelar Turno ",
+          "method": "PATCH",
+          "endpoint": "http://localhost:8080/turnos/:id",
+          "params": [],
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "appication/json",
+              "active": true,
+              "description": ""
+            }
+          ],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": "application/json",
+            "body": "{\n  \"estado\": \"CANCELADO\",\n  \"usuarioId\": \"<usuarioId>\",\n  \"motivo\": \"Paciente no puede asistir\"\n}"
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "Realizar Turno",
+          "method": "PATCH",
+          "endpoint": "http://localhost:8080/turnos/:id",
+          "params": [],
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "appication/json",
+              "active": true,
+              "description": ""
+            }
+          ],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": "application/json",
+            "body": "{\n  \"estado\": \"REALIZADO\",\n  \"pacienteId\": \"<pacienteId>\",\n  \"especialidadId\": \"<especialidadId>\",\n  \"practicaId\": \"<practicaId>\"\n}"
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "Solicitar Cambio Fecha Turno",
+          "method": "PATCH",
+          "endpoint": "http://localhost:8080/turnos/:id/solicitar-cambio-fecha",
+          "params": [],
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "appication/json",
+              "active": true,
+              "description": ""
+            }
+          ],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": "application/json",
+            "body": "{\n  \"fechaNueva\": \"2026-06-01\",\n  \"motivo\": \"Necesito mover el turno\"\n}"
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "Responder cambio fecha Turno",
+          "method": "PATCH",
+          "endpoint": "http://localhost:8080/turnos/:id/responder-cambio-fecha",
+          "params": [],
+          "headers": [
+            {
+              "key": "Content-Type",
+              "value": "appication/json",
+              "active": true,
+              "description": ""
+            }
+          ],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": "application/json",
+            "body": "{\n  \"aceptado\": true\n}"
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "Consultar agenda por medico",
+          "method": "GET",
+          "endpoint": "http://localhost:8080/turnos/medico/:medicoId",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        }
+      ],
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "headers": [],
+      "variables": [],
+      "description": null,
+      "preRequestScript": "",
+      "testScript": ""
+    },
+    {
+      "v": 12,
+      "id": "cmpbn1vld12r1jn1m5a890oia",
+      "name": "Servicios",
+      "folders": [],
+      "requests": [
+        {
+          "v": "17",
+          "name": "CrearEspecialidadGenerica",
+          "method": "POST",
+          "endpoint": "http://localhost:8080/especialidades/genericas",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": "application/json",
+            "body": "{\r\n  \"nombre\": \"traumatología\"\r\n}"
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "CrearPracticaGenerica",
+          "method": "POST",
+          "endpoint": "http://localhost:8080/practicas/genericas",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": "application/json",
+            "body": "{\r\n  \"nombre\": \"lavar pies\",\r\n  \"codigo\": \"23457\"\r\n}"
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "CrearEspecialidad",
+          "method": "POST",
+          "endpoint": "http://localhost:8080/especialidades",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": "application/json",
+            "body": "{\n  \"nombre\": \"dentista\",\n  \"duracionTurnoEnMins\": 100,\n  \"costo\": 160\n}"
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "Crear Practica",
+          "method": "POST",
+          "endpoint": "http://localhost:8080/practicas",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": "application/json",
+            "body": "{\n  \"nombre\": \"lavar manos\",\n  \"codigo\": \"23456\",\n  \"duracionTurnoEnMins\": 5000,\n  \"costo\": 4500\n}"
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "Update especialidad generica",
+          "method": "PUT",
+          "endpoint": "http://localhost:8080/especialidades/genericas/6a0b5138544283eee122e587",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": "application/json",
+            "body": "{\n  \"nombre\": \"odontologia\"\n}"
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "Update practicas generica",
+          "method": "PUT",
+          "endpoint": "http://localhost:8080/practicas/genericas/6a0b519f544283eee122e58c",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": "application/json",
+            "body": "{\n  \"nombre\": \"lavar pies\",\n  \"codigo\": \"23458\"\n}"
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "FindAllEspecialidadesPaginado",
+          "method": "GET",
+          "endpoint": "http://localhost:8080/especialidades",
+          "params": [
+            {
+              "key": "page",
+              "value": "1",
+              "active": true,
+              "description": ""
+            },
+            {
+              "key": "limit",
+              "value": "10",
+              "active": true,
+              "description": ""
+            }
+          ],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "FindAllPracticasPaginado",
+          "method": "GET",
+          "endpoint": "http://localhost:8080/practicas",
+          "params": [
+            {
+              "key": "page",
+              "value": "1",
+              "active": true,
+              "description": ""
+            },
+            {
+              "key": "limit",
+              "value": "10",
+              "active": true,
+              "description": ""
+            }
+          ],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "DeleteEspecialidad",
+          "method": "DELETE",
+          "endpoint": "http://localhost:8080/especialidades/6a0b51b7544283eee122e58d",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "DeletePractica",
+          "method": "DELETE",
+          "endpoint": "http://localhost:8080/practicas/6a0b5799f455d0953038e5a2",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        }
+      ],
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "headers": [],
+      "variables": [],
+      "description": null,
+      "preRequestScript": "",
+      "testScript": ""
+    },
+    {
+      "v": 12,
+      "id": "cmpbn1vnm12rmjn1mkt7ylxg5",
+      "name": "Sede",
+      "folders": [],
+      "requests": [
+        {
+          "v": "17",
+          "name": "CrearSede",
+          "method": "POST",
+          "endpoint": "http://localhost:8080/sedes",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": "application/json",
+            "body": "{\n  \"nombre\": \"Hospital Metropolitano\",\n  \"direccion\": \"san martin 444\"\n}"
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "ObtenerSedePorId",
+          "method": "GET",
+          "endpoint": "http://localhost:8080/sedes/6a0b75b08b312de6e5188b52",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "ObtenerTodasLasSedes",
+          "method": "GET",
+          "endpoint": "http://localhost:8080/sedes",
+          "params": [
+            {
+              "key": "page",
+              "value": "1",
+              "active": true,
+              "description": ""
+            },
+            {
+              "key": "limit",
+              "value": "100",
+              "active": true,
+              "description": ""
+            }
+          ],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        }
+      ],
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "headers": [],
+      "variables": [],
+      "description": null,
+      "preRequestScript": "",
+      "testScript": ""
+    },
+    {
+      "v": 12,
+      "id": "cmpbn9s6l14x4jn1mglq0ljn4",
+      "name": "ObraSocial",
+      "folders": [
+        {
+          "v": 12,
+          "id": "cmpbnkl4v160tjn1mgdf9hvsh",
+          "name": "Planes",
+          "folders": [],
+          "requests": [
+            {
+              "v": "17",
+              "name": "crearPlan",
+              "method": "POST",
+              "endpoint": "http://localhost:8080/obras-sociales/{id}/planes",
+              "params": [],
+              "headers": [],
+              "preRequestScript": "",
+              "testScript": "",
+              "auth": {
+                "authType": "inherit",
+                "authActive": true
+              },
+              "body": {
+                "contentType": "application/json",
+                "body": "{\n  \"idObraSocial\": \"1\",\n  \"nombre\": \"plan 210 cardiologia\",\n  \"coberturasPracticas\": [\n    {\n      \"practicaGenerica\": \"1\",\n      \"nivel\": \"TOTAL\"\n    }\n  ],\n  \"coberturasEspecialidades\": [\n    {\n      \"especialidadGenerica\": \"1\",\n      \"nivel\": \"PARCIAL\"\n    }\n  ]\n}"
+              },
+              "requestVariables": [],
+              "responses": {},
+              "description": null
+            },
+            {
+              "v": "17",
+              "name": "obtenerTodosPlanes",
+              "method": "GET",
+              "endpoint": "http://localhost:8080/obras-sociales/planes",
+              "params": [],
+              "headers": [],
+              "preRequestScript": "",
+              "testScript": "",
+              "auth": {
+                "authType": "inherit",
+                "authActive": true
+              },
+              "body": {
+                "contentType": null,
+                "body": null
+              },
+              "requestVariables": [],
+              "responses": {},
+              "description": null
+            },
+            {
+              "v": "17",
+              "name": "obtenerPlanPorId",
+              "method": "GET",
+              "endpoint": "http://localhost:8080/obras-sociales/planes/{id}",
+              "params": [],
+              "headers": [],
+              "preRequestScript": "",
+              "testScript": "",
+              "auth": {
+                "authType": "inherit",
+                "authActive": true
+              },
+              "body": {
+                "contentType": null,
+                "body": null
+              },
+              "requestVariables": [],
+              "responses": {},
+              "description": null
+            }
+          ],
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "headers": [],
+          "variables": [],
+          "description": null,
+          "preRequestScript": "",
+          "testScript": ""
+        }
+      ],
+      "requests": [
+        {
+          "v": "17",
+          "name": "crearObraSocial",
+          "method": "POST",
+          "endpoint": "http://localhost:8080/obras-sociales",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": "application/json",
+            "body": "{\n  \"nombre\": \"ObraSocial1\"\n}"
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "obtenerTodos",
+          "method": "GET",
+          "endpoint": "http://localhost:8080/obras-sociales",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        },
+        {
+          "v": "17",
+          "name": "obtenerPorId",
+          "method": "GET",
+          "endpoint": "http://localhost:8080/obras-sociales/{id}",
+          "params": [],
+          "headers": [],
+          "preRequestScript": "",
+          "testScript": "",
+          "auth": {
+            "authType": "inherit",
+            "authActive": true
+          },
+          "body": {
+            "contentType": null,
+            "body": null
+          },
+          "requestVariables": [],
+          "responses": {},
+          "description": null
+        }
+      ],
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "headers": [],
+      "variables": [],
+      "description": null,
+      "preRequestScript": "",
+      "testScript": ""
+    }
+  ],
+  "requests": [
+    {
+      "v": "17",
+      "name": "Health",
+      "method": "GET",
+      "endpoint": "http://localhost:8080/health",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "",
+      "testScript": "",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": "text/plain",
+        "body": "{\r\n  \"id\": 1,\r\n  \"url\": \"http://localhost:8081\",\r\n  \"nombre\": \"FuenteEstatica\",\r\n  \"tipoFuente\": \"ESTATICA\"\r\n}"
+      },
+      "requestVariables": [],
+      "responses": {},
+      "description": null
+    },
+    {
+      "v": "17",
+      "name": "API-DOCS",
+      "method": "GET",
+      "endpoint": "http://localhost:8080/api-docs",
+      "params": [],
+      "headers": [],
+      "preRequestScript": "",
+      "testScript": "",
+      "auth": {
+        "authType": "inherit",
+        "authActive": true
+      },
+      "body": {
+        "contentType": null,
+        "body": null
+      },
+      "requestVariables": [],
+      "responses": {},
+      "description": null
+    }
+  ],
+  "auth": {
+    "authType": "inherit",
+    "authActive": true
+  },
+  "headers": [],
+  "variables": [],
+  "description": null,
+  "preRequestScript": "",
+  "testScript": ""
+}

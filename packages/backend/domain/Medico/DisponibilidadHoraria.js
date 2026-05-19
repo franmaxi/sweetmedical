@@ -1,59 +1,51 @@
-import DiaSemana from "../Enumerados/DiaSemana.js";
-class DisponibilidadHoraria {
-    constructor( {diaSemana, horaDesde, horaHasta, sede} ) {
-        this.validarDiaSemana(diaSemana)
-        this.validarHora(horaDesde)
-        this.validarHora(horaHasta)
-        this.validarRangoHoras(horaDesde, horaHasta)
+import { disponibilidadDomainSchema } from "../../validations/medicoValidation.js";
 
-        this.id = null;
-        this.diaSemana = diaSemana
-        this.horaDesde = horaDesde
-        this.horaHasta = horaHasta
-        this.sede = sede
-    }
-    
-    // Validaciones Constructor
+export class DisponibilidadHoraria {
+    constructor( { diaSemana, horaDesde, horaHasta, sede , especialidades = [], practicas = []} ) {
+        const valid = disponibilidadDomainSchema.parse({ diaSemana, horaDesde, horaHasta, sede });
 
-    validarDiaSemana(diaSemana){
-        const valoresDiaSemana = Object.values(DiaSemana)
-        if(!valoresDiaSemana.includes(diaSemana)){
-            throw new TypeError(`El dia de la semana debe ser uno de los siguientes: ${valoresDiaSemana.join(', ')}`)
-        }
+        // _id
+        this.diaSemana = valid.diaSemana;
+        this.horaDesde = valid.horaDesde; // string con formato "HH:mm"
+        this.horaHasta = valid.horaHasta;
+        this.especialidades = especialidades
+        this.practicas = practicas
+        this.sede = valid.sede;
     }
 
-    validarHora(hora){
-       // validar que sea un string en formato HH:mm y que este entre 00:00 y 23:59
-       if (typeof hora !== 'string') {
-            throw new TypeError('La hora debe ser una cadena de texto en formato HH:mm')
-        }
-
-        const regex = /^([01]\d|2[0-3]):([0-5]\d)(:([0-5]\d))?$/ // me genera dudas si esto funciona bien, lo saque de internet, pero no se si es correcto
-        if (!regex.test(hora)) {
-            throw new TypeError('La hora debe estar en formato HH:mm y ser válida (00:00 a 23:59)')
-        }
-    }
-
-    validarRangoHoras(horaInicial, horaFinal){    
-        const minutosDesde = this.convertirHoraEnMinutos(horaInicial)
-        const minutosHasta = this.convertirHoraEnMinutos(horaFinal)
-         
-        if (minutosDesde >= minutosHasta) {
-            throw new RangeError('La hora de inicio debe ser menor que la hora de fin')
-        }
+    get mcdDuracion() {
+        return this.calcularMCDDuraciones();
     }
 
     convertirHoraEnMinutos(hora){
-        const [horas, minutos] = hora.split(':').map(Number)
-        return horas * 60 + minutos
+        const [horas, minutos] = hora.split(':').map(Number);
+        return horas * 60 + minutos;
     }
     
     estaSolapada(dispo){
         if(this.diaSemana !== dispo.diaSemana){
-            return false
+            return false;
         }
-        return convertirHoraEnMinutos(this.horaDesde) < convertirHoraEnMinutos(dispo.horaHasta) && 
-        convertirHoraEnMinutos(this.horaHasta) > convertirHoraEnMinutos(dispo.horaDesde)
+        return this.convertirHoraEnMinutos(this.horaDesde) < dispo.convertirHoraEnMinutos(dispo.horaHasta) && 
+               this.convertirHoraEnMinutos(this.horaHasta) > dispo.convertirHoraEnMinutos(dispo.horaDesde);
+    }
+    
+    obtenerDiferenciaEnMinutos(){
+       return this.convertirHoraEnMinutos(this.horaHasta) - this.convertirHoraEnMinutos(this.horaDesde);
+    }
+
+    calcularMCDDuraciones(){
+        const duracionesServicios = [
+            ...this.practicas.map(p => p.duracionTurnoEnMins),
+            ...this.especialidades.map(e => e.duracionTurnoEnMins)
+        ];
+        //Math.max(15, this.calcularMCD(duracionesServicios))
+        return this.calcularMCD(duracionesServicios);
+    }
+
+    calcularMCD(numeros) {
+        if (!numeros || numeros.length === 0) return 1;
+        const mcd = (a, b) => b === 0 ? a : mcd(b, a % b);
+        return numeros.reduce((acc, num) => mcd(acc, num));
     }
 }
-

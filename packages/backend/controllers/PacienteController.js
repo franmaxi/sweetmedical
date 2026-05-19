@@ -1,147 +1,92 @@
 import { PacienteService } from "../services/PacienteService.js";
+import { paginacionSchema, paramsIdSchema } from "../validations/commonValidations.js";
+import { pacienteBodySchema } from "../validations/pacienteValidation.js";
 
 export class PacienteController {
-
-    constructor( {
+    constructor({
         pacienteService = new PacienteService()
-    } = {})    {
+    } = {}) {
         this.pacienteService = pacienteService;
     }
 
-    create = async (req,res) => {
+    create = async (req, res, next) => {
         try {
-            const datosPaciente = this.extraerYValidarBodyPaciente(req.body);
-            const pacienteCreado = await this.pacienteService.create(datosPaciente)
+            const datosPaciente = pacienteBodySchema.parse(req.body);
+            const pacienteCreado = await this.pacienteService.crear(datosPaciente);
             
-            return res.status(201).json({ status: "success", data: pacienteCreado })
+            return res.status(201).json({ status: "success", data: pacienteCreado });
         } catch (error) {
-            return this.manejarError(res, error);
+            return next(error);
         }
     }
 
-    findAll = async (req, res,next) => {
-        try{
-            const paginacion = this.extraerPaginacion(req.query)
-            const filtros = this.extraerFiltros(req.query)
-            const resultado = this.pacienteService.obtenerTodos({
-                ...paginacion,
+    findAll = async (req, res, next) => {
+        try {
+            const { page: numeroPagina, limit: limitePorPagina } = paginacionSchema.parse(req.query);
+            const filtros = this.extraerFiltros(req.query);
+            const resultado = await this.pacienteService.obtenerTodos({
+                numeroPagina,
+                limitePorPagina,
                 filtros
-            })
+            });
             
             return res.status(200).json({
-                status : "success",
-                data : resultado.pacientes,
+                status: "success",
+                data: resultado.pacientes,
                 paginacion: {
                     numeroPagina: resultado.numeroPagina,
-                    limitePagina: resultado.limitePagina,
+                    limitePagina: resultado.limitePorPagina,
                     totalPaginas: resultado.totalPaginas,
                     totalPacientes: resultado.totalPacientes
                 }
-            })
-        }
-        catch(error){
-            return next(error)
+            });
+        } catch (error) {
+            return next(error);
         }
     }
 
-
-
-    findById = async (req, res) => {
+    findById = async (req, res, next) => {
        try {
-            const id = this.parsearId(req.params.id)
-            const paciente = this.paciente.obtenerPorId(id)
+            const { id } = paramsIdSchema.parse(req.params);
+            const paciente = await this.pacienteService.obtenerPorId(id);
 
-            return res.status(200).json({ status: "success", data: paciente })
+            return res.status(200).json({ status: "success", data: paciente });
        } catch (error) {
-            return this.manejarError(res, error)
+            return next(error);
         }
     }
 
-    update = async (req, res) => {
+    update = async (req, res, next) => {
         try {
-            const id = this.parsearId(req.params.id)
-            const datosPaciente = this.extraerYValidarBodyPaciente(req.body)
-            const pacienteActualizado = this.pacienteService.actualizar(id, datosPaciente)
+            const { id } = paramsIdSchema.parse(req.params);
+            const datosPaciente = pacienteBodySchema.parse(req.body);
+            const pacienteActualizado = await this.pacienteService.actualizar(id, datosPaciente);
 
-            return res.status(200).json({ status: "success", data: pacienteActualizado })
+            return res.status(200).json({ status: "success", data: pacienteActualizado });
         } catch (error) {
-            return this.manejarError(res, error)
+            return next(error);
         }
     }
 
-    delete = async (req, res) => {
+    delete = async (req, res, next) => {
         try {
-            const id = this.parsearId(req.params.id)
-            const pacienteEliminado = this.pacienteService.eliminar(id)
+            const { id } = paramsIdSchema.parse(req.params);
+            const pacienteEliminado = await this.pacienteService.eliminar(id);
 
-            return res.status(200).json({ status: "success", data: pacienteEliminado })
+            return res.status(200).json({ status: "success", data: pacienteEliminado });
         } catch (error) {
-            return this.manejarError(res, error)
-        }
-    }
-
-
-
-
-    parsearId(idParam) {
-        const id = Number(idParam)
-
-        this.validarEnteroPositivo(id, "id")
-
-        return id
-    }
-
-
-    extraerYValidarBodyPaciente(body) {
-        if (!body || typeof body !== "object" || Array.isArray(body)) {
-            throw new BadRequestError("El cuerpo de la solicitud debe ser un objeto JSON válido.")
-        }
-
-        const camposPermitidos = [
-            "DNI",
-            "Nombre",
-            "Plan"]
-        const camposBody = Object.keys(body)
-        const camposNoPermitidos = camposBody.filter((campo) => !camposPermitidos.includes(campo))
-
-        if (camposNoPermitidos.length > 0) {
-            throw new BadRequestError(`Campos no permitidos en la request: ${camposNoPermitidos.join(", ")}`)
-        }
-
-        const camposFaltantes = camposPermitidos.filter((campo) => body[campo] === undefined)
-
-        if (camposFaltantes.length > 0) {
-            throw new BadRequestError(`Faltan campos obligatorios en la request: ${camposFaltantes.join(", ")}`)
-        }
-
-        return {
-            dni: body.dni,
-            nombre: body.nombre,
-            plan: body.plan,
-        }
-    }
-
-    validarEnteroPositivo(numero, parametro) {
-        if (!Number.isInteger(numero) || numero <= 0) {
-            throw new BadRequestError(`El parámetro ${parametro} debe ser un entero positivo`)
+            return next(error);
         }
     }
 
     extraerFiltros(query) {
-        const filtros = {}
-
-    
-        if(query.pacienteId !== undefined) {
-            filtros.pacienteId = Number(query.pacineteId);
+        const filtros = {};
+        if (query.pacienteId !== undefined) {
+            filtros._id = query.pacienteId;
         }
-        
-        if(query.plan !== undefined) {
+        if (query.plan !== undefined) {
             filtros.plan = query.plan;
         }
-
         return filtros;
     }
-    
-
-
 }

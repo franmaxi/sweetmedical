@@ -1,111 +1,208 @@
-import {BadRequestError} from "../errors/AppErrors.js"
-import { MedicoService } from "../services/MedicoService.js"
+import { MedicoService } from "../services/MedicoService.js";
+import { paginacionSchema, paramsIdSchema, objectIdSchema } from "../validations/commonValidations.js";
+import { 
+    medicoBodySchema, 
+    medicoBodyUpdateSchema, 
+    disponibilidadBodySchema, 
+    servicioBodySchema 
+} from "../validations/medicoValidation.js";
 
-
-export class MedicoController{
+export class MedicoController {
     constructor({
         medicoService = new MedicoService()
-    } = {}){
+    } = {}) {
         this.medicoService = medicoService;
     }
 
-    findAll = async (req, res,next) => {
-        try{
-            const paginacion = this.extraerPaginacion(req.query)
-            const resultado = this.medicoService.obtenerTodos({...paginacion})
+    findAll = async (req, res, next) => {
+        try {
+            const { page: numeroPagina, limit: limitePorPagina } = paginacionSchema.parse(req.query);
+            const filtros = this.extraerFiltros(req.query);
+            const resultado = await this.medicoService.obtenerTodos({
+                numeroPagina,
+                limitePorPagina,
+                filtros
+            });
+
             return res.status(200).json({
-                status : "success",
-                data : resultado.medicos,
+                status: "success",
+                data: resultado.medicos,
                 paginacion: {
                     numeroPagina: resultado.numeroPagina,
-                    limitePagina: resultado.limitePagina,
+                    limitePagina: resultado.limitePorPagina,
                     totalPaginas: resultado.totalPaginas,
                     totalMedicos: resultado.totalMedicos
                 }
-            })
-        }
-        catch(error){
-            return next(error)
+            });
+        } catch (error) {
+            return next(error);
         }
     }
-    
-    create = async (req, res,next) =>{
-        try{
-    
-            const datosMedico = this.extraerYValidarBodyMedico(req.body)
-            const medicoCreado = this.medicoService.crear(datosMedico)
+
+    create = async (req, res, next) => {
+        try {
+            const datosMedico = medicoBodySchema.parse(req.body);
+            const medicoCreado = await this.medicoService.crear(datosMedico);
             return res.status(201).json({
                 status: "success",
-                data : medicoCreado
-            })
-        }
-        catch(error){
-            return next(error)
-        }
-    }
-    
-    delete = async (req,res,next) => {
-        try{
-            const id = this.parsearId(req.params.id)
-            const medicoEliminado = this.medicoService.eliminar(id)
-            return res.status(200).json({
-                status : "success",
-                data : medicoEliminado
-            })
-        }
-        catch(error){
-            return next(error)
+                data: medicoCreado
+            });
+        } catch (error) {
+            return next(error);
         }
     }
-    
-    update = async (req,res,next) => {
+
+    delete = async (req, res, next) => {
         try {
-            const id = this.parsearId(req.params.id)
-            const datosMedico = this.extraerYValidarBodyMedico(req.body)
-            const medicoActualizado = this.medicoService.actualizar(id,datosMedico)
+            const { id } = paramsIdSchema.parse(req.params);
+            const medicoEliminado = await this.medicoService.eliminar(id);
             return res.status(200).json({
                 status: "success",
-                data : medicoActualizado
-            })
+                data: medicoEliminado
+            });
         } catch (error) {
-            return next(error)
+            return next(error);
         }
     }
-    
-    findById = async (req,res,next) => {
+
+    update = async (req, res, next) => {
         try {
-            const id = this.parsearId(req.params.id)
-            const medico = this.medicoService.obtenerPorId(id)
+            const { id } = paramsIdSchema.parse(req.params);
+            const datosMedico = medicoBodyUpdateSchema.parse(req.body);
+            const medicoActualizado = await this.medicoService.actualizar(id, datosMedico);
+            return res.status(200).json({
+                status: "success",
+                data: medicoActualizado
+            });
+        } catch (error) {
+            return next(error);
+        }
+    }
+
+    findById = async (req, res, next) => {
+        try {
+            const { id } = paramsIdSchema.parse(req.params);
+            const medico = await this.medicoService.obtenerPorId(id);
             return res.status(200).json({
                 status: "success",
                 data: medico
-            })
+            });
         } catch (error) {
-            return next(error)
+            return next(error);
         }
     }
-    
-    extraerPaginacion(query) {
-        const numeroPagina = query?.page === undefined ? 1 : Number(query.page)
-        const limitePorPagina = query?.limit === undefined ? 10 : Number(query.limit)
 
-        this.validarEnteroPositivo(numeroPagina, "page")
-        this.validarEnteroPositivo(limitePorPagina, "limit")
 
-        return { numeroPagina, limitePorPagina }
-    }
 
-    validarEnteroPositivo(numero, parametro) {
-        if (!Number.isInteger(numero) || numero <= 0) {
-            throw new BadRequestError(`El parámetro ${parametro} debe ser un entero positivo`)
+    // POST /medicos/:id/disponibilidades
+    crearDisponibilidad = async (req, res, next) => {
+        try {
+            const { id: medicoId } = paramsIdSchema.parse(req.params);
+            const disponibilidad = disponibilidadBodySchema.parse(req.body);
+            const disponibilidadCreada = await this.medicoService.crearDisponibilidad(medicoId, disponibilidad);
+            return res.status(201).json({
+                status: "success",
+                data: disponibilidadCreada
+            });
+        } catch (error) {
+            return next(error);
         }
     }
-    
-    parsearId(idParam) {
-        const id = Number(idParam)
 
-        this.validarEnteroPositivo(id, "id")
+    // PUT /medicos/:id/disponibilidades/:disponibilidadId
+    modificarDisponibilidad = async (req, res, next) => {
+        try {
+            const { id: medicoId } = paramsIdSchema.parse(req.params);
+            const disponibilidadId = objectIdSchema.parse(req.params.disponibilidadId);
+            const disponibilidad = disponibilidadBodySchema.parse(req.body);
+            const disponibilidadActualizada = await this.medicoService.modificarDisponibilidad(medicoId, disponibilidadId, disponibilidad);
+            return res.status(200).json({
+                status: "success",
+                data: disponibilidadActualizada
+            });
+        } catch (error) {
+            return next(error);
+        }
+    }
 
-        return id
+    // GET /medicos/:id/disponibilidades
+    listarDisponibilidades = async (req, res, next) => {
+        try {
+            const { id: medicoId } = paramsIdSchema.parse(req.params);
+            const disponibilidades = await this.medicoService.obtenerDisponibilidades(medicoId);
+            return res.status(200).json({
+                status: "success",
+                data: disponibilidades
+            });
+        } catch (error) {
+            return next(error);
+        }
+    }
+
+    // GET /medicos/:id/disponibilidades/:disponibilidadId
+    obtenerDisponibilidad = async (req, res, next) => {
+        try {
+            const { id: medicoId } = paramsIdSchema.parse(req.params);
+            const disponibilidadId = objectIdSchema.parse(req.params.disponibilidadId);
+            const disponibilidad = await this.medicoService.obtenerDisponibilidad(medicoId, disponibilidadId);
+            return res.status(200).json({
+                status: "success",
+                data: disponibilidad
+            });
+        } catch (error) {
+            return next(error);
+        }
+    }
+
+    agregarServicio = async (req, res, next) => {
+        try {
+            const { id: medicoId } = paramsIdSchema.parse(req.params);
+            const validBody = servicioBodySchema.parse(req.body);
+            const servicioAgregado = await this.medicoService.agregarServicio(medicoId, validBody.especialidad ?? null, validBody.practica ?? null);
+            return res.status(200).json({
+                status: "success",
+                data: servicioAgregado
+            });
+        } catch (error) {
+            return next(error);
+        }
+    }
+
+    modificarServicio = async (req, res, next) => {
+        try {
+            const { id: medicoId } = paramsIdSchema.parse(req.params);
+            const validBody = servicioBodySchema.parse(req.body);
+            const servicioModificado = await this.medicoService.modificarServicio(medicoId, validBody.especialidad ?? null, validBody.practica ?? null);
+            return res.status(200).json({
+                status: "success",
+                data: servicioModificado
+            });
+        } catch (error) {
+            return next(error);
+        }
+    }
+
+    eliminarServicios = async (req, res, next) => {
+        try {
+            const { id: medicoId } = paramsIdSchema.parse(req.params);
+            const validBody = servicioBodySchema.parse(req.body);
+            const especialidadId = validBody.especialidad ? (typeof validBody.especialidad === 'object' ? validBody.especialidad._id || validBody.especialidad._id : validBody.especialidad) : null;
+            const practicaId = validBody.practica ? (typeof validBody.practica === 'object' ? validBody.practica._id || validBody.practica._id : validBody.practica) : null;
+            const serviciosEliminados = await this.medicoService.eliminarServicios(medicoId, especialidadId, practicaId);
+            return res.status(200).json({
+                status: "success",
+                data: serviciosEliminados
+            });
+        } catch (error) {
+            return next(error);
+        }
+    }
+
+    extraerFiltros(query) {
+        const filtros = {};
+        if (query.especialidadId) filtros.especialidades = query.especialidadId;
+        if (query.practicaId) filtros.practicas = query.practicaId;
+        if (query.sedeId) filtros.sedes = query.sedeId;
+        return filtros;
     }
 }

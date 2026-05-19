@@ -1,0 +1,68 @@
+import { EspecialidadModel } from "../schemas/especialidadSchema.js";
+
+export class EspecialidadRepository{
+    constructor(){
+        this.model = EspecialidadModel
+    }
+    
+    async findPaginados(pagina, limite, filtros = {}) {
+        const paginaValida = pagina < 1 ? 1 : pagina;
+        const salto = (paginaValida-1) * limite
+
+        const filtrosAplicados = { eliminado: false, ...filtros };
+
+        let especialidades = await this.findByFiltersLocal(filtrosAplicados).skip(salto).limit(limite)
+
+        const total = await this.model.countDocuments(filtrosAplicados)
+
+        return {
+            especialidades: especialidades,
+            totalEspecialidades: total,
+            pagina
+        }
+    }
+    
+    async findById(id) {
+        return await this.model.findById(id).where({ eliminado: false }).populate('especialidadGenerica');
+    }
+
+    async findByIdEspecialidadGenerica(idEspecialidadGenerica) {
+        const especialidades = await this.model.find({ especialidadGenerica: idEspecialidadGenerica , eliminado: false}).populate('especialidadGenerica');
+        return especialidades;
+    }
+
+    async findByNombre(nombre) {
+        const especialidades = await this.model.find({ nombre: nombre , eliminado: false}).populate('especialidadGenerica');
+        return especialidades;
+    }
+
+
+    async findByFilters(filtros = {}) {
+        return await this.model.find(filtros).populate('especialidadGenerica');
+    }
+    
+    async save(especialidad) {
+        const nuevaEspecialidad = new this.model(especialidad);
+        return await nuevaEspecialidad.save();
+    }
+
+    async update(id, especialidad) {
+        return await this.model.findByIdAndUpdate(id, especialidad, { new: true }).populate('especialidadGenerica');
+    }
+
+    async updateManyNombres(ids, nuevoNombre) {
+        return await this.model.updateMany(
+            { _id: { $in: ids } }, 
+            { nombre: nuevoNombre }
+        ).populate('especialidadGenerica');
+    }
+
+    async delete(id) {
+        return await this.model.findByIdAndUpdate(id, { eliminado: true }, { new: true });
+    }
+
+    //auxiliar
+    findByFiltersLocal(filtros = {}) {
+        return this.model.find(filtros).populate('especialidadGenerica'); 
+    }
+}

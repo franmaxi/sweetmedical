@@ -1,125 +1,95 @@
-import { Paciente} from "../domain/Paciente.js";
-import { PacienteRepository } from "../repositories/PacienteRepository.js";
-import { Usuario } from "../domain/Usuario.js";
-import { UsuarioRepository } from "../repositories/UsuarioRepository.js";
-import {
-    BadRequestError,
-    NotFoundError,
-    UnprocessableEntityError,
-} from "../errors/AppErrors.js";
+import { Paciente} from "../domain/Paciente/Paciente.js";
 
-export class Paciente {
+import { PacienteRepository } from "../repositories/PacienteRepository.js";
+import { PlanRepository } from "../repositories/PlanRepository.js";
+import { ObraSocialRepository } from "../repositories/ObraSocialRepository.js";
+
+import { UsuarioService } from "./UsuarioService.js";
+
+import { NotFoundError} from "../errors/AppErrors.js";
+
+export class PacienteService {
     constructor({
-        pacienteRepository = new pacienteRepository(),
-        usuarioRepository = new usuarioRepository(),
-        planRepository = new planRepository(),
-        obraSocialRepository = new obraSocialRepository(),
+        pacienteRepository = new PacienteRepository(),
+        usuarioService = new UsuarioService(),
+        planRepository = new PlanRepository(),
+        obraSocialRepository = new ObraSocialRepository(),
     } = {}) {
         this.pacienteRepository = pacienteRepository
-        this.usuarioRepository = medicoRepository
+        this.usuarioService = usuarioService
         this.planRepository = planRepository
         this.obraSocialRepository = obraSocialRepository
     }
-    //TODO Deberiamos preguntar si es necesario, poder consultar los ppacientes
-    // obtenerTodos({ numeroPagina = 1, limitePorPagina = 10, filtro = {} } = {}) {
-    //     this.validarPaginacion(numeroPagina, limitePorPagina)
+   
+    async obtenerTodos({ numeroPagina = 1, limitePorPagina = 10, filtros = {} } = {}) {
 
-    //     const { pacientes, totalPacientes } = this.pacienteRepository.obtenerPaginados(
-    //         numeroPagina, 
-    //         limitePorPagina, 
-    //         filtros
-    //     )
+        const { pacientes, totalPacientes } = await this.pacienteRepository.findPaginados(
+            numeroPagina, 
+            limitePorPagina, 
+            filtros
+        )
         
-    //     const totalPaginas = totalPacientes === 0  ? 0 : Math.ceil(totalPacientes / limitePorPagina)
+        const totalPaginas = totalPacientes === 0  ? 0 : Math.ceil(totalPacientes / limitePorPagina)
 
-    //     return {
-    //         pacientes,
-    //         numeroPagina,
-    //         limitePorPagina,
-    //         totalPacientes,
-    //         totalPaginas
-    //     }
+        return {
+            pacientes,
+            numeroPagina,
+            limitePorPagina,
+            totalPacientes,
+            totalPaginas
+        }
+    }
 
-    
-    // }
+    async obtenerPorId(id) {
+        const paciente = await this.pacienteRepository.findById(id)
+        if (!paciente) {
+            throw new NotFoundError(`No se encontró un paciente con el id ${id}`)
+        }
+     
+        return paciente
+    }
 
-    // obtenerPorId(id) {
-    //     this.validarEnteroPositivo(id, "Id")
-
-    //     const paciente = this.pacienteRepository.obtenerPorId(id)
-
-    //     if (!paciente) {
-    //         throw new NotFoundError(`No se encontró un paciente con el id ${id}`)
-    //     }
-        
-    //     return paciente
-    // }
-
-    crear(datosPaciente) {
-
-        this.validarDatosPaciente(datosPaciente)
-
-        const usuario = new Usuario({
-            nombreUsuario: datosMedicos.nombreUsuario,
-            password: datosMedicos.password
-        })
-
+    async crear(datosPaciente) {
         // consideramos que los planes estan precargados en el sistema, si no esta cargado no existe
-        const plan = this.planRepository.obtenerPorId(datosPaciente.planId)
+        const plan = await this.planRepository.findById(datosPaciente.planId)
         if(!plan) throw new NotFoundError(`No se encontró un plan con el id ${datosPaciente.planId}`)
-
-        const obraSocial = this.obraSocialRepository.obtenerPorId(datosPaciente.obraSocialId)
+            
+        const obraSocial = await this.obraSocialRepository.findById(datosPaciente.obraSocialId)
         if(!obraSocial) throw new NotFoundError(`No se encontró una obraSocial con el id ${datosPaciente.obraSocialId}`)
 
+        const usuarioGuardado = await this.usuarioService.crear({
+            nombreUsuario: datosPaciente.nombreUsuario,
+            password: datosPaciente.password
+        })
         const paciente= new Paciente({
             dni: datosPaciente.dni,
             nombre: datosPaciente.nombre,
+            usuario: usuarioGuardado,
             obraSocial: obraSocial,
             plan: plan,
         })
         
-        this.usuarioRepository.guardar(usuario)
-        return this.pacienteRepository.guardar(paciente)
-    }   
-
-
-    
-    validarDatosPaciente(datos) {
-        if (!datos || typeof datos !== "object") {
-            throw new BadRequestError("Los datos del paciente son requeridos")
-        }
-
-        const {dni, nombre, obraSocialId, planId} = datos
-
-        if (!Number.isInteger(dni)) {
-            throw new UnprocessableEntityError("medicoId inválido")
-        }   
-
-        if (typeof nombre !== "string" || nombre.trim() === "") {
-            throw new UnprocessableEntityError("nombre inválido")
-        }
-
-        if (!Number.isInteger(obraSocialId)) {
-            throw new UnprocessableEntityError("sedeId inválido")
-        }
-
-        if (!Number.isInteger(planId)) {
-            throw new UnprocessableEntityError("Plan inválido")
-        }
+        return await this.pacienteRepository.save(paciente)
     }
 
-    validarPaginacion(numeroPagina, limitePorPagina) {
-        this.validarEnteroPositivo(numeroPagina, "Numero de página")
-        this.validarEnteroPositivo(limitePorPagina, "Límite por página")
-    }
-
-    validarEnteroPositivo(numero, parametro) {
-        if (!Number.isInteger(numero) || numero <= 0) {
-            throw new BadRequestError(`${parametro} debe ser un entero positivo`)
+    async actualizar(id, datosPaciente) {
+        const pacienteExistente = await this.pacienteRepository.findById(id)
+        if (!pacienteExistente) {
+            throw new NotFoundError(`No se encontró un paciente con el id ${id}`)
         }
+        const pacienteActualizado = await this.pacienteRepository.update(id,datosPaciente)
+        return pacienteActualizado
     }
 
+    async eliminar(id){
+        const pacienteExistente = await this.pacienteRepository.findById(id)
+        if (!pacienteExistente) {
+            throw new NotFoundError(`No se encontró un paciente con el id ${id}`)
+        }
+        const pacienteEliminado = await this.pacienteRepository.delete(id)
+        return pacienteEliminado
+    }
 
-
-    
 }
+
+//TODO validar usuario nuevo al crear paciente y capaz dni

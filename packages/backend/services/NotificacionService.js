@@ -1,69 +1,72 @@
-import { Notificacion } from "../domain/Notificacion/Notificacion.js";
-import { NotificacionRepository} from "../repositories/NotificacionRepository.js"
-import { UsuarioRepository} from "../repositories/UsuarioRepository.js"
-import {
-    BadRequestError,
-    NotFoundError,
-    UnprocessableEntityError,
-} from "../errors/AppErrors.js";
+import { NotificacionRepository } from "../repositories/NotificacionRepository.js";
+import { FactoryNotificacion } from "../domain/Notificacion/FactoryNotificacion.js";
+import { NotFoundError, ForbiddenError } from "../errors/AppErrors.js";
+import { paginacionSchema, objectIdSchema } from "../validations/commonValidations.js";
+import { UsuarioService } from "./UsuarioService.js"
 
-export class NotificacionService{
+export class NotificacionService {
     constructor({
         notificacionRepository = new NotificacionRepository(),
-        usuarioRepository = new UsuarioRepository()
-    } = {}){
+        usuarioService = new UsuarioService()
+    } = {}) {
         this.notificacionRepository = notificacionRepository
-        this.usuarioRepository = usuarioRepository
+        this.usuarioService = usuarioService
+        this.factory = new FactoryNotificacion()
     }
 
-    obtenerTodas({ numeroPagina = 1, limitePorPagina = 10, filtros = {} } = {}){
-        this.validarFiltros(filtros)
+    async obtenerTodos({ numeroPagina = 1, limitePorPagina = 10, filtros = {} } = {}) {
+        const { page, limit } = paginacionSchema.parse({ page: numeroPagina, limit: limitePorPagina });
 
-        const {notificaciones, totalNotificaciones} = this.usuarioRepository.obtenerPaginados(
-            numeroPagina,
-            limitePorPagina,
+        if (filtros?.usuarioId) {
+            await this.usuarioService.obtenerPorId(filtros.usuarioId)
+        }
+
+        const { notificaciones, totalNotificaciones, totalPaginas } = await this.notificacionRepository.obtenerPaginados(
+            page,
+            limit,
             filtros
-        )
-        const totalPaginas = totalNotificaciones === 0 ? 0 : Math.ceil(totalNotificaciones / limitePorPagina)
+        );
 
         return {
             notificaciones,
-            numeroPagina,
-            limitePorPagina,
+            totalNotificaciones,
             totalPaginas,
-            totalNotificaciones
+            numeroPagina: page,
+            limitePorPagina: limit,
+        };
+    }
+
+    async obtenerPorId(id) {
+        const validId = objectIdSchema.parse(id);
+        const notificacion = await this.notificacionRepository.obtenerPorId(validId);
+
+        if (!notificacion) {
+            throw new NotFoundError("Notificacion no encontrada");
         }
+
+        return notificacion;
     }
 
-    obtenerPorId(id){
-        this.validarEnteroPositivo(id, "Id")
+    async marcarComoLeida(notificacionId, usuarioId) {
+        const validNotifId = objectIdSchema.parse(notificacionId);
+        const validUsuarioId = objectIdSchema.parse(usuarioId);
 
-        const notificacion = this.notificacionRepository.obtenerPorId(id)
+        const notificacion = await this.obtenerPorId(validNotifId);
+        const destinatarioId = notificacion.destinatario?._id?.toString() || notificacion.destinatario?.toString();
 
-        if(!notificacion){
-            throw new NotFoundError("Notificacion no encontrado")
+        if (destinatarioId !== validUsuarioId.toString()) {
+            throw new ForbiddenError("La notificacion no se puede marcar como leida porque no te pertenece");
         }
 
-        return notificacion
+        notificacion.marcarComoLeida();
+        return await this.notificacionRepository.save(notificacion);
     }
 
-    // --- Validaciones --- //
-
-    validarFiltros({leida = null, usuarioId} = {}){
-        this.validarEnteroPositivo(usuarioId, "Id")
-        this.validarUsuarioExistente(usuarioId)
-    }
-
-    validarUsuarioExistente(usuarioId){
-        const usuarioExistente = this.usuarioRepository.findById(usuarioId) //TODO
-        if (!usuarioExistente) {
-            throw new NotFoundError("El usuario solicitado no fue encontrado")
-        }
-    }
-
-    validarEnteroPositivo(numero, parametro) {
-        if (!Number.isInteger(numero) || numero <= 0) {
-            throw new BadRequestError(`${parametro} debe ser un entero positivo`)
+    async notificarCambioEstadoTurno(turno) {
+        const notificacion = this.factory.crearSegunEstadoTurno(turno)
+        if (notificacion) {
+            await this.notificacionRepository.crear(notificacion)
         }
     }
 }
+

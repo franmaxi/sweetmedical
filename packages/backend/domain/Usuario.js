@@ -1,22 +1,13 @@
-export class Usuario {
-    constructor( {nombreUsuario, password} ) {
-        this.validarString(nombreUsuario, 'nombreUsuario')
-        this.validarString(password, 'password')
-        
-        this.idioma = 'es' //idioma por defecto, la idea es que al registrarlo copie el idioma del navegador, pero que tenga la posibilidad de cambiarlo posteriormente
-        this.id = null //todo
-        
-        this.nombreUsuario = nombreUsuario
-        this.password = password
-        this.eliminado = false
-        
-    }
-    
-    // Validacion Constructor
+import { usuarioDomainSchema } from "../validations/usuarioValidation.js";
 
-    validarString(string, nombreCampo){
-        if (typeof string !== 'string' || string.trim() === '') {
-            throw new TypeError(`El ${nombreCampo} debe ser un string no vacío`)
-        }
+export class Usuario {
+    constructor({ nombreUsuario, password }) {
+        const valid = usuarioDomainSchema.parse({ nombreUsuario, password });
+        
+        this.idioma = 'es';
+        // _id
+        this.nombreUsuario = valid.nombreUsuario;
+        this.password = valid.password;
+        this.eliminado = false;
     }
 }
