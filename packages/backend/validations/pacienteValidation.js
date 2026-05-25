@@ -1,7 +1,5 @@
 import { Types } from "mongoose"
 import { z } from "zod"
-import { NivelCobertura } from "../domain/Enumerados/NivelCobertura.js"
-
 
 //PACIENTE 
 export const pacienteBodySchema = z.object({
@@ -55,26 +53,4 @@ export const pacienteDomainSchema = z.object({
     })
 })
 
-
-// ---- DOMINIO: Schema para CoberturaEspecialidad ----
-export const coberturaEspecialidadDomainSchema = z.object({
-    especialidadGenerica: z.any({
-        required_error: "La especialidad genérica es requerida."
-    }),
-    nivel: z.enum(Object.values(NivelCobertura), {
-        required_error: "El nivel de cobertura es requerido.",
-        message: `El nivel de cobertura debe ser uno de: ${Object.values(NivelCobertura).join(", ")}`
-    })
-})
-
-// ---- DOMINIO: Schema para CoberturaPractica ----
-export const coberturaPracticaDomainSchema = z.object({
-    practicaGenerica: z.any({
-        required_error: "La práctica genérica es requerida."
-    }),
-    nivel: z.enum(Object.values(NivelCobertura), {
-        required_error: "El nivel de cobertura es requerido.",
-        message: `El nivel de cobertura debe ser uno de: ${Object.values(NivelCobertura).join(", ")}`
-    })
-})
 

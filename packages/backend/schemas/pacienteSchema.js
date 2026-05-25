@@ -23,8 +23,7 @@ const pacienteSchema = new mongoose.Schema({
         required: true
     },
     plan:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'Plan',
+        type: mongoose.Schema.Types.ObjectId,
         required: true
     },
     

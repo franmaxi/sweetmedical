@@ -1,10 +1,11 @@
-import { coberturaEspecialidadDomainSchema } from "../../validations/pacienteValidation.js";
+import { coberturaEspecialidadDomainSchema } from "../../validations/obraSocialValidation.js";
 
 export class CoberturaEspecialidad{
-    constructor( {especialidadGenerica, nivel} ){
+    constructor( {especialidadGenerica, nivel, pocentajeDescuento} ){
         const valid = coberturaEspecialidadDomainSchema.parse({ especialidadGenerica, nivel });
 
         this.especialidadGenerica = valid.especialidadGenerica;
         this.nivel = valid.nivel;
+        this.pocentajeDescuento = valid.pocentajeDescuento;
     }
-}  
+}

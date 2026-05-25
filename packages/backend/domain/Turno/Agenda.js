@@ -20,7 +20,7 @@ export class Agenda {
     // yo genero turnos de 15 minutos (mcd), a las 5:45 no puedo ofrecer la especialidad 2
 
     // Cuidado con los ultimos turnos del horario, en los ultimos 10 minutos no podemos ofrecer turnos de algo que dura 30 minutos
-    generarTurnos(medico, fechaInicial, fechaFinal) {
+    generarTurnos(medico, fechaInicial, fechaFinal, duracionTurnos) {
         // SE CALCULA UNA SOLA SEMANA
         // fechaInicial y fechaFinal son tipo date, las fechas de inicio del calculo de turnos y de fin/limite de calculo de turno
 
@@ -49,7 +49,7 @@ export class Agenda {
         }
 
         medico.disponibilidades.forEach(dispo => {            
-            const turnos = this.generarTurnosPorDisponibilidad(medico, dispo, inicio, fin)
+            const turnos = this.generarTurnosPorDisponibilidad(medico, dispo, inicio, fin, duracionTurnos)
             turnosGenerados.push(...turnos)
         });
         
@@ -73,7 +73,7 @@ export class Agenda {
     // Esto permite hacer la validación que la dispo siga existiendo.
 
 
-    generarTurnosPorDisponibilidad(medico, disponibilidad, inicio, fin){
+    generarTurnosPorDisponibilidad(medico, disponibilidad, inicio, fin, duracionTurnos){
         console.log("[Batch] Generando Turnos para disponibilidad")
         console.log(disponibilidad)
         
@@ -88,7 +88,7 @@ export class Agenda {
         // matriz
         const matrizOpcionesTurno = this.obtenerMatrizEspecialidadPracticaDuracion(disponibilidad.especialidades, disponibilidad.practicas, duracionesUnicas)
         // duracion de HH:mm
-        const duracionTurnos = disponibilidad.mcdDuracion
+        //const duracionTurnos = duracionTurnos //Se setea en el service, es 15m fijo TODO ya esta definido
 
         const diaDesde = new Date(inicio)
         diaDesde.setHours(0,0,0,0)
@@ -139,7 +139,6 @@ export class Agenda {
         return turnosGenerados;
     }
 
-
     obtenerDiaFechaArgentina(fechaUTC) {
         const AR_OFFSET_MS = -3 * 60 * 60 * 1000
         const fechaAR = new Date(fechaUTC.getTime() + AR_OFFSET_MS)
@@ -160,12 +159,6 @@ export class Agenda {
             )
         }
         return matrizOpciones
-    }
-
-    calcularMCD(numeros) {
-        if (!numeros || numeros.length === 0) return 1;
-        const mcd = (a, b) => b === 0 ? a : mcd(b, a % b);
-        return numeros.reduce((acc, num) => mcd(acc, num));
     }
 
     obtenerMasCercanoMenor(numero, array) {

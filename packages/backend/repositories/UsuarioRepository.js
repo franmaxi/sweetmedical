@@ -6,7 +6,7 @@ export class UsuarioRepository{
     }
 
     async findByNombre(nombre){
-        return await this.model.findOne({nombreUsuario:nombre, eliminado: true})
+        return await this.model.findOne({nombreUsuario:nombre, eliminado: false})
     }
 
     async save(usuario){

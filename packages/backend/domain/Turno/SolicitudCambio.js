@@ -4,8 +4,8 @@ export class SolicitudCambio{
     constructor({usuario, turnoNuevo, motivo}){
         const valid = solicitudCambioSchema.parse({ usuario, turnoNuevo, motivo });
 
-        this.usuario = usuario
-        this.turnoNuevo = turnoNuevo
-        this.motivo = motivo
+        this.usuario = valid.usuario
+        this.turnoNuevo = valid.turnoNuevo
+        this.motivo = valid.motivo
     }
 }

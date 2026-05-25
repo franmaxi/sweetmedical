@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import { DiaSemana } from '../domain/Enumerados/DiaSemana.js';
-// import { DisponibilidadHoraria } from '../domain/Medico/DisponibilidadHoraria.js';
 
 export const disponibilidadSchema = new mongoose.Schema({
     diaSemana:{ type: Number, enum:Object.values(DiaSemana), required: true},
@@ -19,10 +18,6 @@ export const disponibilidadSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Sede',
         required: true
-    },
-    mcdDuracion:{
-        type:Number,
-        required: true        
     }
  // Le ponemos el _id de Mongoose para poder identificar las diferentes disponibilidades
 },);

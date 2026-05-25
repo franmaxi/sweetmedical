@@ -13,10 +13,6 @@ export class DisponibilidadHoraria {
         this.sede = valid.sede;
     }
 
-    get mcdDuracion() {
-        return this.calcularMCDDuraciones();
-    }
-
     convertirHoraEnMinutos(hora){
         const [horas, minutos] = hora.split(':').map(Number);
         return horas * 60 + minutos;
@@ -34,18 +30,4 @@ export class DisponibilidadHoraria {
        return this.convertirHoraEnMinutos(this.horaHasta) - this.convertirHoraEnMinutos(this.horaDesde);
     }
 
-    calcularMCDDuraciones(){
-        const duracionesServicios = [
-            ...this.practicas.map(p => p.duracionTurnoEnMins),
-            ...this.especialidades.map(e => e.duracionTurnoEnMins)
-        ];
-        //Math.max(15, this.calcularMCD(duracionesServicios))
-        return this.calcularMCD(duracionesServicios);
-    }
-
-    calcularMCD(numeros) {
-        if (!numeros || numeros.length === 0) return 1;
-        const mcd = (a, b) => b === 0 ? a : mcd(b, a % b);
-        return numeros.reduce((acc, num) => mcd(acc, num));
-    }
 }

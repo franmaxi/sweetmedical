@@ -28,7 +28,7 @@ export class UsuarioService{
     async crear(datosUsuario){
         const validUser = usuarioDomainSchema.parse(datosUsuario)
 
-        const usuarioExistente = await this.usuarioRepository.findByNombre(validUser.nombreUsuario)
+        const usuarioExistente = await this.usuarioRepository.findByNombre(validUser.nombreUsuario) //TODO revisar q esto funcione
         if(usuarioExistente){
             throw new BadRequestError(`Ya existe un usuario con nombre ${validUser.nombreUsuario}`)
         }
@@ -42,6 +42,11 @@ export class UsuarioService{
         const validUser = usuarioDomainSchema.parse(datosUsuario)
 
         await this.obtenerPorId(validId)
+
+        const usuarioExistente = await this.usuarioRepository.findByNombre(validUser.nombreUsuario)
+        if(usuarioExistente && usuarioExistente._id.toString() !== validId){
+            throw new BadRequestError(`Ya existe un usuario con nombre ${validUser.nombreUsuario}`)
+        }
 
         return this.usuarioRepository.update(validId, validUser)
     }

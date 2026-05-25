@@ -1,7 +1,6 @@
 import { Paciente} from "../domain/Paciente/Paciente.js";
 
 import { PacienteRepository } from "../repositories/PacienteRepository.js";
-import { PlanRepository } from "../repositories/PlanRepository.js";
 import { ObraSocialRepository } from "../repositories/ObraSocialRepository.js";
 
 import { UsuarioService } from "./UsuarioService.js";
@@ -12,12 +11,10 @@ export class PacienteService {
     constructor({
         pacienteRepository = new PacienteRepository(),
         usuarioService = new UsuarioService(),
-        planRepository = new PlanRepository(),
         obraSocialRepository = new ObraSocialRepository(),
     } = {}) {
         this.pacienteRepository = pacienteRepository
         this.usuarioService = usuarioService
-        this.planRepository = planRepository
         this.obraSocialRepository = obraSocialRepository
     }
    
@@ -50,12 +47,13 @@ export class PacienteService {
     }
 
     async crear(datosPaciente) {
-        // consideramos que los planes estan precargados en el sistema, si no esta cargado no existe
-        const plan = await this.planRepository.findById(datosPaciente.planId)
-        if(!plan) throw new NotFoundError(`No se encontró un plan con el id ${datosPaciente.planId}`)
-            
+        // Buscamos la obra social para validar que existe
         const obraSocial = await this.obraSocialRepository.findById(datosPaciente.obraSocialId)
         if(!obraSocial) throw new NotFoundError(`No se encontró una obraSocial con el id ${datosPaciente.obraSocialId}`)
+
+        // El plan es un subdocumento embebido dentro de la obra social
+        const plan = await this.obraSocialRepository.findPlanById(datosPaciente.planId)
+        if(!plan) throw new NotFoundError(`No se encontró un plan con el id ${datosPaciente.planId}`)
 
         const usuarioGuardado = await this.usuarioService.crear({
             nombreUsuario: datosPaciente.nombreUsuario,
@@ -65,8 +63,8 @@ export class PacienteService {
             dni: datosPaciente.dni,
             nombre: datosPaciente.nombre,
             usuario: usuarioGuardado,
-            obraSocial: obraSocial,
-            plan: plan,
+            obraSocial: obraSocial._id,
+            plan: plan._id,
         })
         
         return await this.pacienteRepository.save(paciente)
@@ -89,7 +87,5 @@ export class PacienteService {
         const pacienteEliminado = await this.pacienteRepository.delete(id)
         return pacienteEliminado
     }
-
 }
 
-//TODO validar usuario nuevo al crear paciente y capaz dni

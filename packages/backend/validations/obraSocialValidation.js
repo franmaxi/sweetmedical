@@ -1,5 +1,6 @@
 import z from "zod";
 import { objectIdSchema } from "./commonValidations.js";
+import { NivelCobertura } from "../domain/Enumerados/NivelCobertura.js"
 
 export const coberturaEspecialidadSchema = z.object({
     especialidadGenerica: objectIdSchema, // ID de la especialidad genérica
@@ -36,4 +37,35 @@ export const planBodySchema = z.object({
     coberturasPracticas: z.array(coberturaPracticaSchema)
         .nullable()
         .default([])
+})
+
+
+// ---- DOMINIO: Schema para CoberturaEspecialidad ----
+export const coberturaEspecialidadDomainSchema = z.object({
+    especialidadGenerica: z.any({
+        required_error: "La especialidad genérica es requerida."
+    }),
+    nivel: z.enum(Object.values(NivelCobertura), {
+        required_error: "El nivel de cobertura es requerido.",
+        message: `El nivel de cobertura debe ser uno de: ${Object.values(NivelCobertura).join(", ")}`
+    }),
+    pocentajeDescuento: z.coerce.number({
+        required_error: "El porcentaje de descuento es requerido",
+        invalid_type_error: "El porcentaje de descuento debe ser un número comprendido entre 0 y 1."
+    }).gte(0).lte(1)
+})
+
+// ---- DOMINIO: Schema para CoberturaPractica ----
+export const coberturaPracticaDomainSchema = z.object({
+    practicaGenerica: z.any({
+        required_error: "La práctica genérica es requerida."
+    }),
+    nivel: z.enum(Object.values(NivelCobertura), {
+        required_error: "El nivel de cobertura es requerido.",
+        message: `El nivel de cobertura debe ser uno de: ${Object.values(NivelCobertura).join(", ")}`
+    }),
+    pocentajeDescuento: z.coerce.number({
+        required_error: "El porcentaje de descuento es requerido",
+        invalid_type_error: "El porcentaje de descuento debe ser un número comprendido entre 0 y 1."
+    }).gte(0).lte(1)
 })

@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { ObraSocial } from '../domain/Paciente/ObraSocial.js';
+import {planSchema} from './planSchema.js'
 
 const obraSocialSchema = new mongoose.Schema({
     nombre:{
@@ -8,10 +9,7 @@ const obraSocialSchema = new mongoose.Schema({
         trim:true
     },
 
-    planes: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Plan'
-    }],
+    planes: [planSchema],
     
 },{
     timestamps: true,

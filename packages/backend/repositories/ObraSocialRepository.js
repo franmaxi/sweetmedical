@@ -7,7 +7,9 @@ export class ObraSocialRepository{
 
     #populate(query) {
         return query
-            .populate("planes") 
+            //.populate("planes") 
+            .populate("planes.coberturaEspecialidad.especialidad") 
+            .populate("planes.coberturaPractica.practica")
     }
 
     async findAll() {
@@ -29,4 +31,20 @@ export class ObraSocialRepository{
     async delete(id) {
         return await this.#populate(this.model.findByIdAndDelete(id));
     }
+
+    // planes
+
+    async findPlanById(planId) {
+        // Buscamos la obra social que contenga ese planId en su array de planes
+        const obraSocial = await this.#populate(
+            this.model.findOne({ "planes._id": planId })
+        );
+        if (!obraSocial) return null;
+        
+        // Retornamos únicamente el subdocumento del plan correspondiente
+        return obraSocial.planes.id(planId);
+    }
+
+    
+
 }

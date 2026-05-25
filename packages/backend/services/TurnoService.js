@@ -20,6 +20,7 @@ import { objectIdSchema } from "../validations/commonValidations.js";
 import { SolicitudCambio } from "../domain/Turno/SolicitudCambio.js"
 
 
+
 export class TurnoService {
     constructor({
         turnoRepository = new TurnoRepository(),
@@ -37,6 +38,7 @@ export class TurnoService {
         this.especialidadRepository = especialidadRepository
         this.notificacionService = notificacionService
         this.usuarioService = usuarioService
+        this.duracionTurnos = 15
     }
     
     //nos interesa PARA EL HISTORIAl que nos traiga los turnos realizados, cancelados y reservados, no quiero que aparezcan los combinados (se puede filtrar para que algo no aparezca con mongoose). Chequear si se pueden pasar multiples estados
@@ -187,7 +189,7 @@ export class TurnoService {
         const turnosSiguientes = await this.turnoRepository.obtenerSiguientesDisponibles(turno.fechaHora,fechaMaxima,turno.medico._id)
         
         // calculo la cantidad de turnos que necesito, e itero sobre la lista de turnos ORDENADA verificando que el i actual no sea mayor
-        const turnosNecesarios = (servicio.duracionTurnoEnMins / disponibilidad.mcdDuracion)
+        const turnosNecesarios = (servicio.duracionTurnoEnMins / this.duracionTurnos)
         if (turnosSiguientes.length < turnosNecesarios) {
             throw new UnprocessableEntityError("No existe tiempo suficiente para el servicio solicitado")
         }
@@ -196,6 +198,7 @@ export class TurnoService {
         turno.actualizarEstado(EstadoTurno.RESERVADO, paciente.usuario, "El turno fue reservado")
         turno.paciente = pacienteId
         turno.costo = servicio.costo
+        turno.modificado = true
         // supuestamente Mongoose admite y entiende el especialidadId como ObjectId y lo permite, para no tener que buscar y meter el objeto
         if (especialidadId != null) {
             turno.especialidad = especialidadId;
@@ -272,7 +275,7 @@ export class TurnoService {
         //Revisar que los turnos existan
         //Revisar que todos los turnos esten en estado disponible
         const listaTurnos = await this.turnoRepository.obtenerSiguientesDisponibles(fechaPropuesta, fechaFin, turno.medico._id)
-        const turnosNecesarios = duracionServicio / dispoNueva.mcdDuracion
+        const turnosNecesarios = duracionServicio / this.duracionTurnos
         //confirmar que entre en el espacio
         if (listaTurnos.length < turnosNecesarios ) throw new UnprocessableEntityError('No hay turnos disponibles suficientes')
     
@@ -297,16 +300,16 @@ export class TurnoService {
         turno.asignarSolicitud(solicitudCambio)
 
         //Poner el turno en estado por confirmación
-        turno.actualizarEstado(EstadoTurno.POR_CONFIRMAR,usuario,"El turno esta pendiente de confirmacion")
+        turno.actualizarEstado(EstadoTurno.RESERVADO,usuario,"El turno esta pendiente de confirmacion")
         //Generar una notificación al opuesto
         await this.notificacionService.notificarCambioEstadoTurno(turno)
         return await this.turnoRepository.update(turnoId, turno)
     }
     
     async aceptarCambioDeFecha(turnoId, usuarioId){
-         const turno = await this.obtenerPorId(turnoId)
-        if(turno.estado != EstadoTurno.POR_CONFIRMAR){
-            throw new BadRequestError(`El turno id ${turnoId} esta en estado ${turno.estado}, deberia ser ${EstadoTurno.POR_CONFIRMAR}`)
+        const turno = await this.obtenerPorId(turnoId)
+        if(turno.estado != EstadoTurno.RESERVADO){
+            throw new BadRequestError(`El turno id ${turnoId} esta en estado ${turno.estado}, deberia ser ${EstadoTurno.RESERVADO}`)
         }
 
         //Validacion de usuarioId, que sea el medico o paciente
@@ -329,8 +332,8 @@ export class TurnoService {
     async rechazarCambioDeFecha(turnoId, usuarioId){
         //Obtener turno
         const turno = await this.obtenerPorId(turnoId)
-        if(turno.estado != EstadoTurno.POR_CONFIRMAR){
-            throw new BadRequestError(`El turno id ${turnoId} esta en estado ${turno.estado}, deberia ser ${EstadoTurno.POR_CONFIRMAR}`)
+        if(turno.estado != EstadoTurno.RESERVADO){
+            throw new BadRequestError(`El turno id ${turnoId} esta en estado ${turno.estado}, deberia ser ${EstadoTurno.RESERVADO}`)
         }
 
         //Validacion de usuarioId, que sea el medico o paciente
@@ -444,7 +447,7 @@ export class TurnoService {
         
         // borramos los turnos no contiguos
         for (let i = 0; i < turnosSiguientes.length; i++) {
-            let horaSupuesta = new Date(ultimoTurno.fechaHora + ( (i + 1) * disponibilidad.mcdDuracion) * 60 * 1000)
+            let horaSupuesta = new Date(ultimoTurno.fechaHora + ( (i + 1) * this.duracionTurnos) * 60 * 1000)
             if (turnosSiguientes[i].fechaHora.getTime() !== horaSupuesta.getTime()) {
                 turnosSiguientes.splice(i) // Cuando encuentra alguno que no sea disponible, corta desde esa posicion.
                 break
@@ -452,16 +455,16 @@ export class TurnoService {
         }
         
         // actualizamos el inicial
-        let tiempoRestante = disponibilidad.mcdDuracion * (1 + turnosCombinados.length + turnosSiguientes.length)
+        let tiempoRestante = this.duracionTurnos * (1 + turnosCombinados.length + turnosSiguientes.length)
         turnoCopia.especialidad = disponibilidad.especialidades.filter(e => e.duracionTurnoEnMins <= tiempoRestante)
         turnoCopia.practica = disponibilidad.practicas.filter(p => p.duracionTurnoEnMins <= tiempoRestante)
         // actualizamos tiempo restante
-        tiempoRestante = tiempoRestante - disponibilidad.mcdDuracion // le resto la duracion del turno que acabo de calcular
+        tiempoRestante = tiempoRestante - this.duracionTurnos // le resto la duracion del turno que acabo de calcular
         // actualizamos los combinados
         for (let i = 0; i < turnosCombinados.length ; i++) {
             turnosCombinados[i].especialidad = disponibilidad.especialidades.filter(e => e.duracionTurnoEnMins <= tiempoRestante)
             turnosCombinados[i].practica = disponibilidad.practicas.filter(p => p.duracionTurnoEnMins <= tiempoRestante)
-            tiempoRestante = tiempoRestante - disponibilidad.mcdDuracion 
+            tiempoRestante = tiempoRestante - this.duracionTurnos 
         }
 
         return {turnoCopia: turnoCopia, 
@@ -561,21 +564,21 @@ export class TurnoService {
             )
             
             if (t.estado == EstadoTurno.RESERVADO) {
-                await this.refrescarTurnosAnteriores(t, t.disponibilidad.mcdDuracion, duracionMaxima)
+                await this.refrescarTurnosAnteriores(t, this.duracionTurnos, duracionMaxima)
             }
             else if(t.estado == EstadoTurno.CANCELADO){
                 // calculamos el tiempo disponible luego de cancelar los turnos
                 //turno cancelado a las 18:00 / mcd = 30 / duracionMaxima = 2h = 120m / fechaMinima = 17:30 (arranco a contar desde el turno de las 18) -> fechaMaxima = 19:30 (cuento hasta el de las 20, sin incluirlo)
                 //cancelado a las 18:00 mcd 30 duracionMaxima 30 fechaMinima = 17:30 fechaMaxima= 18:00
-                const fechaMinima = new Date(t.fechaHora - t.disponibilidad.mcdDuracion * 60 * 1000) // desde el primero que refrescamos sin considerarlo
-                const fechaMaxima = new Date(t.fechaHora + (duracionMaxima - t.disponibilidad.mcdDuracion) * 60 * 1000) // hasta el ultimo posible que necesitemos para calcular el tiempo
+                const fechaMinima = new Date(t.fechaHora - this.duracionTurnos * 60 * 1000) // desde el primero que refrescamos sin considerarlo
+                const fechaMaxima = new Date(t.fechaHora + (duracionMaxima - this.duracionTurnos) * 60 * 1000) // hasta el ultimo posible que necesitemos para calcular el tiempo
                 const turnosSiguientes = await this.turnoRepository.obtenerSiguientesDisponibles(fechaMinima, fechaMaxima, t.medico._id)
                 
-                let tiempoRestante = t.disponibilidad.mcdDuracion
+                let tiempoRestante = this.duracionTurnos
                 // borramos los turnos no contiguos
                 for (let i = 0; i < turnosSiguientes.length; i++) {
-                    let horaSupuesta = new Date(fechaMinima + ( (i + 1) * t.disponibilidad.mcdDuracion) * 60 * 1000)
-                    tiempoRestante = tiempoRestante + t.disponibilidad.mcdDuracion
+                    let horaSupuesta = new Date(fechaMinima + ( (i + 1) * this.duracionTurnos) * 60 * 1000)
+                    tiempoRestante = tiempoRestante + this.duracionTurnos
                     if (turnosSiguientes[i].fechaHora.getTime() !== horaSupuesta.getTime()) {
                         break
                     }
@@ -598,7 +601,7 @@ export class TurnoService {
         
         // borramos los turnos no contiguos
         for (let i = 0; i < turnosAnteriores.length; i++) {
-            let horaSupuesta = new Date(t.fechaHora - (i+1) * t.disponibilidad.mcdDuracion * 60 * 1000) 
+            let horaSupuesta = new Date(t.fechaHora - (i+1) * this.duracionTurnos * 60 * 1000) 
             // si el turno fue a las 18:00, la hora del anterior deberia ser 17:30
             
             if (turnosAnteriores[i].fechaHora.getTime() !== horaSupuesta.getTime()) {
@@ -608,12 +611,12 @@ export class TurnoService {
         }
 
         //arrancamos desde el turno anterior al reservado/cancelado. Vamos yendo para atras sumando el tiempo que se agrega
-        //let tiempoRestante = t.disponibilidad.mcdDuracion // empieza en 30
+        //let tiempoRestante = this.duracionTurnos // empieza en 15
         let tiempoRestante = tiempoRestanteInicial
         for (const ta of turnosAnteriores) {
             ta.especialidad = t.disponibilidad.especialidades.filter(e => e.duracionTurnoEnMins <= tiempoRestante)
             ta.practica = t.disponibilidad.practicas.filter(p => p.duracionTurnoEnMins <= tiempoRestante)
-            tiempoRestante = tiempoRestante + t.disponibilidad.mcdDuracion 
+            tiempoRestante = tiempoRestante + this.duracionTurnos 
             turnosAModificar.push(ta)
         }
         

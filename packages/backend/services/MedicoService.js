@@ -1,5 +1,4 @@
 import { Medico } from "../domain/Medico/Medico.js";
-import { EstadoTurno } from "../domain/Enumerados/EstadoTurno.js";
 import { MedicoRepository } from "../repositories/MedicoRepository.js";
 import { UsuarioService } from "./UsuarioService.js";
 import { DisponibilidadHoraria } from "../domain/Medico/DisponibilidadHoraria.js";
@@ -9,7 +8,6 @@ import { PracticaService } from "./PracticaService.js";
 import { objectIdSchema } from "../validations/commonValidations.js";
 import {
     NotFoundError,
-    UnprocessableEntityError,
     ConflictError,
     BadRequestError
 } from "../errors/AppErrors.js";

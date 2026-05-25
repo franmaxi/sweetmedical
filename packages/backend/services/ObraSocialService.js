@@ -4,7 +4,6 @@ import {
 } from "../errors/AppErrors.js"
 
 import { ObraSocialRepository } from "../repositories/ObraSocialRepository.js";
-import { PlanRepository } from "../repositories/PlanRepository.js";
 import { EspecialidadGenericaRepository } from "../repositories/EspecialidadGenericaRepository.js";
 import { PracticaGenericaRepository } from "../repositories/PracticaGenericaRepository.js";
 
@@ -14,12 +13,10 @@ import { Plan } from "../domain/Plan/Plan.js";
 export class ObraSocialService {
     constructor({ 
         obraSocialRepository = new ObraSocialRepository(),
-        planRepository = new PlanRepository(),
         especialidadGenericaRepository = new EspecialidadGenericaRepository(),
         practicaGenericaRepository = new PracticaGenericaRepository() 
     } = {}) {
         this.obraSocialRepository = obraSocialRepository
-        this.planRepository = planRepository
         this.especialidadGenericaRepository = especialidadGenericaRepository
         this.practicaGenericaRepository = practicaGenericaRepository
     }
@@ -49,7 +46,7 @@ export class ObraSocialService {
     }
 
     async obtenerPlanesPorObraSocial(idObraSocial){
-        const obraSocial = await this.obtenerPorId(idObraSocial)
+        const obraSocial = await this.obtenerPorIdObraSocial(idObraSocial)
         
         if (obraSocial.planes == null || obraSocial.planes.length == 0) {
             return []
@@ -58,28 +55,23 @@ export class ObraSocialService {
         return obraSocial.planes
     }
 
+    async obtenerTodosPlan({ numeroPagina = 1, limitePorPagina = 10 } = {}) {
+        const obrasSociales = await this.obraSocialRepository.findAll()
+        const todosLosPlanes = obrasSociales.flatMap(os => os.planes)
+        const totalPlanes = todosLosPlanes.length
+        const totalPaginas = totalPlanes === 0 ? 0 : Math.ceil(totalPlanes / limitePorPagina)
+        const salto = (numeroPagina - 1) * limitePorPagina
+        const planes = todosLosPlanes.slice(salto, salto + limitePorPagina)
+        return { planes, numeroPagina, limitePorPagina, totalPaginas, totalPlanes }
+    }
+
     //TODO verificar si necesitamos el delete
     //Lo mismo para el patch
 
     // ---------- Planes ----------
-   
-    async obtenerTodosPlan({ numeroPagina = 1, limitePorPagina = 10 } = {}) {
-        const { planes, totalPlanes } = await this.planRepository.findPaginados(
-            numeroPagina,
-            limitePorPagina,
-        );
-        const totalPaginas = totalPlanes === 0 ? 0 : Math.ceil(totalPlanes / limitePorPagina);
-        return {
-            planes,
-            numeroPagina,
-            limitePorPagina,
-            totalPaginas,
-            totalPlanes
-        };
-    }
 
     async obtenerPlanPorId(id){
-        const plan = await this.planRepository.findById(id)
+        const plan = await this.obraSocialRepository.findPlanById(id)
         if (!plan) {
             throw new NotFoundError(`No se encontró un plan con el id ${id}`)
         }
@@ -122,22 +114,25 @@ export class ObraSocialService {
             }
         }
 
+        const planExistente = obraSocial.planes.find(p => p.nombre.toLowerCase() === datosPlan.nombre.toLowerCase())
+
+        if (planExistente) {
+            throw new BadRequestError(`Ya existe un plan con el nombre ${datosPlan.nombre}`)
+        }
+
         const plan = new Plan({
             nombre: datosPlan.nombre,
             coberturaEspecialidad: datosPlan.coberturasEspecialidades,
             coberturaPractica: datosPlan.coberturasPracticas
         })
-        const planNuevo = await this.planRepository.save(plan)
 
         obraSocial.planes.push(plan)
 
         await this.obraSocialRepository.update(obraSocial._id, obraSocial)
         
-        return planNuevo
+        return obraSocial
     }
 
     //TODO pendiente eliminar y cambiar un plan
 
 }
-
-//TODO validar nombre nuevo al crear plan

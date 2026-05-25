@@ -9,7 +9,11 @@ const CoberturaEspecialidad = new mongoose.Schema({
     nivel: {
         type: String, 
         enum:Object.values(NivelCobertura), 
-        required: true}
+        required: true},
+    pocentajeDescuento:{
+        type: Number,
+        required: true
+    }
 }, {_id : false})
 
 const CoberturaPractica = new mongoose.Schema({
@@ -19,10 +23,14 @@ const CoberturaPractica = new mongoose.Schema({
     nivel: {
         type: String, 
         enum:Object.values(NivelCobertura), 
-        required: true}
+        required: true},
+    pocentajeDescuento:{
+        type: Number,
+        required: true
+    }
 }, {_id : false})
 
-const planSchema = new mongoose.Schema({
+export const planSchema = new mongoose.Schema({
     nombre:{
         type: String,
         required: true,
@@ -30,13 +38,9 @@ const planSchema = new mongoose.Schema({
     },
     coberturaEspecialidad:[CoberturaEspecialidad],
     coberturaPractica:[CoberturaPractica],
-    
 },{
     timestamps: true,
     versionKey: false,
-    collection: 'planes'
 });
 
 planSchema.loadClass(Plan);
-
-export const PlanModel = mongoose.model('Plan', planSchema);
