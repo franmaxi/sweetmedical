@@ -482,14 +482,12 @@ export class TurnoService {
         fechaInicio.setUTCDate(fechaInicio.getUTCDate() + diasAntelacionTurno)
         fechaInicio.setUTCHours(0, 0, 0, 0)
 
-        const fechaFin = new Date(fechaInicio.getTime())
-        
-        fechaFin.setUTCDate(fechaInicio.getUTCDate() + 6)
+        const fechaFin = new Date(fechaInicio.getTime() + 6 * 24 * 60 * 60 * 1000) //sumo 6 dias en milisegundos
         fechaFin.setUTCHours(23, 59, 59, 999)
 
-        // console.log("Iniciamos Proceso Generacion Turnos Batch");
-        // console.log("Fecha Inicio (UTC): " + fechaInicio.toISOString());
-        // console.log("Fecha Fin (UTC): " + fechaFin.toISOString());
+        //console.log("Iniciamos Proceso Generacion Turnos Batch");
+        //console.log("Fecha Inicio (UTC): " + fechaInicio.toISOString());
+        //console.log("Fecha Fin (UTC): " + fechaFin.toISOString());
         
         // obtenemos medicos
         const medicos = await this.medicoRepository.findAll()
@@ -504,7 +502,7 @@ export class TurnoService {
         const turnosAGuardar = []
         for (const m of medicos) { 
             console.log("[Batch] Accediendo al medico")
-            const turnosMedico = agenda.generarTurnos(m, fechaInicio, fechaFin)
+            const turnosMedico = agenda.generarTurnos(m, fechaInicio, fechaFin, this.duracionTurnos)
             console.log(turnosMedico)
             turnosAGuardar.push(...turnosMedico)
         }

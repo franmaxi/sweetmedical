@@ -4,35 +4,10 @@ import { BadRequestError, UnprocessableEntityError } from "../../errors/AppError
 
 export class Agenda {
 
-    /*
-    Logica de Generacion de turnos.
-    Vamos a tomar de cada disponibilidad de un medico los datos y vamos a generar los turnos.
-    Por sistema vamos a tener un minimo comun divisor de las opciones posibles de duracion de las especialidades/practicas
-    Esto es para asegurarnos que sea simple la organizacion temporal
-    Ej: si el mcd es 15, los turnos deben ser multiplos de 15 (a confirmar)
-    Para generar la menor cantidad de turnos posibles, tomaremos el mcd de las especialidades/practicas de la disponibilidad especifica.
-    Los turnos se generan con la lista de especialidades y practicas disponibles a solicitar / o / con una referencia a la disponibilidad asociada
-    Los turnos se van a combinar, pero se guarda la entidad en estado "Combinado"
-    */
-
-    // especialidad 1 = 15 minutos / especialidad 2 = 30 minutos
-    // disponibilidad de 2 a 6
-    // yo genero turnos de 15 minutos (mcd), a las 5:45 no puedo ofrecer la especialidad 2
-
-    // Cuidado con los ultimos turnos del horario, en los ultimos 10 minutos no podemos ofrecer turnos de algo que dura 30 minutos
     generarTurnos(medico, fechaInicial, fechaFinal, duracionTurnos) {
-        // SE CALCULA UNA SOLA SEMANA
-        // fechaInicial y fechaFinal son tipo date, las fechas de inicio del calculo de turnos y de fin/limite de calculo de turno
-
-        // 1 -> mes siguiente -> generas todo mes 2, mes 1 no tiene turnos
-        // 2 -> generar el mes 3, pero mes 2 tiene turnos
-        // semana 1, genero 2,3,4,5
-        // semana 2, genera 6
-        // semana 3, genera 7
-        // semana 4, genera 8
         const turnosGenerados = []
 
-        if(!medico?.disponibilidades || medico.disponibilidades.length === 0){
+        if (!medico?.disponibilidades || medico.disponibilidades.length === 0) {
             console.log("[Batch] El medico no tiene disponibilidades")
             return turnosGenerados
         }
@@ -40,7 +15,7 @@ export class Agenda {
         const inicio = new Date(fechaInicial)
         const fin = new Date(fechaFinal)
 
-        if (isNaN(inicio) || isNaN(fin)) { 
+        if (isNaN(inicio) || isNaN(fin)) {
             throw new BadRequestError('Las fechas inicial y final deben ser objetos Date válidos');
         }
 
@@ -48,16 +23,13 @@ export class Agenda {
             throw new RangeError('La fecha inicial debe ser menor o igualque la final')
         }
 
-        medico.disponibilidades.forEach(dispo => {            
+        medico.disponibilidades.forEach(dispo => {
             const turnos = this.generarTurnosPorDisponibilidad(medico, dispo, inicio, fin, duracionTurnos)
             turnosGenerados.push(...turnos)
         });
-        
+
         return turnosGenerados
     }
-
-    // dispo tiene 2 especialidades de 30 y 60 minutos
-    // mcd es de 30 minutos -> los turnos los genero de a 30 minutos -> 2 horas = 4 turnos totales
 
     /* 
         Consideracion que tuvimos
@@ -67,37 +39,28 @@ export class Agenda {
         30 mins, 11.45 no existe
     */
 
-    // cuando un turno se cancela:
-    // el turno viejo se "archiva", se copian datos clave como medico y fecha y hora. 
-    // Con los datos buscamos la disponibilidad para generar el un nuevo turno
-    // Esto permite hacer la validación que la dispo siga existiendo.
 
-
-    generarTurnosPorDisponibilidad(medico, disponibilidad, inicio, fin, duracionTurnos){
+    generarTurnosPorDisponibilidad(medico, disponibilidad, inicio, fin, duracionTurnos) {
         console.log("[Batch] Generando Turnos para disponibilidad")
-        console.log(disponibilidad)
-        
-        const turnosGenerados = [] 
+        //console.log(disponibilidad)
+
+        const turnosGenerados = []
         const duracionesUnicas = [
             ...new Set([
                 ...disponibilidad.practicas.map(p => p.duracionTurnoEnMins),
                 ...disponibilidad.especialidades.map(e => e.duracionTurnoEnMins)
             ])
-        ].sort((a,b) => a-b) 
+        ].sort((a, b) => a - b)
         // ordenar duraciones
         // matriz
         const matrizOpcionesTurno = this.obtenerMatrizEspecialidadPracticaDuracion(disponibilidad.especialidades, disponibilidad.practicas, duracionesUnicas)
-        // duracion de HH:mm
-        //const duracionTurnos = duracionTurnos //Se setea en el service, es 15m fijo TODO ya esta definido
 
         const diaDesde = new Date(inicio)
-        diaDesde.setHours(0,0,0,0)
-        
-        const diaHasta = new Date(fin)
-        diaHasta.setHours(23,59,59,999)
+        diaDesde.setHours(0, 0, 0, 0)
 
-        // llevo la fecha de GMT-3 a UTC con un formatter
-        
+        const diaHasta = new Date(fin)
+        diaHasta.setHours(23, 59, 59, 999)
+
         // recorro cada dia entre el inicio y el fin
         for (let fecha = new Date(diaDesde); fecha <= diaHasta; fecha.setUTCDate(fecha.getUTCDate() + 1)) {
 
@@ -113,8 +76,7 @@ export class Agenda {
             const finSlot = new Date(fecha)
             finSlot.setUTCHours(horaHasta + 3, minutoHasta, 0, 0)
 
-            // en el for de abajo podriamos usar la variable cantidad turnos, y tener un contador de turno actual
-            for(
+            for (
                 let turnoInicio = new Date(inicioSlot);
                 turnoInicio.getTime() + duracionTurnos * 60000 <= finSlot.getTime();
                 turnoInicio = new Date(turnoInicio.getTime() + duracionTurnos * 60000)
@@ -135,7 +97,7 @@ export class Agenda {
                 })
                 turnosGenerados.push(nuevoTurno)
             }
-        } 
+        }
         return turnosGenerados;
     }
 
@@ -145,17 +107,17 @@ export class Agenda {
         return fechaAR.getUTCDay()
     }
 
-    obtenerMatrizEspecialidadPracticaDuracion(especialidades, practicas, duracionesUnicas){
+    obtenerMatrizEspecialidadPracticaDuracion(especialidades, practicas, duracionesUnicas) {
         // duracionTurnos viene ordenada
         const matrizOpciones = new Map()
         const duracionesDistintas = duracionesUnicas.length
         for (let i = 0; i < duracionesDistintas; i++) {
             matrizOpciones.set(
-                duracionesUnicas[i], 
+                duracionesUnicas[i],
                 {
-                    practicas: practicas.filter( (p) => p.duracionTurnoEnMins <= duracionesUnicas[i] ),
-                    especialidades: especialidades.filter ((e) => e.duracionTurnoEnMins <= duracionesUnicas[i])
-                } 
+                    practicas: practicas.filter((p) => p.duracionTurnoEnMins <= duracionesUnicas[i]),
+                    especialidades: especialidades.filter((e) => e.duracionTurnoEnMins <= duracionesUnicas[i])
+                }
             )
         }
         return matrizOpciones

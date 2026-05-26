@@ -48,13 +48,53 @@ export class TurnoRepository{
         }).sort({fechaHora : 1})
     }
     
+    _toPersistence(turno) {
+        if (!turno) return null;
+        
+        const getId = (val) => {
+            if (!val) return null;
+            if (typeof val === 'string') return val;
+            if (typeof val === 'object') {
+                if (val._id) return val._id.toString();
+                if (val.constructor && val.constructor.name === 'ObjectId') return val.toString();
+            }
+            return val;
+        };
+
+        const mapArrayOrSingle = (val) => {
+            if (!val) return null;
+            if (Array.isArray(val)) {
+                return val.map(item => getId(item)).filter(Boolean);
+            }
+            return getId(val);
+        };
+
+        return {
+            _id: turno._id,
+            medico: getId(turno.medico),
+            paciente: getId(turno.paciente),
+            fechaHora: turno.fechaHora,
+            sede: getId(turno.sede),
+            practica: mapArrayOrSingle(turno.practica),
+            especialidad: mapArrayOrSingle(turno.especialidad),
+            estado: turno.estado,
+            historialEstados: turno.historialEstados,
+            costo: turno.costo,
+            disponibilidad: getId(turno.disponibilidad),
+            refrescarAnteriores: turno.refrescarAnteriores,
+            solicitudCambio: turno.solicitudCambio
+        };
+    }
+
     async save(turno) {
-        const nuevoTurno = new this.model(turno);
+        const persistenceTurno = this._toPersistence(turno);
+        const nuevoTurno = new this.model(persistenceTurno);
         return await nuevoTurno.save();
     }
 
     async update(id, turnoModificado) {
-        return await this.model.findByIdAndUpdate(id, turnoModificado, { new: true });
+        const persistenceTurno = this._toPersistence(turnoModificado);
+        return await this.model.findByIdAndUpdate(id, persistenceTurno, { new: true });
     }
 
     async updateMany(ids, datosAActualizar) {
@@ -137,6 +177,7 @@ export class TurnoRepository{
 
     async saveAllBatch(turnos) {
         if (!turnos || turnos.length === 0) return [];
-        return await this.model.insertMany(turnos);
+        const persistenceTurnos = turnos.map(t => this._toPersistence(t));
+        return await this.model.insertMany(persistenceTurnos);
     }
 }

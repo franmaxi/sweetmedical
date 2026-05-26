@@ -85,6 +85,7 @@ export const servicioBodySchema = z.object({
 
 // MEDICO DOMAIN
 export const medicoDomainSchema = z.object({
+    _id: z.any().optional(),
     usuario: z.any({
         required_error: "El usuario es requerido."
     }),
@@ -99,6 +100,7 @@ export const medicoDomainSchema = z.object({
 })
 
 export const disponibilidadDomainSchema = z.object({
+    _id: z.any().optional(),
     diaSemana: z.coerce.number({
         required_error: "El día de la semana es requerido.",
         invalid_type_error: "El día de la semana debe ser un número."

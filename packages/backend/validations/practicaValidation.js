@@ -4,25 +4,26 @@ import { z } from "zod"
 //----- CONTROLLER Y SERVICE -----
 export const practicaGenericaBodySchema = z.object({
     codigo: z.string({ required_error: "El campo codigo es requerido." })
-             .trim().min(1, "El campo codigo no puede estar vacío."),
+        .trim().min(1, "El campo codigo no puede estar vacío."),
     nombre: z.string({ required_error: "El campo nombre es requerido." })
-             .trim().min(1, "El campo nombre no puede estar vacío.")
+        .trim().min(1, "El campo nombre no puede estar vacío.")
 }).strict("No se permiten campos adicionales en la solicitud.");
 
 //La practica hereda de la generica
 export const practicaBodySchema = practicaGenericaBodySchema.extend({
     id: z.any().optional(),
     duracionTurnoEnMins: z.number({ required_error: "El campo duracionTurnoEnMins es requerido." })
-                          .int("La duración debe ser un número entero.")
-                          .positive("La duración debe ser un número mayor a 0."),
+        .int("La duración debe ser un número entero.")
+        .positive("La duración debe ser un número mayor a 0."),
     costo: z.number({ required_error: "El campo costo es requerido." })
-            .positive("El costo debe ser un número mayor a 0.")
+        .positive("El costo debe ser un número mayor a 0.")
 }).strict("No se permiten campos adicionales en la solicitud.");
 
 
 //-----DOMINIO-----
 
 export const practicaGenericaDomainSchema = z.object({
+    _id: z.any().optional(),
     nombre: z.string({
         required_error: "El nombre de la practica debe ser un string no vacío",
         invalid_type_error: "El nombre de la practica debe ser un string no vacío"
@@ -34,6 +35,7 @@ export const practicaGenericaDomainSchema = z.object({
 })
 
 export const practicaDomainSchema = practicaGenericaDomainSchema.extend({
+    _id: z.any().optional(),
     practicaGenerica: z.any().refine(val => Types.ObjectId.isValid(val), {
         message: "El parámetro id practicaGenerica debe ser un ID válido de Mongoose."
     }),

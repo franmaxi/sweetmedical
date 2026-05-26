@@ -2,7 +2,7 @@ import { coberturaPracticaDomainSchema } from "../../validations/obraSocialValid
 
 export class CoberturaPractica{
     constructor( {practicaGenerica, nivel, pocentajeDescuento} ){
-        const valid = coberturaPracticaDomainSchema.parse({ practicaGenerica, nivel });
+        const valid = coberturaPracticaDomainSchema.parse({ practicaGenerica, nivel, pocentajeDescuento });
 
         this.practicaGenerica = valid.practicaGenerica;
         this.nivel = valid.nivel;

@@ -31,11 +31,11 @@ const turnoSchema = new mongoose.Schema({
         required: true
     },
     practica:{
-        type: mongoose.Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.Mixed,
         ref: 'Practica'
     },
     especialidad:{
-        type: mongoose.Schema.Types.ObjectId,
+        type: mongoose.Schema.Types.Mixed,
         ref: 'Especialidad'
     },
     estado:{

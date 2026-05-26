@@ -4,9 +4,9 @@ import { BadRequestError, UnprocessableEntityError } from "../../errors/AppError
 import { turnoDomainSchema } from "../../validations/turnoValidation.js";
 import { SolicitudCambio } from "./SolicitudCambio.js";
 
-export class Turno{
-    constructor( {medico, fechaHora, sede, practica, especialidad, disponibilidad} 
-    ){ 
+export class Turno {
+    constructor({ medico, fechaHora, sede, practica, especialidad, disponibilidad }
+    ) {
         const valid = turnoDomainSchema.parse({ medico, fechaHora, sede, practica, especialidad, disponibilidad });
 
         // _id
@@ -24,7 +24,7 @@ export class Turno{
         this.modificado = false
     }
 
-    actualizarEstado(nuevoEstado, usuario, motivo){
+    actualizarEstado(nuevoEstado, usuario, motivo) {
         if (this.estado === EstadoTurno.CANCELADO || this.estado === EstadoTurno.REALIZADO) {
             throw new BadRequestError(`No se puede cambiar el estado de un turno ${this.estado}`)
         }
@@ -38,28 +38,28 @@ export class Turno{
         this.estado = nuevoEstado
     }
 
-    asignarSolicitud(solicitud){
+    asignarSolicitud(solicitud) {
         this.solicitudCambio = solicitud
     }
 
-    eliminarSolicitud(){
+    eliminarSolicitud() {
         this.solicitudCambio = null
     }
 
-    ultimoHistorialEstado(){
+    ultimoHistorialEstado() {
         return this.historialEstados.at(-1)
     }
-    
+
     sePuedeCancelar(ahora, horasMinimasParaCancelar) {
         const limiteMinimo = new Date(this.fechaHora.getTime() - horasMinimasParaCancelar * 60 * 60 * 1000)
         console.log("Ahora: " + ahora)
         console.log("Limite: " + limiteMinimo)
         console.log(ahora + " >= " + limiteMinimo)
-        return ahora<=limiteMinimo
+        return ahora <= limiteMinimo
         // si la fecha actual es menor a la fecha maxima permitida puedo cancelar
-    } 
+    }
 
-    esTipoTurno(){
+    esTipoTurno() {
         return this.practica ? 'practica' : 'especialidad';
     }
 }

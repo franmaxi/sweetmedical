@@ -80,12 +80,12 @@ export class MedicoService {
         }
 
         for (const especialidadId of datosMedico.especialidades) {
-            if (!await this.especialidadService.findById(especialidadId)) {
+            if (!await this.especialidadService.obtenerPorId(especialidadId)) {
                 throw new NotFoundError(`Especialidad ${especialidadId} no encontrada`);
             }
         }
         for (const practicaId of datosMedico.practicas) {
-            if (!await this.practicaService.findById(practicaId)) {
+            if (!await this.practicaService.obtenerPorId(practicaId)) {
                 throw new NotFoundError(`Practica ${practicaId} no encontrada`);
             }
         }

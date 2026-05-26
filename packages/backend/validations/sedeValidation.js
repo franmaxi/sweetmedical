@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const sedeDomainSchema = z.object({
+    _id: z.any().optional(),
     nombre: z.string({
         required_error: "El nombre de la sede es requerido.",
         invalid_type_error: "El nombre de la sede debe ser un texto."
