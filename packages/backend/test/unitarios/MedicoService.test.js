@@ -34,7 +34,7 @@ const createMockUsuarioService = () => ({
 });
 
 const createMockEspecialidadService = () => ({
-  findById: jest.fn(),
+  obtenerPorId: jest.fn(),
   crear: jest.fn(),
   actualizar: jest.fn(),
   eliminar: jest.fn(),
@@ -42,7 +42,7 @@ const createMockEspecialidadService = () => ({
 });
 
 const createMockPracticaService = () => ({
-  findById: jest.fn(),
+  obtenerPorId: jest.fn(),
   crear: jest.fn(),
   actualizar: jest.fn(),
   eliminar: jest.fn(),
@@ -154,7 +154,7 @@ describe('MedicoService', () => {
     const medico = createMedico();
     medico.usuario._id = 'usuario-1';
     mockMedicoRepository.findById.mockResolvedValue(medico);
-    mockEspecialidadService.findById.mockResolvedValue(null);
+    mockEspecialidadService.obtenerPorId.mockResolvedValue(null);
 
     await expect(
       medicoService.actualizar(MEDICO_ID, {

@@ -192,26 +192,6 @@ describe('Agenda domain', () => {
     agenda = new Agenda();
   });
 
-  describe('calcularMCD', () => {
-    test('retorna 1 para array vacío', () => {
-      expect(agenda.calcularMCD([])).toBe(1);
-    });
-
-    test('retorna 1 para entrada nula', () => {
-      expect(agenda.calcularMCD(null)).toBe(1);
-    });
-
-    test('calcula el MCD de varios números', () => {
-      expect(agenda.calcularMCD([30, 60, 90])).toBe(30);
-      expect(agenda.calcularMCD([15, 30, 60])).toBe(15);
-      expect(agenda.calcularMCD([7, 14])).toBe(7);
-    });
-
-    test('retorna el único número si la lista tiene un solo elemento', () => {
-      expect(agenda.calcularMCD([45])).toBe(45);
-    });
-  });
-
   describe('obtenerMasCercanoMenor', () => {
     test('retorna el mayor número menor o igual al solicitado', () => {
       expect(agenda.obtenerMasCercanoMenor(45, [15, 30, 60])).toBe(30);

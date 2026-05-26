@@ -248,12 +248,11 @@ describe('TurnoService', () => {
       pacienteRepository.findById.mockResolvedValue({ _id: 'pac-1', usuario: { _id: 'usr-1' } });
       especialidadRepository.findById.mockResolvedValue({
         _id: 'esp-1',
-        duracionTurnoEnMins: 30,
+        duracionTurnoEnMins: 15,
         costo: 1500
       });
       medicoRepository.obtenerDisponibilidadPorId.mockResolvedValue({
         _id: 'disp-1',
-        mcdDuracion: 30,
         especialidades: [{ toString: () => 'esp-1' }],
         practicas: []
       });

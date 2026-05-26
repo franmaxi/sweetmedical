@@ -79,7 +79,7 @@ describe('Plan domain', () => {
   test('obtenerCoberturaEspecialidad retorna el nivel cuando existe', () => {
     const plan = new Plan({ nombre: 'Premium' });
     const especialidad = { _id: 'esp-1' };
-    plan.coberturaEspecialidad.push({ especialidad, nivel: NivelCobertura.TOTAL });
+    plan.coberturaEspecialidad.push({ especialidad, nivel: NivelCobertura.TOTAL , pocentajeDescuento:1});
 
     expect(plan.obtenerCoberturaEspecialidad(especialidad)).toBe(NivelCobertura.TOTAL);
   });
