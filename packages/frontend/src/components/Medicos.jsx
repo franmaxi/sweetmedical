@@ -1,22 +1,11 @@
-import { Star, MapPin, CalendarCheck } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Row, Col, Card, Avatar, Typography, Button, Space, Tag } from "antd";
+import { EnvironmentOutlined, IdcardOutlined } from "@ant-design/icons";
+import { getMedicos, getEspecialidades, getSedes } from "../mocks";
 
+const { Title, Text, Paragraph } = Typography;
 
-const medicos = [
-  { id: 1, nombre: "Jessica", apellido: "Joan", especialidad: "Nefrología", matricula: "MN 45821", sede: "Sede Centro" },
-  { id: 2, nombre: "Alexandra", apellido: "Pérez", especialidad: "Gastroenterología", matricula: "MN 52114", sede: "Sede Norte" },
-  { id: 3, nombre: "Kimberly", apellido: "López", especialidad: "Neurología", matricula: "MN 38902", sede: "Sede Sur" },
-  { id: 4, nombre: "Tomás", apellido: "Carol", especialidad: "Obstetricia", matricula: "MN 60012", sede: "Sede Centro" },
-  { id: 5, nombre: "Rebecca", apellido: "Rose", especialidad: "Ginecología", matricula: "MN 41203", sede: "Sede Centro" },
-  { id: 6, nombre: "Stephanie", apellido: "Sue", especialidad: "Hematología", matricula: "MN 58844", sede: "Sede Norte" },
-  { id: 7, nombre: "Penélope", apellido: "Cruz", especialidad: "Fisioterapia", matricula: "MN 47301", sede: "Sede Sur" },
-  { id: 8, nombre: "Lauren", apellido: "Leah", especialidad: "Oncología", matricula: "MN 33205", sede: "Sede Centro" },
-];
-
-
-const AVATAR_COLORS = [
-  "avatar-rose", "avatar-amber", "avatar-emerald",
-  "avatar-indigo", "avatar-sky", "avatar-fuchsia",
-];
+const AVATAR_COLORS = ["#be123c", "#f59e0b", "#10b981", "#6366f1", "#0ea5e9", "#d946ef"];
 
 const hashName = (s) => {
   let h = 0;
@@ -24,67 +13,73 @@ const hashName = (s) => {
   return Math.abs(h);
 };
 
-const iniciales = (nombre, apellido) =>
-  `${(nombre?.[0] ?? "").toUpperCase()}${(apellido?.[0] ?? "").toUpperCase()}`;
+// "Dra. Jessica Joan" → "JJ"
+const iniciales = (nombre) => {
+  const partes = nombre.split(/\s+/).filter((p) => !/^Dra?\.?$/i.test(p));
+  return ((partes[0]?.[0] ?? "") + (partes[1]?.[0] ?? "")).toUpperCase();
+};
 
-const colorAvatar = (m) =>
-  AVATAR_COLORS[hashName(`${m.nombre}${m.apellido}`) % AVATAR_COLORS.length];
-
-const tratamiento = (nombre) =>
-  // heurística simple para mostrar "Dra." si el nombre termina en "a"
-  /a$/i.test(nombre) ? "Dra." : "Dr.";
+const colorAvatar = (m) => AVATAR_COLORS[hashName(m.nombre) % AVATAR_COLORS.length];
 
 export default function Medicos() {
+  const [medicos, setMedicos] = useState([]);
+
+  useEffect(() => {
+    Promise.all([getMedicos(), getEspecialidades(), getSedes()]).then(
+      ([listaMedicos, especialidades, sedes]) => {
+        const espById = new Map(especialidades.map((e) => [e.id, e]));
+        const sedeById = new Map(sedes.map((s) => [s.id, s]));
+        setMedicos(
+          listaMedicos.map((m) => ({
+            ...m,
+            especialidadNombre: espById.get(m.especialidadId)?.nombre ?? "—",
+            sedeNombre: sedeById.get(m.sedes[0])?.nombre ?? "—",
+          })),
+        );
+      },
+    );
+  }, []);
+
   return (
-    <section id="medicos" className="medicos-section">
-      <div className="section-inner">
-        <div className="text-center mb-12">
-          <p className="text-rose-700 font-semibold text-sm mb-2">Nuestro equipo</p>
-          <h2 className="section-heading text-4xl font-bold inline-block">
-            Médicos especialistas
-          </h2>
-          <p className="text-gray-600 mt-3 max-w-xl mx-auto">
-            Profesionales certificados, con años de experiencia
-            y dedicación a cada uno de nuestros pacientes.
-          </p>
+    <section id="medicos" style={{ padding: "clamp(48px, 8vw, 80px) clamp(16px, 4vw, 32px)", background: "#fafafa" }}>
+      <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+        <div style={{ textAlign: "center", marginBottom: 48 }}>
+          <Text style={{ color: "#be123c", fontWeight: 600, fontSize: 14 }}>Nuestro equipo</Text>
+          <Title level={2} style={{ marginTop: 8, fontSize: "clamp(24px, 4vw, 36px)" }}>Médicos especialistas</Title>
+          <Paragraph type="secondary" style={{ maxWidth: 560, margin: "12px auto 0" }}>
+            Profesionales certificados, con años de experiencia y dedicación a cada uno de nuestros pacientes.
+          </Paragraph>
         </div>
 
-        <div className="medicos-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <Row gutter={[20, 20]}>
           {medicos.map((m) => (
-            <article key={m.id} className="medico-card">
-              <header className="medico-card-head">
-                <div className={`medico-avatar ${colorAvatar(m)}`}>
-                  {iniciales(m.nombre, m.apellido)}
-                </div>
-              </header>
-
-              <h4 className="font-semibold text-base">
-                {tratamiento(m.nombre)} {m.nombre} {m.apellido}
-              </h4>
-              <p className="text-rose-700 text-sm font-medium mb-3">
-                {m.especialidad}
-              </p>
-
-              <ul className="medico-meta">
-                <li>
-                  <MapPin size={14} />
-                  <span>{m.sede}</span>
-                </li>
-              </ul>
-
-              <p className="medico-matricula">{m.matricula}</p>
-
-              <button className="site-btn site-btn-primary w-full py-2 text-sm mt-4">
-                Ver agenda
-              </button>
-            </article>
+            <Col xs={24} sm={12} lg={6} key={m.id}>
+              <Card style={{ height: "100%", borderRadius: 16 }} hoverable>
+                <Space direction="vertical" size={8} style={{ width: "100%", alignItems: "flex-start" }}>
+                  <Avatar size={56} style={{ background: colorAvatar(m), fontWeight: 700 }}>
+                    {iniciales(m.nombre)}
+                  </Avatar>
+                  <Title level={5} style={{ margin: 0 }}>{m.nombre}</Title>
+                  <Tag color="pink">{m.especialidadNombre}</Tag>
+                  <Space size={6}>
+                    <EnvironmentOutlined style={{ color: "#94a3b8" }} />
+                    <Text type="secondary" style={{ fontSize: 13 }}>{m.sedeNombre}</Text>
+                  </Space>
+                  <Space size={6}>
+                    <IdcardOutlined style={{ color: "#94a3b8" }} />
+                    <Text type="secondary" style={{ fontSize: 13 }}>{m.matricula}</Text>
+                  </Space>
+                  <Button type="primary" block style={{ marginTop: 12 }}>
+                    Ver agenda
+                  </Button>
+                </Space>
+              </Card>
+            </Col>
           ))}
-        </div>
+        </Row>
 
-        <div className="text-center mt-10">
-          <button className="site-btn site-btn-ghost px-6 py-3 border border-gray-200 rounded-full">
-            Ver todos los médicos
-          </button>
+        <div style={{ textAlign: "center", marginTop: 32 }}>
+          <Button size="large">Ver todos los médicos</Button>
         </div>
       </div>
     </section>

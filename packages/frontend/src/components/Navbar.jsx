@@ -1,58 +1,103 @@
-export default function Navbar({ onNavigate, current = "home" }) {
-  //esto es para poder usar el mismo componente en la home y en la página de búsqueda, y que marque como activo el link correspondiente
-  const go = (page) => (e) => {
-    if (e) e.preventDefault();
-    onNavigate && onNavigate(page);
-  };
+import { useState } from "react";
+import { useLocation, Link } from "react-router-dom";
+import { Layout, Menu, Space, Button, Drawer, Grid } from "antd";
+import {
+  ScheduleOutlined,
+  ClockCircleOutlined,
+  CalendarOutlined,
+  HomeOutlined,
+  SearchOutlined,
+  MenuOutlined,
+} from "@ant-design/icons";
+import NotificacionesDropdown from "./NotificacionesDropdown";
+import SelectorIdioma from "./SelectorIdioma";
+
+const { Header } = Layout;
+const { useBreakpoint } = Grid;
+
+export default function Navbar() {
+  const location = useLocation();
+  const screens = useBreakpoint();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+
+  const esMobile = !screens.md;
+
+  const items = [
+    { key: "/", icon: <HomeOutlined />, label: <Link to="/">Inicio</Link> },
+    { key: "/buscar", icon: <SearchOutlined />, label: <Link to="/buscar">Buscar turnos</Link> },
+    { key: "/mis-turnos", icon: <ScheduleOutlined />, label: <Link to="/mis-turnos">Mis turnos</Link> },
+    { key: "/agenda", icon: <CalendarOutlined />, label: <Link to="/agenda">Mi agenda</Link> },
+    { key: "/disponibilidades", icon: <ClockCircleOutlined />, label: <Link to="/disponibilidades">Disponibilidades</Link> },
+  ];
+
+  const logo = (
+    <Link to="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
+      <span
+        style={{
+          width: 36, height: 36, borderRadius: "50%", background: "#be123c",
+          display: "inline-flex", alignItems: "center", justifyContent: "center",
+        }}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width={22} height={22}>
+          <path
+            fill="none" stroke="white" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round"
+            d="M 78 30 C 78 13 22 13 22 50 C 22 82 78 82 78 50 C 78 28 35 28 35 55 C 35 73 62 73 62 50 C 62 40 50 40 50 52"
+          />
+        </svg>
+      </span>
+      <span style={{ fontSize: 18, fontWeight: 700, color: "#be123c" }}>SweetMedical</span>
+    </Link>
+  );
 
   return (
-    <div className="site-nav-wrapper">
-    <nav className="site-nav flex items-center justify-between px-8 py-4">
-      <a href="#inicio" onClick={go("home")} className="site-brand flex items-center gap-2">
-        <span className="brand-mark">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 100 100"
-            className="w-7 h-7"
-          >
-            <path
-              fill="none"
-              stroke="white"
-              strokeWidth="6"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M 78 30 C 78 13 22 13 22 50 C 22 82 78 82 78 50 C 78 28 35 28 35 55 C 35 73 62 73 62 50 C 62 40 50 40 50 52"
-            />
-          </svg>
-        </span>
-        <span className="text-xl font-bold text-rose-700">SweetMedical</span>
-      </a>
+    <Header
+      style={{
+        background: "#fff",
+        borderBottom: "1px solid #f0f0f0",
+        padding: "0 clamp(12px, 4vw, 32px)",
+        display: "flex",
+        alignItems: "center",
+        gap: 16,
+        position: "sticky",
+        top: 0,
+        zIndex: 100,
+        height: 64,
+      }}
+    >
+      {logo}
 
-      <ul className="site-nav-links hidden md:flex gap-8 font-medium text-sm">
-        <li>
-          <a href="#inicio" onClick={go("home")} className={current === "home" ? "nav-active" : ""}>
-            Inicio
-          </a>
-        </li>
-        <li>
-          <a href="#buscar" onClick={go("buscar")} className={current === "buscar" ? "nav-active" : ""}>
-            Buscar turnos
-          </a>
-        </li>
-        <li><a href="#especialidades" onClick={go("home")}>Especialidades</a></li>
-        <li><a href="#medicos" onClick={go("home")}>Médicos</a></li>
-        <li><a href="#sedes" onClick={go("home")}>Sedes</a></li>
-      </ul>
+      {!esMobile && (
+        <Menu
+          mode="horizontal"
+          items={items}
+          selectedKeys={[location.pathname]}
+          style={{ flex: 1, borderBottom: "none", background: "transparent", minWidth: 0 }}
+        />
+      )}
 
-      <div className="site-nav-actions flex gap-3">
-        <button className="site-btn site-btn-ghost font-medium px-4 py-2">
-          Ingresar
-        </button>
-        <button className="site-btn site-btn-primary px-5 py-2">
-          Registrarse
-        </button>
-      </div>
-    </nav>
-    </div>
+      <Space size="small" style={{ marginLeft: "auto" }}>
+        <SelectorIdioma />
+        <NotificacionesDropdown />
+        {esMobile && (
+          <Button type="text" icon={<MenuOutlined />} onClick={() => setDrawerOpen(true)} />
+        )}
+      </Space>
+
+      <Drawer
+        title="Menú"
+        placement="right"
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        width={260}
+      >
+        <Menu
+          mode="vertical"
+          items={items}
+          selectedKeys={[location.pathname]}
+          onClick={() => setDrawerOpen(false)}
+          style={{ borderInlineEnd: "none" }}
+        />
+      </Drawer>
+    </Header>
   );
 }

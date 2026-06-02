@@ -1,76 +1,101 @@
-// Paleta de colores para los bloques de hora. El back no manda color:
-// asignamos uno acá ciclando esta lista por índice.
-const AGENDA_COLORS = ["rojo", "naranja", "verde", "violeta"];
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Row, Col, Typography, Button, Space, Statistic, Card } from "antd";
+import {
+  ArrowRightOutlined,
+  CalendarOutlined,
+  TeamOutlined,
+  EnvironmentOutlined,
+  MedicineBoxOutlined,
+} from "@ant-design/icons";
+import {
+  getEspecialidadesGenericas,
+  getMedicos,
+  getSedes,
+} from "../mocks";
 
-export default function Hero({ onNavigate }) {
-  const turnosPreview = [
-    { medico: "Dra. Rebecca Rose", especialidad: "Ginecología", hora: "10:30", sede: "Sede Centro" },
-    { medico: "Dr. Bella Carol", especialidad: "Obstetricia", hora: "11:15", sede: "Sede Norte" },
-    { medico: "Dra. Kimberly", especialidad: "Neurología", hora: "14:00", sede: "Sede Sur" },
-    { medico: "Dr. Lauren Leah", especialidad: "Oncología", hora: "16:45", sede: "Sede Centro" },
-  ];
+const { Title, Paragraph, Text } = Typography;
+
+export default function Hero() {
+  const navigate = useNavigate();
+  const [stats, setStats] = useState({ especialidades: 0, medicos: 0, sedes: 0 });
+
+  useEffect(() => {
+    Promise.all([getEspecialidadesGenericas(), getMedicos(), getSedes()]).then(
+      ([especialidades, medicos, sedes]) => {
+        setStats({
+          especialidades: especialidades.length,
+          medicos: medicos.length,
+          sedes: sedes.length,
+        });
+      },
+    );
+  }, []);
 
   return (
-    <section id="inicio" className="hero-section">
-      <div className="section-inner grid md:grid-cols-2 items-center gap-10">
-      <div className="hero-copy">
-      
-        <h1 className="hero-title text-5xl font-bold leading-tight mb-6">
+    <section
+      style={{
+        background: "linear-gradient(135deg, #fff1f2 0%, #fff7ed 100%)",
+        padding: "clamp(48px, 8vw, 96px) clamp(16px, 4vw, 32px) clamp(48px, 6vw, 80px)",
+      }}
+    >
+      <div style={{ maxWidth: 1100, margin: "0 auto", textAlign: "center" }}>
+        <Text style={{ color: "#be123c", fontWeight: 600, fontSize: 14, letterSpacing: 1 }}>
+          SWEET MEDICAL
+        </Text>
+        <Title level={1} style={{ fontSize: "clamp(32px, 6vw, 56px)", lineHeight: 1.1, margin: "16px 0 24px" }}>
           Tu turno médico,<br />simple y al instante
-        </h1>
+        </Title>
+        <Paragraph
+          style={{
+            fontSize: "clamp(15px, 1.6vw, 18px)",
+            color: "#475569",
+            maxWidth: 640,
+            margin: "0 auto 40px",
+          }}
+        >
+          Reservá turnos con los mejores profesionales de la salud, en la sede
+          más cercana y con la cobertura de tu obra social.
+        </Paragraph>
 
-        <p className="hero-description text-gray-600 mb-8 max-w-md">
-          Reservá turnos con los mejores profesionales de la salud,
-          en la sede más cercana y con la cobertura de tu obra social.
-        </p>
-
-        <div className="hero-actions flex gap-4 mb-10">
-          <button
-            onClick={() => onNavigate && onNavigate("buscar")}
-            className="site-btn site-btn-primary px-6 py-3"
-          >
+        <Space size="middle" wrap style={{ marginBottom: 64, justifyContent: "center" }}>
+          <Button type="primary" size="large" icon={<CalendarOutlined />} onClick={() => navigate("/buscar")}>
             Buscar turnos
-          </button>
-        </div>
+          </Button>
+          <Button size="large" icon={<ArrowRightOutlined />} onClick={() => navigate("/mis-turnos")}>
+            Mis turnos
+          </Button>
+        </Space>
 
-        
-      </div>
-
-      <div className="hero-agenda">
-        <div className="hero-agenda-card">
-          <div className="flex items-center justify-between mb-5">
-            <div>
-              <p className="text-gray-500 text-xs uppercase tracking-wide font-semibold">Agenda de hoy</p>
-              <h3 className="font-bold text-lg">Lunes, 24 de mayo</h3>
-            </div>
-          </div>
-
-          <ul className="agenda-list">
-            {turnosPreview.map((t, i) => (
-              <li key={t.medico} className="agenda-item">
-                <div className={`agenda-time agenda-time-${AGENDA_COLORS[i % AGENDA_COLORS.length]}`}>
-                  <span className="text-sm font-bold">{t.hora}</span>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-sm truncate">{t.medico}</p>
-                  <p className="text-gray-500 text-xs">{t.especialidad} · {t.sede}</p>
-                </div>
-                <span className="agenda-status">Confirmado</span>
-              </li>
-            ))}
-          </ul>
-
-          <div className="agenda-footer mt-5 flex items-center justify-between">
-            <p className="text-xs text-gray-500">4 de 12 turnos del día</p>
-            <button
-              onClick={() => onNavigate && onNavigate("buscar")}
-              className="text-rose-700 text-sm font-semibold bg-transparent"
-            >
-              Ver agenda completa →
-            </button>
-          </div>
-        </div>
-      </div>
+        <Row gutter={[24, 24]} justify="center">
+          <Col xs={24} sm={8}>
+            <Card style={{ borderRadius: 16, border: "1px solid rgba(190,18,60,0.12)" }}>
+              <Statistic
+                title="Especialidades"
+                value={stats.especialidades}
+                prefix={<MedicineBoxOutlined style={{ color: "#be123c" }} />}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={8}>
+            <Card style={{ borderRadius: 16, border: "1px solid rgba(190,18,60,0.12)" }}>
+              <Statistic
+                title="Médicos disponibles"
+                value={stats.medicos}
+                prefix={<TeamOutlined style={{ color: "#be123c" }} />}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={8}>
+            <Card style={{ borderRadius: 16, border: "1px solid rgba(190,18,60,0.12)" }}>
+              <Statistic
+                title="Sedes"
+                value={stats.sedes}
+                prefix={<EnvironmentOutlined style={{ color: "#be123c" }} />}
+              />
+            </Card>
+          </Col>
+        </Row>
       </div>
     </section>
   );

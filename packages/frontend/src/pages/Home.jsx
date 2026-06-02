@@ -1,3 +1,4 @@
+import { Layout } from "antd";
 import Navbar from "../components/Navbar";
 import Hero from "../components/Hero";
 import Especialidades from "../components/Especialidades";
@@ -5,15 +6,19 @@ import Medicos from "../components/Medicos";
 import ReservaTurno from "../components/ReservaTurno";
 import Footer from "../components/Footer";
 
-export default function Home({ onNavigate }) {
+const { Content } = Layout;
+
+export default function Home() {
   return (
-    <>
-      <Navbar onNavigate={onNavigate} current="home" />
-      <Hero onNavigate={onNavigate} />
-      <Especialidades />
-      <Medicos />
-      <ReservaTurno />
+    <Layout style={{ background: "#fff" }}>
+      <Navbar />
+      <Content>
+        <Hero />
+        <Especialidades />
+        <Medicos />
+        <ReservaTurno />
+      </Content>
       <Footer />
-    </>
+    </Layout>
   );
 }

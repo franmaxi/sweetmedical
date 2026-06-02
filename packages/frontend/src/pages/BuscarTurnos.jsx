@@ -1,156 +1,265 @@
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  App as AntApp,
+  Layout,
+  Row,
+  Col,
+  Card,
+  Form,
+  Select,
+  Input,
+  DatePicker,
+  Button,
+  Typography,
+  List,
+  Empty,
+  Space,
+  Tag,
+  Divider,
+} from "antd";
+import {
+  EnvironmentOutlined,
+  CalendarOutlined,
+  ClockCircleOutlined,
+  ClearOutlined,
+} from "@ant-design/icons";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import {
+  getTurnosDisponibles,
+  getEspecialidadesGenericas,
+  getSedes,
+  getMedicos,
+  getEspecialidades,
+  reservarTurno,
+} from "../mocks";
 
-const turnosMock = [
-  { id: 1, medico: "Dra. Rebecca Rose", especialidad: "Ginecología", sede: "Sede Centro", fecha: "2026-05-26", hora: "09:00", obraSocial: "OSDE" },
-  { id: 2, medico: "Dr. Bella Carol", especialidad: "Obstetricia", sede: "Sede Norte", fecha: "2026-05-26", hora: "10:30", obraSocial: "Swiss Medical" },
-  { id: 3, medico: "Dra. Kimberly López", especialidad: "Neurología", sede: "Sede Sur", fecha: "2026-05-27", hora: "11:00", obraSocial: "Galeno" },
-  { id: 4, medico: "Dr. Lauren Leah", especialidad: "Oncología", sede: "Sede Centro", fecha: "2026-05-27", hora: "14:00", obraSocial: "OSDE" },
-  { id: 5, medico: "Dra. Stephanie Sue", especialidad: "Hematología", sede: "Sede Norte", fecha: "2026-05-28", hora: "15:30", obraSocial: "Medicus" },
-  { id: 6, medico: "Dra. Penelope Cruz", especialidad: "Fisioterapia", sede: "Sede Centro", fecha: "2026-05-28", hora: "16:00", obraSocial: "OSDE" },
-  { id: 7, medico: "Dra. Alexandra Pérez", especialidad: "Gastroenterología", sede: "Sede Sur", fecha: "2026-05-29", hora: "08:30", obraSocial: "Galeno" },
-  { id: 8, medico: "Dra. Jessica Joan", especialidad: "Nefrología", sede: "Sede Centro", fecha: "2026-05-29", hora: "12:00", obraSocial: "Swiss Medical" },
-  { id: 9, medico: "Dra. Rebecca Rose", especialidad: "Ginecología", sede: "Sede Centro", fecha: "2026-05-30", hora: "10:00", obraSocial: "OSDE" },
-  { id: 10, medico: "Dr. Bella Carol", especialidad: "Obstetricia", sede: "Sede Norte", fecha: "2026-05-30", hora: "11:45", obraSocial: "Medicus" },
-];
+const { Title, Text, Paragraph } = Typography;
+const { Content } = Layout;
 
-const especialidadesList = ["Todas", "Cardiología", "Ginecología", "Obstetricia", "Neurología", "Oncología", "Hematología", "Fisioterapia", "Gastroenterología", "Nefrología", "Pediatría"];
-const sedesList = ["Todas", "Sede Centro", "Sede Norte", "Sede Sur"];
+// Como no hay login, simulamos que el usuario activo es la paciente Ana.
+const PACIENTE_ACTIVO = { pacienteId: 1, usuarioId: 201 };
 
-export default function BuscarTurnos({ onNavigate }) {
-  const [especialidad, setEspecialidad] = useState("Todas");
-  const [sede, setSede] = useState("Todas");
-  const [medico, setMedico] = useState("");
-  const [fechaDesde, setFechaDesde] = useState("");
+const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+const fmtFecha = (iso) => iso.slice(0, 10);
+const fmtHora = (iso) => iso.slice(11, 16);
+const mesAbrev = (iso) => MESES[Number(iso.slice(5, 7)) - 1] ?? "";
+const dia = (iso) => iso.slice(8, 10);
+const fmtMoneda = (n) =>
+  new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(n);
 
-  const resultados = useMemo(() => {
-    return turnosMock.filter((t) => {
-      if (especialidad !== "Todas" && t.especialidad !== especialidad) return false;
-      if (sede !== "Todas" && t.sede !== sede) return false;
-      if (medico.trim() && !t.medico.toLowerCase().includes(medico.trim().toLowerCase())) return false;
-      if (fechaDesde && t.fecha < fechaDesde) return false;
-      return true;
+export default function BuscarTurnos() {
+  return (
+    <AntApp>
+      <BuscarTurnosInner />
+    </AntApp>
+  );
+}
+
+function BuscarTurnosInner() {
+  const navigate = useNavigate();
+  const { message, modal } = AntApp.useApp();
+  const [reservando, setReservando] = useState(null);
+
+  const [especialidadGenericaId, setEspecialidadGenericaId] = useState();
+  const [sedeId, setSedeId] = useState();
+  const [medicoQuery, setMedicoQuery] = useState("");
+  const [fechaDesde, setFechaDesde] = useState();
+
+  const [especialidadesGenericas, setEspecialidadesGenericas] = useState([]);
+  const [sedes, setSedes] = useState([]);
+  const [medicosById, setMedicosById] = useState(new Map());
+  const [sedesById, setSedesById] = useState(new Map());
+  const [espPersonalizadasById, setEspPersonalizadasById] = useState(new Map());
+
+  const [resultados, setResultados] = useState([]);
+  const [cargando, setCargando] = useState(true);
+
+  // Carga inicial de catálogos.
+  useEffect(() => {
+    Promise.all([
+      getEspecialidadesGenericas(),
+      getSedes(),
+      getMedicos(),
+      getEspecialidades(),
+    ]).then(([genericas, listaSedes, listaMedicos, listaEspecialidades]) => {
+      setEspecialidadesGenericas(genericas);
+      setSedes(listaSedes);
+      setMedicosById(new Map(listaMedicos.map((m) => [m.id, m])));
+      setSedesById(new Map(listaSedes.map((s) => [s.id, s])));
+      setEspPersonalizadasById(new Map(listaEspecialidades.map((e) => [e.id, e])));
     });
-  }, [especialidad, sede, medico, fechaDesde]);
+  }, []);
+
+  // Cada cambio de filtro re-consulta los turnos disponibles.
+  useEffect(() => {
+    setCargando(true);
+    getTurnosDisponibles({
+      especialidadGenericaId: especialidadGenericaId ?? undefined,
+      sedeId: sedeId ?? undefined,
+      fechaDesde: fechaDesde ? fechaDesde.format("YYYY-MM-DD") : undefined,
+    }).then((turnos) => {
+      setResultados(turnos);
+      setCargando(false);
+    });
+  }, [especialidadGenericaId, sedeId, fechaDesde]);
+
+  const resultadosVisibles = useMemo(() => {
+    const q = medicoQuery.trim().toLowerCase();
+    return resultados
+      .map((turno) => ({
+        ...turno,
+        medicoNombre: medicosById.get(turno.medicoId)?.nombre ?? "—",
+        sedeNombre: sedesById.get(turno.sedeId)?.nombre ?? "—",
+        especialidadNombre: espPersonalizadasById.get(turno.especialidadId)?.nombre ?? "—",
+      }))
+      .filter((turno) => !q || turno.medicoNombre.toLowerCase().includes(q))
+      .sort((a, b) => a.fechaHora.localeCompare(b.fechaHora));
+  }, [resultados, medicoQuery, medicosById, sedesById, espPersonalizadasById]);
+
+  const onReservar = (turno) => {
+    modal.confirm({
+      title: "Confirmar reserva",
+      content: `${turno.medicoNombre} · ${turno.especialidadNombre} · ${fmtFecha(turno.fechaHora)} ${fmtHora(turno.fechaHora)} · ${turno.sedeNombre}`,
+      okText: "Reservar",
+      cancelText: "Volver",
+      onOk: async () => {
+        setReservando(turno.id);
+        await reservarTurno(turno.id, PACIENTE_ACTIVO);
+        message.success("¡Turno reservado!");
+        setResultados((r) => r.filter((t) => t.id !== turno.id));
+        setReservando(null);
+        navigate("/mis-turnos");
+      },
+    });
+  };
 
   const limpiar = () => {
-    setEspecialidad("Todas");
-    setSede("Todas");
-    setMedico("");
-    setFechaDesde("");
+    setEspecialidadGenericaId(undefined);
+    setSedeId(undefined);
+    setMedicoQuery("");
+    setFechaDesde(undefined);
   };
 
   return (
-    <>
-      <Navbar onNavigate={onNavigate} current="buscar" />
-
-      <section className="buscar-section">
-      <div className="section-inner">
-        <div className="mb-8">
-          <p className="text-rose-700 font-semibold text-sm mb-2">Reservá tu turno</p>
-          <h1 className="text-4xl font-bold mb-3">Buscar turnos disponibles</h1>
-          <p className="text-gray-600 max-w-2xl">
+    <Layout style={{ background: "#fafafa", minHeight: "100vh" }}>
+      <Navbar />
+      <Content style={{ padding: "clamp(20px, 4vw, 32px) clamp(16px, 4vw, 32px) clamp(40px, 6vw, 64px)" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto" }}>
+          <Text style={{ color: "#be123c", fontWeight: 600, fontSize: 14 }}>Reservá tu turno</Text>
+          <Title level={2} style={{ marginTop: 8 }}>Buscar turnos disponibles</Title>
+          <Paragraph type="secondary" style={{ maxWidth: 720 }}>
             Filtrá por especialidad, médico, sede o fecha para encontrar el turno que mejor te queda.
-          </p>
+          </Paragraph>
+
+          <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
+            <Col xs={24} lg={8}>
+              <Card
+                title="Filtros"
+                extra={<Button type="link" size="small" icon={<ClearOutlined />} onClick={limpiar}>Limpiar</Button>}
+              >
+                <Form layout="vertical">
+                  <Form.Item label="Especialidad">
+                    <Select
+                      placeholder="Todas"
+                      allowClear
+                      value={especialidadGenericaId}
+                      onChange={setEspecialidadGenericaId}
+                      options={especialidadesGenericas.map((e) => ({ value: e.id, label: e.nombre }))}
+                    />
+                  </Form.Item>
+                  <Form.Item label="Médico">
+                    <Input
+                      placeholder="Buscar por nombre"
+                      value={medicoQuery}
+                      onChange={(e) => setMedicoQuery(e.target.value)}
+                      allowClear
+                    />
+                  </Form.Item>
+                  <Form.Item label="Sede">
+                    <Select
+                      placeholder="Todas"
+                      allowClear
+                      value={sedeId}
+                      onChange={setSedeId}
+                      options={sedes.map((s) => ({ value: s.id, label: s.nombre }))}
+                    />
+                  </Form.Item>
+                  <Form.Item label="Fecha desde">
+                    <DatePicker
+                      style={{ width: "100%" }}
+                      value={fechaDesde}
+                      onChange={setFechaDesde}
+                      format="DD/MM/YYYY"
+                    />
+                  </Form.Item>
+                </Form>
+              </Card>
+            </Col>
+
+            <Col xs={24} lg={16}>
+              <Card>
+                <Space style={{ width: "100%", justifyContent: "space-between", marginBottom: 16 }}>
+                  <Text>
+                    <Text strong>{resultadosVisibles.length}</Text>{" "}
+                    turno{resultadosVisibles.length === 1 ? "" : "s"} disponible{resultadosVisibles.length === 1 ? "" : "s"}
+                  </Text>
+                </Space>
+
+                {resultadosVisibles.length === 0 && !cargando ? (
+                  <Empty description="No encontramos turnos con esos filtros" style={{ padding: "40px 0" }} />
+                ) : (
+                  <List
+                    loading={cargando}
+                    dataSource={resultadosVisibles}
+                    renderItem={(turno) => (
+                      <List.Item
+                        key={turno.id}
+                        actions={[
+                          <Button
+                            type="primary"
+                            onClick={() => onReservar(turno)}
+                            loading={reservando === turno.id}
+                          >
+                            Reservar
+                          </Button>,
+                        ]}
+                      >
+                        <List.Item.Meta
+                          avatar={
+                            <div
+                              style={{
+                                width: 56, height: 56, borderRadius: 12,
+                                background: "#fff1f2", color: "#be123c",
+                                display: "inline-flex", flexDirection: "column",
+                                alignItems: "center", justifyContent: "center", fontWeight: 700,
+                              }}
+                            >
+                              <span style={{ fontSize: 18, lineHeight: 1 }}>{dia(turno.fechaHora)}</span>
+                              <span style={{ fontSize: 11, marginTop: 2 }}>{mesAbrev(turno.fechaHora)}</span>
+                            </div>
+                          }
+                          title={turno.medicoNombre}
+                          description={
+                            <Space split={<Divider type="vertical" />} wrap>
+                              <Text type="secondary">{turno.especialidadNombre}</Text>
+                              <Text type="secondary"><EnvironmentOutlined /> {turno.sedeNombre}</Text>
+                              <Text type="secondary"><ClockCircleOutlined /> {fmtHora(turno.fechaHora)}</Text>
+                              <Tag color="pink"><CalendarOutlined /> {fmtMoneda(turno.costo)}</Tag>
+                            </Space>
+                          }
+                        />
+                      </List.Item>
+                    )}
+                  />
+                )}
+              </Card>
+            </Col>
+          </Row>
         </div>
-
-        <div className="buscar-layout grid lg:grid-cols-[320px_1fr] gap-8">
-          <aside className="buscar-filters">
-            <div className="filter-card">
-              <div className="flex items-center justify-between mb-5">
-                <h3 className="font-bold text-lg">Filtros</h3>
-                <button onClick={limpiar} className="text-rose-700 text-sm font-semibold bg-transparent">
-                  Limpiar
-                </button>
-              </div>
-
-              <label className="search-field mb-4">
-                <span className="search-label">Especialidad</span>
-                <select className="search-input" value={especialidad} onChange={(e) => setEspecialidad(e.target.value)}>
-                  {especialidadesList.map((e) => <option key={e}>{e}</option>)}
-                </select>
-              </label>
-
-              <label className="search-field mb-4">
-                <span className="search-label">Médico</span>
-                <input
-                  className="search-input"
-                  value={medico}
-                  onChange={(e) => setMedico(e.target.value)}
-                  placeholder="Buscar por nombre"
-                />
-              </label>
-
-              <label className="search-field mb-4">
-                <span className="search-label">Sede</span>
-                <select className="search-input" value={sede} onChange={(e) => setSede(e.target.value)}>
-                  {sedesList.map((s) => <option key={s}>{s}</option>)}
-                </select>
-              </label>
-
-              <label className="search-field mb-2">
-                <span className="search-label">Fecha desde</span>
-                <input
-                  type="date"
-                  className="search-input"
-                  value={fechaDesde}
-                  onChange={(e) => setFechaDesde(e.target.value)}
-                />
-              </label>
-            </div>
-          </aside>
-
-          <div className="buscar-results">
-            <div className="flex items-center justify-between mb-5">
-              <p className="text-gray-600">
-                <span className="font-bold text-gray-900">{resultados.length}</span>{" "}
-                turno{resultados.length === 1 ? "" : "s"} disponible{resultados.length === 1 ? "" : "s"}
-              </p>
-              <select className="search-input w-auto">
-                <option>Ordenar por: Fecha</option>
-                <option>Ordenar por: Médico</option>
-              </select>
-            </div>
-
-            {resultados.length === 0 ? (
-              <div className="empty-state text-center py-20">
-                <div className="text-5xl mb-3">🔍</div>
-                <p className="text-gray-600 font-semibold mb-1">No encontramos turnos con esos filtros</p>
-                <p className="text-gray-400 text-sm">Probá cambiar la especialidad, sede o fecha.</p>
-              </div>
-            ) : (
-              <ul className="turno-list">
-                {resultados.map((t) => (
-                  <li key={t.id} className="turno-row">
-                    <div className="turno-date">
-                      <span className="turno-day">{t.fecha.split("-")[2]}</span>
-                      <span className="turno-month">May</span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-semibold">{t.medico}</p>
-                      <p className="text-gray-500 text-sm">
-                        {t.especialidad} · {t.sede}
-                      </p>
-                      <p className="text-gray-400 text-xs mt-1">Cobertura: {t.obraSocial}</p>
-                    </div>
-                    <div className="turno-hora">
-                      <p className="text-xs text-gray-500">Horario</p>
-                      <p className="font-bold text-lg">{t.hora}</p>
-                    </div>
-                    <button className="site-btn site-btn-primary px-5 py-2 text-sm">
-                      Reservar
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </div>
-      </div>
-      </section>
-
+      </Content>
       <Footer />
-    </>
+    </Layout>
   );
 }
