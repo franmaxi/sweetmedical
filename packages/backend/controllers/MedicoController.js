@@ -4,7 +4,7 @@ import {
     medicoBodySchema, 
     medicoBodyUpdateSchema, 
     disponibilidadBodySchema, 
-    servicioBodySchema 
+    serviciosBodySchema 
 } from "../validations/medicoValidation.js";
 
 export class MedicoController {
@@ -157,11 +157,15 @@ export class MedicoController {
     agregarServicio = async (req, res, next) => {
         try {
             const { id: medicoId } = paramsIdSchema.parse(req.params);
-            const validBody = servicioBodySchema.parse(req.body);
-            const servicioAgregado = await this.medicoService.agregarServicio(medicoId, validBody.especialidad ?? null, validBody.practica ?? null);
+            const { especialidades, practicas } = serviciosBodySchema.parse(req.body);
+            const medicoActualizado = await this.medicoService.agregarServicios(
+                medicoId, 
+                especialidades, 
+                practicas
+            );
             return res.status(200).json({
                 status: "success",
-                data: servicioAgregado
+                data: medicoActualizado
             });
         } catch (error) {
             return next(error);
@@ -172,7 +176,7 @@ export class MedicoController {
         try {
             const { id: medicoId } = paramsIdSchema.parse(req.params);
             const validBody = servicioBodySchema.parse(req.body);
-            const servicioModificado = await this.medicoService.modificarServicio(medicoId, validBody.especialidad ?? null, validBody.practica ?? null);
+            const servicioModificado = await this.medicoService.modificarServicios(medicoId, validBody.especialidad ?? null, validBody.practica ?? null);
             return res.status(200).json({
                 status: "success",
                 data: servicioModificado

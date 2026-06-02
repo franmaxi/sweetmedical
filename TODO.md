@@ -23,3 +23,11 @@
 
 ## FRONTEND
 - [ ] Verificar que nos traemos cuando tengamos que popular
+
+# 📋 Correciones Entrega 3 
+- [ ] Turno pasa a confirmar en vez de directamente a reservado
+- [ ] Turno puede ser aceptado o rechazado por un medico
+- [ ] Testear el funcionamiento de todos los flujos de turno
+- [ ] Que las modificaciones en medico afecten todos sus datos (principalmente dispnibilidades)
+- [ ] Que las modificaciones en medico afecten a sus turnos segun lo establecido en la consigna
+ 

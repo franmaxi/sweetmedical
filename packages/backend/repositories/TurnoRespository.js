@@ -35,6 +35,7 @@ export class TurnoRepository{
         .populate("disponibilidad.practicas")
         .populate("disponibilidad.especialidades") 
     }
+
     async obtenerSiguientesDisponibles(fechaTurno,fechaMaximo,medicoId){
         // devuelve los turnos entre las fechas dadas, que esten disponibles, sean para el medico pasado por parametro
         // se devuelve ordenado por fechaHora de menor a mayor
@@ -49,6 +50,8 @@ export class TurnoRepository{
     }
     
     _toPersistence(turno) {
+        // se llama justo antes de persistir el turno
+        // esta funcion se asegura que el dato que pasemos este en formato ObjectID si asi debe serlo
         if (!turno) return null;
         
         const getId = (val) => {

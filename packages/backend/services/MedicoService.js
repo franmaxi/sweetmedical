@@ -11,6 +11,7 @@ import {
     ConflictError,
     BadRequestError
 } from "../errors/AppErrors.js";
+import mongoose, { mongo } from 'mongoose';
 
 export class MedicoService {
     constructor({
@@ -79,17 +80,6 @@ export class MedicoService {
             throw new ConflictError("Ya existe un médico con esa matrícula");
         }
 
-        for (const especialidadId of datosMedico.especialidades) {
-            if (!await this.especialidadService.obtenerPorId(especialidadId)) {
-                throw new NotFoundError(`Especialidad ${especialidadId} no encontrada`);
-            }
-        }
-        for (const practicaId of datosMedico.practicas) {
-            if (!await this.practicaService.obtenerPorId(practicaId)) {
-                throw new NotFoundError(`Practica ${practicaId} no encontrada`);
-            }
-        }
-
         const datosUsuario = {
             nombreUsuario: datosMedico.nombreUsuario,
             password: datosMedico.password || medicoExistente.usuario.password 
@@ -100,10 +90,7 @@ export class MedicoService {
         const datosMedicoParaActualizar = {
             matricula: datosMedico.matricula,
             nombre: datosMedico.nombre,
-            especialidades: datosMedico.especialidades,
-            practicas: datosMedico.practicas,
-            sedes: datosMedico.sedes,
-            disponibilidades: datosMedico.disponibilidades
+            sedes: datosMedico.sedes, //TODO
         };
 
         return await this.medicoRepository.update(validId,datosMedicoParaActualizar);
@@ -124,76 +111,107 @@ export class MedicoService {
     }
 
     // Este metodo se usara siempre con un servicio null.
-    async agregarServicio(medicoId, especialidad, practica) {
+    //TODO revisar las transacciones, todos los metodos interiores deben aceptarlas.
+    async agregarServicios(medicoId, especialidades, practicas) {
         const validMedicoId = objectIdSchema.parse(String(medicoId));
         const medico = await this.obtenerPorId(validMedicoId);
         if (!medico) throw new NotFoundError("Medico no encontrado");
 
-        if (especialidad) {
-            const especialidadGenerica = await this.especialidadService.obtenerPorNombreGenerica(especialidad.nombre);
-            if (!especialidadGenerica) {
-                throw new NotFoundError(`La especialidad genérica '${especialidad.nombre}' no existe en el sistema.`);
+        //Usaremos sesiones transaccionales. Si algo falla, se revierte completo y no se guardará nada.
+        const session = await mongoose.startSession()
+        session.startTransaction();
+
+        try{
+            for(const especialidad of especialidades){
+                if (especialidad) {
+                    const especialidadGenerica = await this.especialidadService.obtenerPorNombreGenerica(especialidad.nombre);
+                    if (!especialidadGenerica) {
+                        throw new NotFoundError(`La especialidad genérica '${especialidad.nombre}' no existe en el sistema.`);
+                    }
+                    if (medico.especialidadGenericaPertenece(especialidadGenerica._id)) {
+                        throw new BadRequestError("El medico ya tiene la especialidad: "+ especialidad.nombre)
+                    } 
+                    const especialidadCreada = await this.especialidadService.crear(especialidad)
+                    medico.agregarEspecialidad(especialidadCreada);
+                }
             }
-            if (medico.especialidadGenericaPertenece(especialidadGenerica._id)) {
-                throw new BadRequestError("El medico ya tiene la especialidad: "+ especialidad.nombre)
-            } 
-            const especialidadCreada = await this.especialidadService.crear(especialidad)
-            medico.agregarEspecialidad(especialidadCreada);
+            
+            for(const practica of practicas){
+                if (practica) {
+                    const practicaGenerica = await this.practicaService.obtenerPorCodigoGenerica(practica.codigo);
+                    if (!practicaGenerica) {
+                        throw new NotFoundError(`La práctica genérica con código '${practica.codigo}' no existe en el sistema.`);
+                    }
+                    if (practicaGenerica.nombre.toLowerCase() !== practica.nombre.toLowerCase()) {
+                        throw new BadRequestError(`El código '${practica.codigo}' corresponde a la práctica '${practicaGenerica.nombre}', no a '${practica.nombre}'.`);
+                    }
+
+                    if (medico.practicaGenericaPertenece(practicaGenerica._id)) {
+                        throw new BadRequestError("El médico ya tiene asignada la práctica: " + practica.nombre);
+                    }
+
+                    const practicaCreada = await this.practicaService.crear(practica)
+                    medico.agregarPractica(practicaCreada);
+                }
+            }
+
+            await medico.save({ session });
+
+            await session.commitTransaction();
+            return medico;
+
+        } catch(error){
+            await session.abortTransaction();
+            throw error;
+        } finally {
+            session.endSession();
         }
-
-        if (practica) {
-            const practicaGenerica = await this.practicaService.obtenerPorCodigoGenerica(practica.codigo);
-            if (!practicaGenerica) {
-                throw new NotFoundError(`La práctica genérica con código '${practica.codigo}' no existe en el sistema.`);
-            }
-            if (practicaGenerica.nombre.toLowerCase() !== practica.nombre.toLowerCase()) {
-                throw new BadRequestError(`El código '${practica.codigo}' corresponde a la práctica '${practicaGenerica.nombre}', no a '${practica.nombre}'.`);
-            }
-
-            if (medico.practicaGenericaPertenece(practicaGenerica._id)) {
-                throw new BadRequestError("El médico ya tiene asignada la práctica: " + practica.nombre);
-            }
-
-            const practicaCreada = await this.practicaService.crear(practica)
-            medico.agregarPractica(practicaCreada);
-        }
-
+    
         return await this.medicoRepository.save(medico);
     }
 
-    async modificarServicio(medicoId, especialidad, practica) {
+    async modificarServicios(medicoId, especialidades, practicas) {
         const validMedicoId = objectIdSchema.parse(String(medicoId));
         const medico = await this.obtenerPorId(validMedicoId);
         if (!medico) throw new NotFoundError("Medico no encontrado");
 
-        if (especialidad) {
-            // No hace falta modificar la lista de especialidades del medico, porq ya apunta al objeto que modificamos
-            await this.especialidadService.actualizar(especialidad._id, especialidad);
-            //TODO tener en cuenta como se modifican los turnos
+        for(const especialidad of especialidades){
+            if (especialidad) {
+                // No hace falta modificar la lista de especialidades del medico, porq ya apunta al objeto que modificamos
+                await this.especialidadService.actualizar(especialidad._id, especialidad);
+                //TODO tener en cuenta como se modifican los turnos
+            }
         }
-
-        if (practica) {
-            await this.practicaService.actualizar(practica._id, practica);
+    
+        for(const practica of practicas){
+            if (practica) {
+                await this.practicaService.actualizar(practica._id, practica);
+            }
         }
 
         return await this.medicoRepository.findById(validMedicoId);
     }
 
-    async eliminarServicios(medicoId, especialidadId, practicaId) {
+    async eliminarServicios(medicoId, especialidadesId, practicasId) {
         const validMedicoId = objectIdSchema.parse(String(medicoId));
         const medico = await this.obtenerPorId(validMedicoId);
         if (!medico) throw new NotFoundError("Medico no encontrado");
 
-        if (especialidadId) {
-            const validEspId = objectIdSchema.parse(String(especialidadId));
-            medico.eliminarEspecialidad(validEspId);
-            await this.especialidadService.eliminar(validEspId);
-            //TODO tener en cuenta como se modifican los turnos
-        
-        } else if (practicaId) {
-            const validPracId = objectIdSchema.parse(String(practicaId));
-            medico.eliminarPractica(validPracId);
-            await this.practicaService.eliminar(validPracId);
+        for(const especialidadId of especialidadesId){
+            if (especialidadId) {
+                const validEspId = objectIdSchema.parse(String(especialidadId));
+                medico.eliminarEspecialidad(validEspId);
+                await this.especialidadService.eliminar(validEspId);
+                //TODO tener en cuenta como se modifican los turnos
+            }
+        }
+
+        for (const practicaId of practicasId){
+            if (practicaId) {
+                const validPracId = objectIdSchema.parse(String(practicaId));
+                medico.eliminarPractica(validPracId);
+                await this.practicaService.eliminar(validPracId);
+            }
         }
 
         return await this.medicoRepository.save(medico);

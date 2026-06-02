@@ -1,6 +1,6 @@
 import { PracticaService } from "../services/PracticaService.js";
 import { paginacionSchema, paramsIdSchema } from "../validations/commonValidations.js";
-import { practicaBodySchema, practicaGenericaBodySchema } from "../validations/practicaValidation.js";
+import { practicaGenericaBodySchema } from "../validations/practicaValidation.js";
 
 export class PracticaController {
     constructor({
@@ -8,7 +8,7 @@ export class PracticaController {
     } = {}) {
         this.practicaService = practicaService;
     }
-
+/*
     findAll = async (req, res, next) => {
         try {
             const { page: numeroPagina, limit: limitePorPagina } = paginacionSchema.parse(req.query);
@@ -67,7 +67,7 @@ export class PracticaController {
             return next(error);
         }
     }
-
+*/
     findById = async (req, res, next) => {
         try {
             const { id } = paramsIdSchema.parse(req.params);

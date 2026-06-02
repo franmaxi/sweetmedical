@@ -1,6 +1,6 @@
 import { EspecialidadService } from "../services/EspecialidadService.js"
 import { paginacionSchema, paramsIdSchema } from "../validations/commonValidations.js"
-import { especialidadBodySchema, especialidadGenericaBodySchema } from "../validations/especialidadValidation.js"
+import { especialidadGenericaBodySchema } from "../validations/especialidadValidation.js"
 
 export class EspecialidadController {
     constructor({
@@ -8,7 +8,7 @@ export class EspecialidadController {
     } = {}) {
         this.especialidadService = especialidadService
     } 
-
+/*
     findAll = async (req, res, next) => {
         try {
             const { page: numeroPagina, limit: limitePorPagina } = paginacionSchema.parse(req.query)
@@ -67,7 +67,7 @@ export class EspecialidadController {
             return next(error)
         }
     }
-
+*/
     findById = async (req, res, next) => {
         try {
             const { id } = paramsIdSchema.parse(req.params)

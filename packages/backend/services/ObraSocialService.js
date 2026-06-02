@@ -42,7 +42,7 @@ export class ObraSocialService {
             throw new BadRequestError(`Ya existe una obra social con el nombre ${nombre}`)
         }
         const nuevaObraSocial = new ObraSocial({nombre: nombre})
-        await this.obraSocialRepository.save(nuevaObraSocial)
+        return await this.obraSocialRepository.save(nuevaObraSocial)
     }
 
     async obtenerPlanesPorObraSocial(idObraSocial){

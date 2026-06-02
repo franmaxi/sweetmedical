@@ -14,20 +14,17 @@ router.route('/:id')
 	.put((req, res, next) => medicoController.update(req, res, next))
 	.delete((req, res, next) => medicoController.delete(req, res, next))
 
-	
-
 router.route('/:id/disponibilidades')
 	.get((req, res, next) =>	medicoController.listarDisponibilidades(req, res, next))
-	.post((req, res, next) => medicoController.crearDisponibilidad(req, res, next))
+	.post((req, res, next) => 	medicoController.crearDisponibilidad(req, res, next))
 
 router.route('/:id/disponibilidades/:disponibilidadId')
 	.get((req, res, next) =>	medicoController.obtenerDisponibilidad(req, res, next))
-	.put((req, res, next ) => medicoController.modificarDisponibilidad(req, res, next))
-
+	.put((req, res, next ) => 	medicoController.modificarDisponibilidad(req, res, next))
 
 router.route('/:id/servicios')
-	.post((req, res, next) => medicoController.agregarServicio(req, res, next))
-	.put((req, res, next) => medicoController.modificarServicio(req, res, next))
+	.post((req, res, next) => medicoController.agregarServicios(req, res, next))
+	.put((req, res, next) => medicoController.modificarServicios(req, res, next))
 	.delete((req, res, next) => medicoController.eliminarServicios(req, res, next))	
 	
 export default router

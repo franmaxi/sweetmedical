@@ -1,5 +1,7 @@
 import { z } from "zod"
 import { objectIdSchema } from "./commonValidations.js"
+import { especialidadBodySchema } from "./especialidadValidation.js";
+import { practicaBodySchema } from "./practicaValidation.js";
 
 // MEDICO BODY CONTROLLER
 export const medicoBodySchema = z.object({
@@ -30,11 +32,11 @@ export const medicoBodyUpdateSchema = z.object({
         required_error: "La matrícula es requerida.",
         invalid_type_error: "La matrícula debe ser un texto."
     }).trim().min(1, "La matrícula no puede estar vacía."),
-    especialidades: z.array(objectIdSchema, {
-        invalid_type_error: "especialidades debe ser una lista de IDs de Mongoose."
+    especialidades: z.array(especialidadBodySchema, {
+        invalid_type_error: "especialidades debe ser una lista de objetos de especialidad."
     }).default([]),
-    practicas: z.array(objectIdSchema, {
-        invalid_type_error: "practicas debe ser una lista de IDs de Mongoose."
+    practicas: z.array(practicaBodySchema, {
+        invalid_type_error: "practicas debe ser una lista de objetos de practicas."
     }).default([]),
     sedes: z.array(objectIdSchema, {
         invalid_type_error: "sedes debe ser una lista de IDs de Mongoose."
@@ -75,13 +77,28 @@ export const disponibilidadBodySchema = z.object({
     message: "La hora de inicio debe ser menor que la hora de fin",
     path: ["horaHasta"]
 })
-
+/*
 export const servicioBodySchema = z.object({
     especialidad: z.any().optional().nullable(),
     practica: z.any().optional().nullable()
 }).refine(data => data.especialidad != null || data.practica != null, {
     message: "Debe proporcionar especialidad o practica"
 })
+*/
+
+//Tienen q ser arrays
+export const serviciosBodySchema = z.object({
+    especialidades: z.array(especialidadBodySchema, {
+        invalid_type_error: "Las especialidades deben ser una lista."
+    }).default([]),
+    
+    practicas: z.array(practicaBodySchema, {
+        invalid_type_error: "Las prácticas deben ser una lista."
+    }).default([])
+}).refine(data => data.especialidades.length > 0 || data.practicas.length > 0, {
+    message: "Debe proporcionar al menos una especialidad o una práctica.",
+    path: ["especialidades", "practicas"]
+});
 
 // MEDICO DOMAIN
 export const medicoDomainSchema = z.object({
