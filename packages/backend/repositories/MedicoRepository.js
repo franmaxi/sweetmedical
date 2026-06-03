@@ -45,14 +45,21 @@ export class MedicoRepository{
         return await this.#populate(this.model.find(filtros))
     }
 
-    async save(medico) {
+    async save(medico, session= null) {
         const nuevoMedico = new this.model(medico)
-        return await nuevoMedico.save()
+        return await nuevoMedico.save({session})
     }
 
-    async update(id, medico) {
-        return await this.#populate(this.model.findByIdAndUpdate(id, medico, { new: true }))
+    async update(id, medico, session = null) {
+        return await this.#populate(
+            this.model.findByIdAndUpdate(
+                id, 
+                medico, 
+                { new: true, session }
+            )
+        );
     }
+    
     async delete(id) {
         return await this.model.findByIdAndUpdate(id, { eliminado: true }, { new: true });
     }

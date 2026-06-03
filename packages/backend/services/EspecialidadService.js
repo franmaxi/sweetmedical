@@ -56,31 +56,29 @@ export class EspecialidadService {
     }
 
     
-    async crear(datosEspecialidad) {
+    async crear(datosEspecialidad,idGenerica, session = null) {
         if (datosEspecialidad.duracionTurnoEnMins % 15 !== 0) {
             throw new BadRequestError("La duración de la especialidad debe ser múltiplo de 15 minutos");
         }
         const validDatos = especialidadBodySchema.parse(datosEspecialidad);
-        
-        const especialidadGenerica = await this.especialidadGenericaRepository.findOneByNombre(validDatos.nombre);
-        if (especialidadGenerica == null) {
-            throw new BadRequestError("No existe una especialidad generica de nombre: " + validDatos.nombre + ". No se podrá asociar una concreta");
-        }
 
         const especialidad = new Especialidad({
-            especialidadGenerica: especialidadGenerica._id,   
+            especialidadGenerica: idGenerica,   
             nombre: validDatos.nombre, 
             duracionTurnoEnMins: validDatos.duracionTurnoEnMins,
             costo: validDatos.costo
         });
-        return await this.especialidadRepository.save(especialidad); 
+        return await this.especialidadRepository.save(especialidad, session); 
     }
 
-    async actualizar(id, datosEspecialidad) {
+    async actualizar(id, datosEspecialidad, session = null) {
         const validId = objectIdSchema.parse(id);
         const validDatos = especialidadBodySchema.parse(datosEspecialidad);
 
         const especialidad = await this.obtenerPorId(validId);
+        if (!especialidad) {
+            throw new NotFoundError(`No se encontró una especialidad con el id ${id}`);
+        }
 
         if (especialidad?.nombre.toLowerCase() !== validDatos?.nombre.toLowerCase()) {
             throw new BadRequestError("No se puede modificar el nombre de una especialidad. Se deberá modificar la genérica");
@@ -89,16 +87,16 @@ export class EspecialidadService {
         especialidad.duracionTurnoEnMins = validDatos.duracionTurnoEnMins;
         especialidad.costo = validDatos.costo;
 
-        return await this.especialidadRepository.update(validId, especialidad);
+        return await this.especialidadRepository.update(validId, especialidad, session);
     }
 
-    async eliminar(id){
+    async eliminar(id, session = null){
         const validId = objectIdSchema.parse(id);
 
         await this.obtenerPorId(validId);
 
   
-        return await this.especialidadRepository.delete(validId);
+        return await this.especialidadRepository.delete(validId, session);
     }
 
     async obtenerPorNombre(nombre) {

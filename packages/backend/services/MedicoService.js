@@ -110,8 +110,8 @@ export class MedicoService {
         return medico !== null;
     }
 
-    // Este metodo se usara siempre con un servicio null.
-    //TODO revisar las transacciones, todos los metodos interiores deben aceptarlas.
+    // ======================= SERVICIOS =============================
+
     async agregarServicios(medicoId, especialidades, practicas) {
         const validMedicoId = objectIdSchema.parse(String(medicoId));
         const medico = await this.obtenerPorId(validMedicoId);
@@ -131,7 +131,7 @@ export class MedicoService {
                     if (medico.especialidadGenericaPertenece(especialidadGenerica._id)) {
                         throw new BadRequestError("El medico ya tiene la especialidad: "+ especialidad.nombre)
                     } 
-                    const especialidadCreada = await this.especialidadService.crear(especialidad)
+                    const especialidadCreada = await this.especialidadService.crear(especialidad,especialidadGenerica._id, session)
                     medico.agregarEspecialidad(especialidadCreada);
                 }
             }
@@ -150,15 +150,15 @@ export class MedicoService {
                         throw new BadRequestError("El médico ya tiene asignada la práctica: " + practica.nombre);
                     }
 
-                    const practicaCreada = await this.practicaService.crear(practica)
+                    const practicaCreada = await this.practicaService.crear(practica,practicaGenerica._id, session)
                     medico.agregarPractica(practicaCreada);
                 }
             }
 
-            await medico.save({ session });
+            const medicoGuardado = await this.medicoRepository.update(medico._id,medico, session);
 
             await session.commitTransaction();
-            return medico;
+            return medicoGuardado;
 
         } catch(error){
             await session.abortTransaction();
@@ -166,8 +166,7 @@ export class MedicoService {
         } finally {
             session.endSession();
         }
-    
-        return await this.medicoRepository.save(medico);
+
     }
 
     async modificarServicios(medicoId, especialidades, practicas) {
@@ -175,48 +174,95 @@ export class MedicoService {
         const medico = await this.obtenerPorId(validMedicoId);
         if (!medico) throw new NotFoundError("Medico no encontrado");
 
-        for(const especialidad of especialidades){
-            if (especialidad) {
-                // No hace falta modificar la lista de especialidades del medico, porq ya apunta al objeto que modificamos
-                await this.especialidadService.actualizar(especialidad._id, especialidad);
-                //TODO tener en cuenta como se modifican los turnos
+        const session = await mongoose.startSession()
+        session.startTransaction();
+        try{
+            for(const especialidad of especialidades){
+                if (especialidad) {
+                    const pertenece = medico.especialidades.some(e => String(e._id || e) === String(especialidad._id));
+                    if (!pertenece) {
+                        throw new BadRequestError(`La especialidad con ID ${especialidad._id} no pertenece a este médico.`);
+                    }
+                    // No hace falta modificar la lista de especialidades del medico, porq ya apunta al objeto que modificamos
+                    await this.especialidadService.actualizar(especialidad._id, especialidad, session);
+                    //TODO tener en cuenta como se modifican los turnos
+                }
             }
-        }
-    
-        for(const practica of practicas){
-            if (practica) {
-                await this.practicaService.actualizar(practica._id, practica);
+        
+            for(const practica of practicas){
+                if (practica) {
+                    const pertenece = medico.practicas.some(e => String(e._id || e) === String(practica._id));
+                    if (!pertenece) {
+                        throw new BadRequestError(`La practica con ID ${practica._id} no pertenece a este médico.`);
+                    }
+                    await this.practicaService.actualizar(practica._id, practica, session);
+                }
             }
-        }
+            await session.commitTransaction();
 
-        return await this.medicoRepository.findById(validMedicoId);
+            return await this.medicoRepository.findById(validMedicoId);
+
+        } catch(error){
+            await session.abortTransaction();
+            throw error;
+        } finally {
+            session.endSession();
+        }
+        
     }
 
     async eliminarServicios(medicoId, especialidadesId, practicasId) {
         const validMedicoId = objectIdSchema.parse(String(medicoId));
         const medico = await this.obtenerPorId(validMedicoId);
         if (!medico) throw new NotFoundError("Medico no encontrado");
+        
+        const session = await mongoose.startSession()
+        session.startTransaction();
+        try{
+            for(const especialidadId of especialidadesId){
+                if (especialidadId) {
+                    const validEspId = objectIdSchema.parse(String(especialidadId));
 
-        for(const especialidadId of especialidadesId){
-            if (especialidadId) {
-                const validEspId = objectIdSchema.parse(String(especialidadId));
-                medico.eliminarEspecialidad(validEspId);
-                await this.especialidadService.eliminar(validEspId);
-                //TODO tener en cuenta como se modifican los turnos
+                    const pertenece = medico.especialidades.some(e => String(e._id || e) === String(validEspId));
+                    if (!pertenece) {
+                        throw new BadRequestError(`La especialidad con ID ${validEspId} no pertenece a este médico.`);
+                    }
+
+                    medico.eliminarEspecialidad(validEspId);
+                    await this.especialidadService.eliminar(validEspId, session);
+                    //TODO tener en cuenta como se modifican los turnos
+                }
             }
-        }
 
-        for (const practicaId of practicasId){
-            if (practicaId) {
-                const validPracId = objectIdSchema.parse(String(practicaId));
-                medico.eliminarPractica(validPracId);
-                await this.practicaService.eliminar(validPracId);
+            for (const practicaId of practicasId){
+                if (practicaId) {
+                    const validPracId = objectIdSchema.parse(String(practicaId));
+
+                    const pertenece = medico.practicas.some(e => String(e._id || e) === String(validPracId));
+                    if (!pertenece) {
+                        throw new BadRequestError(`La practica con ID ${validPracId} no pertenece a este médico.`);
+                    }
+
+                    medico.eliminarPractica(validPracId);
+                    await this.practicaService.eliminar(validPracId, session);
+                }
             }
-        }
 
-        return await this.medicoRepository.save(medico);
+            const medicoGuardado = await this.medicoRepository.update(medico._id,medico, session);
+            
+            await session.commitTransaction();
+
+            return medicoGuardado
+
+        } catch(error){
+            await session.abortTransaction();
+            throw error;
+        } finally {
+            session.endSession();
+        }
     }
     
+    // ======================= DISPONIBILIDADES =============================
     async obtenerDisponibilidades(medicoId) {
         const validMedicoId = objectIdSchema.parse(String(medicoId));
         return await this.medicoRepository.getDisponibilidades(validMedicoId);
@@ -272,7 +318,13 @@ export class MedicoService {
 
         return await this.medicoRepository.obtenerDisponibilidadPorId(validMedicoId, validDispoId);
     }
+
+    // ======================= SEDES =============================
+    async agregarSedes(medicoId, datosSedes){
+        //TODO, las sedes deben ya existir, las crean "los admins"
+    }
+
+    async eliminarSedes(medicoId, sedes){
+        //TODO se debe tener en cuenta los turnos creados
+    }
 }
-
-
-//TODO validar usuario nuevo al crear medico y capaz dni

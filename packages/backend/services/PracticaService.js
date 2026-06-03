@@ -69,44 +69,29 @@ export class PracticaService {
         return true;
     }
 
-    async crear(datosPractica) {
+    async crear(datosPractica, idGenerica, session = null) {
          if (datosPractica.duracionTurnoEnMins % 15 !== 0) {
             throw new BadRequestError("La duración de la practica debe ser múltiplo de 15 minutos");
         }
         const validDatos = practicaBodySchema.parse(datosPractica);
-        
-        const practicaGenerica = await this.practicaGenericaRepository.findByCodigo(validDatos.codigo);
-
-        if (!practicaGenerica) {
-            throw new NotFoundError(`No se encontró un practica generica con el codigo ${validDatos.codigo}. Debe existir, para poder asociarla a una concreta`);
-        }
-
-        if (practicaGenerica.nombre.toLowerCase() !== validDatos.nombre.toLowerCase()) {
-            throw new NotFoundError(`El nombre no coincide con el código de práctica provisto.`);
-        }
 
         const practica = new Practica({
             codigo: validDatos.codigo,
-            practicaGenerica: practicaGenerica._id,
+            practicaGenerica: idGenerica,
             nombre: validDatos.nombre,
             duracionTurnoEnMins: validDatos.duracionTurnoEnMins,
             costo: validDatos.costo,
         });
         
-        return await this.practicaRepository.save(practica);
+        return await this.practicaRepository.save(practica, session);
     }
 
-    async actualizar(id, datosPractica) {
+    async actualizar(id, datosPractica, session = null) {
         const validId = objectIdSchema.parse(id);
         const validDatos = practicaBodySchema.parse(datosPractica);
         const practicaExistente = await this.practicaRepository.findById(validId);
         if (!practicaExistente) {
-            throw new NotFoundError(`No se encontró un practica con el id ${id}`);
-        }
-        const practicaGenerica = await this.practicaGenericaRepository.findById(practicaExistente.practicaGenerica);
-
-        if (!practicaGenerica) {
-            throw new NotFoundError(`No se encontró un practica generica con id ${practicaExistente.practicaGenerica}.`);
+            throw new NotFoundError(`No se encontró una practica con el id ${id}`);
         }
 
         if (practicaExistente?.nombre.toLowerCase() !== validDatos?.nombre.toLowerCase()) {
@@ -119,16 +104,16 @@ export class PracticaService {
         practicaExistente.costo = validDatos.costo;
         practicaExistente.duracionTurnoEnMins = validDatos.duracionTurnoEnMins;
 
-        return await this.practicaRepository.update(validId, practicaExistente);
+        return await this.practicaRepository.update(validId, practicaExistente, session);
     }
 
-    async eliminar(id) {
+    async eliminar(id, session = null) {
         const validId = objectIdSchema.parse(id);
         const practicaExistente = await this.practicaRepository.findById(validId);
         if (!practicaExistente) {
             throw new NotFoundError(`No se encontró un practica con el id ${id}`);
         }
-        const practicaEliminado = await this.practicaRepository.delete(validId);
+        const practicaEliminado = await this.practicaRepository.delete(validId, session);
         return practicaEliminado;
     }
 

@@ -43,13 +43,13 @@ export class PracticaRepository {
         return this.model.find(filtros).populate('practicaGenerica');
     }
 
-    async save(Practica) {
+    async save(Practica, session = null) {
         const nuevaPractica = new this.model(Practica);
-        return await nuevaPractica.save();
+        return await nuevaPractica.save({session});
     }
 
-    async update(id, Practica) {
-        return await this.model.findByIdAndUpdate(id, Practica, { new: true }).populate('practicaGenerica') ;
+    async update(id, practica, session = null) {
+        return await this.model.findByIdAndUpdate(id, practica, { new: true , session}).populate('practicaGenerica') ;
     }
 
     //Datos a actualizar tendrá unicamente los datos q se modificaran, por ej nombre y codigo.
@@ -60,8 +60,8 @@ export class PracticaRepository {
         ).populate('practicaGenerica');
     }
 
-    async delete(id) {
-        return await this.model.findByIdAndUpdate(id, { eliminado: true }, { new: true }).populate('practicaGenerica');
+    async delete(id, session = null) {
+        return await this.model.findByIdAndUpdate(id, { eliminado: true }, { new: true , session}).populate('practicaGenerica');
     }
 
     //auxiliar

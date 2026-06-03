@@ -41,13 +41,13 @@ export class EspecialidadRepository{
         return await this.model.find(filtros).populate('especialidadGenerica');
     }
     
-    async save(especialidad) {
+    async save(especialidad, session = null) {
         const nuevaEspecialidad = new this.model(especialidad);
-        return await nuevaEspecialidad.save();
+        return await nuevaEspecialidad.save({ session });
     }
 
-    async update(id, especialidad) {
-        return await this.model.findByIdAndUpdate(id, especialidad, { new: true }).populate('especialidadGenerica');
+    async update(id, especialidad, session = null) {
+        return await this.model.findByIdAndUpdate(id, especialidad, { new: true , session}).populate('especialidadGenerica');
     }
 
     async updateManyNombres(ids, nuevoNombre) {
@@ -57,8 +57,8 @@ export class EspecialidadRepository{
         ).populate('especialidadGenerica');
     }
 
-    async delete(id) {
-        return await this.model.findByIdAndUpdate(id, { eliminado: true }, { new: true });
+    async delete(id, session = null) {
+        return await this.model.findByIdAndUpdate(id, { eliminado: true }, { new: true , session});
     }
 
     //auxiliar
