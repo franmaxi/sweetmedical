@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLocation, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Layout, Menu, Space, Button, Drawer, Grid } from "antd";
 import {
   ScheduleOutlined,
@@ -16,6 +17,7 @@ const { Header } = Layout;
 const { useBreakpoint } = Grid;
 
 export default function Navbar() {
+  const { t } = useTranslation();
   const location = useLocation();
   const screens = useBreakpoint();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -23,11 +25,11 @@ export default function Navbar() {
   const esMobile = !screens.md;
 
   const items = [
-    { key: "/", icon: <HomeOutlined />, label: <Link to="/">Inicio</Link> },
-    { key: "/buscar", icon: <SearchOutlined />, label: <Link to="/buscar">Buscar turnos</Link> },
-    { key: "/mis-turnos", icon: <ScheduleOutlined />, label: <Link to="/mis-turnos">Mis turnos</Link> },
-    { key: "/agenda", icon: <CalendarOutlined />, label: <Link to="/agenda">Mi agenda</Link> },
-    { key: "/disponibilidades", icon: <ClockCircleOutlined />, label: <Link to="/disponibilidades">Disponibilidades</Link> },
+    { key: "/", icon: <HomeOutlined />, label: <Link to="/">{t("navbar.inicio")}</Link> },
+    { key: "/buscar", icon: <SearchOutlined />, label: <Link to="/buscar">{t("navbar.buscar")}</Link> },
+    { key: "/mis-turnos", icon: <ScheduleOutlined />, label: <Link to="/mis-turnos">{t("navbar.misTurnos")}</Link> },
+    { key: "/agenda", icon: <CalendarOutlined />, label: <Link to="/agenda">{t("navbar.agenda")}</Link> },
+    { key: "/disponibilidades", icon: <ClockCircleOutlined />, label: <Link to="/disponibilidades">{t("navbar.disponibilidades")}</Link> },
   ];
 
   const logo = (
@@ -84,7 +86,7 @@ export default function Navbar() {
       </Space>
 
       <Drawer
-        title="Menú"
+        title={t("navbar.menu")}
         placement="right"
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}

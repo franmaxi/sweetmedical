@@ -1,0 +1,180 @@
+{
+  "navbar": {
+    "brand": "SweetMedical",
+    "inicio": "Inicio",
+    "buscar": "Buscar turnos",
+    "misTurnos": "Mis turnos",
+    "agenda": "Mi agenda",
+    "disponibilidades": "Disponibilidades",
+    "menu": "Menú"
+  },
+  "language": {
+    "spanish": "Español",
+    "english": "English",
+    "shortEs": "ES",
+    "shortEn": "EN"
+  },
+  "inicio": {
+    "marca": "SWEET MEDICAL",
+    "tituloLinea1": "Tu turno médico,",
+    "tituloLinea2": "simple y al instante",
+    "descripcion": "Reservá turnos con los mejores profesionales de la salud, en la sede más cercana y con la cobertura de tu obra social.",
+    "botonBuscar": "Buscar turnos",
+    "botonMisTurnos": "Mis turnos",
+    "estadisticas": {
+      "especialidades": "Especialidades",
+      "medicos": "Médicos disponibles",
+      "sedes": "Sedes"
+    }
+  },
+  "especialidades": {
+    "seccionEtiqueta": "Nuestras especialidades",
+    "tituloLinea1": "Atención profesional",
+    "tituloLinea2": "en cada área de la salud",
+    "placeholder": "Buscar especialidad (ej: cardiología, piel, niños...)",
+    "resultadoUno": "resultado",
+    "resultadosMultiples": "resultados",
+    "noResultados": "No encontramos especialidades para \"{{query}}\"",
+    "medicosEtiqueta": "médicos",
+    "verMedicos": "Ver médicos"
+  },
+  "doctor": {
+    "seccionEtiqueta": "Nuestro equipo",
+    "titulo": "Médicos especialistas",
+    "subtitulo": "Profesionales certificados, con años de experiencia y dedicación a cada uno de nuestros pacientes.",
+    "verAgenda": "Ver agenda",
+    "verTodosDoctores": "Ver todos los médicos"
+  },
+  "turno": {
+    "titleLine1": "Reservá tu turno",
+    "titleLine2": "en menos de 1 minuto",
+    "descripcion": "Elegí especialidad, médico y sede. Recibí la confirmación por email y los recordatorios automáticos.",
+    "buscasUnTurno": "¿Buscás un turno?",
+    "subtitulo": "Filtrá por especialidad, médico, sede y fecha para encontrar el turno que mejor te queda.",
+    "botonBuscarDisponibles": "Buscar turnos disponibles",
+    "botonVerMisTurnos": "Ver mis turnos"
+  },
+  "footer": {
+    "descripcion": "Sistema de gestión de turnos médicos. Reservá, gestioná y recibí recordatorios sin filas ni esperas.",
+    "encabezadoEspecialidades": "Especialidades",
+    "encabezadoEnlaces": "Enlaces",
+    "especialidades": ["Cardiología", "Ginecología", "Traumatología", "Pediatría", "Oftalmología"],
+    "enlaces": ["Médicos", "Sedes", "Planes y obras sociales", "Mis turnos", "Contacto"]
+  },
+  "buscarTurnos": {
+    "encabezado": "Reservá tu turno",
+    "titulo": "Buscar turnos disponibles",
+    "subtitulo": "Filtrá por especialidad, médico, sede o fecha para encontrar el turno que mejor te queda.",
+    "filtrosTitulo": "Filtros",
+    "limpiar": "Limpiar",
+    "labelEspecialidad": "Especialidad",
+    "labelMedico": "Médico",
+    "labelSede": "Sede",
+    "labelFechaDesde": "Fecha desde",
+    "placeholderTodas": "Todas",
+    "placeholderMedico": "Buscar por nombre",
+    "resultCount": "{{count}} turno{{plural}} disponible{{plural}}",
+    "noResults": "No encontramos turnos con esos filtros",
+    "reservar": "Reservar",
+    "confirm": {
+      "title": "Confirmar reserva",
+      "content": "Turno con {{medico}} · {{especialidad}} · {{fecha}} {{hora}} · {{sede}}",
+      "ok": "Reservar",
+      "cancel": "Volver"
+    },
+    "successReservado": "¡Turno reservado!"
+  },
+  "agenda": {
+    "titulo": "Mi agenda",
+    "subtitulo": "Confirmá, cancelá o marcá como realizados los turnos de tus pacientes.",
+    "filtros": {
+      "proximos": "Próximos",
+      "porConfirmar": "Por confirmar",
+      "historico": "Histórico",
+      "todos": "Todos"
+    },
+    "confirmar": "Confirmar",
+    "marcarRealizado": "Marcar realizado",
+    "cancelar": "Cancelar",
+    "cancelarTitle": "Cancelar turno",
+    "cancelarPlaceholder": "Motivo de la cancelación (obligatorio)",
+    "cancelarOk": "Cancelar turno",
+    "cancelarCancel": "Volver",
+    "cancelarErrorMotivo": "Tenés que indicar un motivo",
+    "canceladoOk": "Turno cancelado",
+    "confirmadoOk": "Turno confirmado",
+    "realizadoOk": "Turno marcado como realizado",
+    "column": {
+      "fecha": "Fecha",
+      "paciente": "Paciente",
+      "especialidad": "Especialidad",
+      "sede": "Sede",
+      "estado": "Estado",
+      "acciones": "Acciones"
+    },
+    "sinTurnos": "No hay turnos en esta vista",
+    "disponible": "(disponible)"
+  },
+  "estados": {
+    "disponible": "Disponible",
+    "reservado": "Reservado",
+    "confirmado": "Confirmado",
+    "cancelado": "Cancelado",
+    "realizado": "Realizado"
+  },
+  "misTurnos": {
+    "titulo": "Mis turnos",
+    "subtitulo": "Acá ves los turnos que reservaste y tu historial.",
+    "cargando": "Cargando…",
+    "sinTurnosDescripcion": "No tenés turnos en esta categoría",
+    "buscarTurnosBoton": "Buscar turnos",
+    "cancelarTitle": "Cancelar turno",
+    "cancelarPlaceholder": "Motivo de la cancelación (obligatorio)",
+    "cancelarOk": "Cancelar turno",
+    "cancelarCancel": "Volver",
+    "errorFaltaMotivo": "Tenés que indicar un motivo",
+    "canceladoOk": "Turno cancelado",
+    "proximos": "Próximos",
+    "historial": "Historial"
+  },
+  "notificaciones": {
+    "titulo": "Notificaciones",
+    "marcarTodas": "Marcar todas como leídas",
+    "emptyText": "No tenés notificaciones",
+    "marcarLeida": "Marcar leída"
+  },
+  "disponibilidades": {
+    "titulo": "Mis disponibilidades",
+    "subtitulo": "Definí los días y horarios en los que atendés.",
+    "agregarDisponibilidad": "Agregar disponibilidad",
+    "nuevaDisponibilidad": "Nueva disponibilidad",
+    "agregar": "Agregar",
+    "cancelar": "Cancelar",
+    "labelDia": "Día",
+    "labelHorario": "Horario",
+    "errorElegirDia": "Elegí un día",
+    "errorElegirHorario": "Elegí el rango horario",
+    "errorHoraInicio": "La hora de inicio debe ser menor que la de fin",
+    "successAgregada": "Disponibilidad agregada",
+    "successEliminada": "Disponibilidad eliminada",
+    "eliminarTitle": "Eliminar disponibilidad",
+    "eliminar": "Eliminar",
+    "column": {
+      "dia": "Día",
+      "desde": "Desde",
+      "hasta": "Hasta"
+    },
+    "emptyText": "Todavía no cargaste ninguna disponibilidad",
+    "de": "de",
+    "a": "a"
+  },
+  "dias": {
+    "lunes": "Lunes",
+    "martes": "Martes",
+    "miercoles": "Miércoles",
+    "jueves": "Jueves",
+    "viernes": "Viernes",
+    "sabado": "Sábado",
+    "domingo": "Domingo"
+  }
+}

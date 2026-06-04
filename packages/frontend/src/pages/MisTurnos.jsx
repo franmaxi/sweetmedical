@@ -15,6 +15,7 @@ import {
 import { CalendarOutlined, ClockCircleOutlined, EnvironmentOutlined, MedicineBoxOutlined } from "@ant-design/icons";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { useTranslation } from "react-i18next";
 import {
   getTurnos,
   cancelarTurno,
@@ -57,9 +58,11 @@ export default function MisTurnos() {
 }
 
 function MisTurnosInner() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { message, modal } = AntApp.useApp();
   const [turnos, setTurnos] = useState([]);
+  const estadoLabel = (e) => t(`estados.${nombreEstado(e).toLowerCase()}`, { defaultValue: nombreEstado(e) });
   const [medicosById, setMedicosById] = useState(new Map());
   const [sedesById, setSedesById] = useState(new Map());
   const [espById, setEspById] = useState(new Map());
@@ -105,27 +108,27 @@ function MisTurnosInner() {
   const onCancelar = (turno) => {
     let motivo = "";
     modal.confirm({
-      title: "Cancelar turno",
+      title: t("misTurnos.cancelarTitle"),
       content: (
         <div>
           <p>{turno.medicoNombre} · {fmt(turno.fechaHora)}</p>
           <Input.TextArea
             rows={3}
-            placeholder="Motivo de la cancelación (obligatorio)"
+            placeholder={t("misTurnos.cancelarPlaceholder")}
             onChange={(e) => { motivo = e.target.value; }}
           />
         </div>
       ),
-      okText: "Cancelar turno",
+      okText: t("misTurnos.cancelarOk"),
       okButtonProps: { danger: true },
-      cancelText: "Volver",
+      cancelText: t("misTurnos.cancelarCancel"),
       onOk: async () => {
         if (!motivo.trim()) {
-          message.error("Tenés que indicar un motivo");
+          message.error(t("misTurnos.errorFaltaMotivo"));
           throw new Error("falta motivo");
         }
         await cancelarTurno(turno.id, { usuarioId: PACIENTE_ACTIVO.usuarioId, motivo: motivo.trim() });
-        message.success("Turno cancelado");
+        message.success(t("misTurnos.canceladoOk"));
         recargar();
       },
     });
@@ -136,7 +139,7 @@ function MisTurnosInner() {
       <Space direction="vertical" size={4} style={{ width: "100%" }}>
         <Space style={{ width: "100%", justifyContent: "space-between" }}>
           <Title level={5} style={{ margin: 0 }}>{t.medicoNombre}</Title>
-          <Tag color={COLOR_ESTADO[t.estado]}>{nombreEstado(t.estado)}</Tag>
+          <Tag color={COLOR_ESTADO[t.estado]}>{estadoLabel(t.estado)}</Tag>
         </Space>
         <Space wrap size="large">
           <Text type="secondary"><MedicineBoxOutlined /> {t.especialidadNombre}</Text>
@@ -146,7 +149,7 @@ function MisTurnosInner() {
         </Space>
         {(t.estado === EstadoTurno.RESERVADO || t.estado === EstadoTurno.CONFIRMADO) && esFuturo(t.fechaHora) && (
           <Space style={{ marginTop: 8 }}>
-            <Button danger onClick={() => onCancelar(t)}>Cancelar turno</Button>
+            <Button danger onClick={() => onCancelar(t)}>{t("misTurnos.cancelarOk")}</Button>
           </Space>
         )}
       </Space>
@@ -154,11 +157,13 @@ function MisTurnosInner() {
   );
 
   const renderLista = (lista) => {
-    if (cargando) return <Text type="secondary">Cargando…</Text>;
+    if (cargando) return <Text type="secondary">{t("misTurnos.cargando")}</Text>;
     if (lista.length === 0) {
       return (
-        <Empty description="No tenés turnos en esta categoría">
-          <Button type="primary" onClick={() => navigate("/buscar")}>Buscar turnos</Button>
+        <Empty description={t("misTurnos.sinTurnosDescripcion")}>
+          <Button type="primary" onClick={() => navigate("/buscar")}>
+            {t("misTurnos.buscarTurnosBoton")}
+          </Button>
         </Empty>
       );
     }
@@ -169,15 +174,15 @@ function MisTurnosInner() {
     <Layout style={{ background: "#fafafa", minHeight: "100vh" }}>
       <Navbar />
       <Layout.Content style={{ maxWidth: 880, margin: "0 auto", padding: "clamp(20px, 4vw, 32px) clamp(12px, 4vw, 24px)", width: "100%" }}>
-        <Title level={2}>Mis turnos</Title>
-        <Text type="secondary">Acá ves los turnos que reservaste y tu historial.</Text>
+        <Title level={2}>{t("misTurnos.titulo")}</Title>
+        <Text type="secondary">{t("misTurnos.subtitulo")}</Text>
 
         <Tabs
           defaultActiveKey="proximos"
           style={{ marginTop: 16 }}
           items={[
-            { key: "proximos", label: `Próximos (${proximos.length})`, children: renderLista(proximos) },
-            { key: "historicos", label: `Historial (${historicos.length})`, children: renderLista(historicos) },
+            { key: "proximos", label: `${t("misTurnos.proximos")} (${proximos.length})`, children: renderLista(proximos) },
+            { key: "historicos", label: `${t("misTurnos.historial")} (${historicos.length})`, children: renderLista(historicos) },
           ]}
         />
       </Layout.Content>

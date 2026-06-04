@@ -1,12 +1,14 @@
+import { useTranslation } from "react-i18next";
 import { Layout, Row, Col, Typography, Input, Button, Space, Divider } from "antd";
 
 const { Footer: AntFooter } = Layout;
 const { Title, Text, Paragraph } = Typography;
 
-const ESPECIALIDADES = ["Cardiología", "Ginecología", "Traumatología", "Pediatría", "Oftalmología"];
-const ENLACES = ["Médicos", "Sedes", "Planes y obras sociales", "Mis turnos", "Contacto"];
-
 export default function Footer() {
+  const { t } = useTranslation();
+  const ESPECIALIDADES = t("footer.especialidades", { returnObjects: true });
+  const ENLACES = t("footer.enlaces", { returnObjects: true });
+
   return (
     <AntFooter style={{ background: "#fafafa", padding: "clamp(32px, 5vw, 48px) clamp(16px, 4vw, 32px) 24px", borderTop: "1px solid #f0f0f0" }}>
       <div style={{ maxWidth: 1280, margin: "0 auto" }}>
@@ -29,13 +31,12 @@ export default function Footer() {
               <Text strong style={{ fontSize: 18, color: "#be123c" }}>Sweet Medical</Text>
             </Space>
             <Paragraph type="secondary" style={{ fontSize: 13 }}>
-              Sistema de gestión de turnos médicos. Reservá, gestioná y recibí
-              recordatorios sin filas ni esperas.
+              {t("footer.descripcion")}
             </Paragraph>
           </Col>
 
           <Col xs={12} md={5}>
-            <Title level={5}>Especialidades</Title>
+            <Title level={5}>{t("footer.encabezadoEspecialidades")}</Title>
             <Space direction="vertical" size={4}>
               {ESPECIALIDADES.map((e) => (
                 <Text type="secondary" key={e} style={{ fontSize: 13 }}>{e}</Text>
@@ -44,7 +45,7 @@ export default function Footer() {
           </Col>
 
           <Col xs={12} md={5}>
-            <Title level={5}>Enlaces</Title>
+            <Title level={5}>{t("footer.encabezadoEnlaces")}</Title>
             <Space direction="vertical" size={4}>
               {ENLACES.map((e) => (
                 <Text type="secondary" key={e} style={{ fontSize: 13 }}>{e}</Text>

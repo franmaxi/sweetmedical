@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Row, Col, Typography, Button, Space, Statistic, Card } from "antd";
 import {
   ArrowRightOutlined,
@@ -17,6 +18,7 @@ import {
 const { Title, Paragraph, Text } = Typography;
 
 export default function Hero() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [stats, setStats] = useState({ especialidades: 0, medicos: 0, sedes: 0 });
 
@@ -41,10 +43,10 @@ export default function Hero() {
     >
       <div style={{ maxWidth: 1100, margin: "0 auto", textAlign: "center" }}>
         <Text style={{ color: "#be123c", fontWeight: 600, fontSize: 14, letterSpacing: 1 }}>
-          SWEET MEDICAL
+          {t("inicio.marca")}
         </Text>
         <Title level={1} style={{ fontSize: "clamp(32px, 6vw, 56px)", lineHeight: 1.1, margin: "16px 0 24px" }}>
-          Tu turno médico,<br />simple y al instante
+          {t("inicio.tituloLinea1")}<br />{t("inicio.tituloLinea2")}
         </Title>
         <Paragraph
           style={{
@@ -54,16 +56,15 @@ export default function Hero() {
             margin: "0 auto 40px",
           }}
         >
-          Reservá turnos con los mejores profesionales de la salud, en la sede
-          más cercana y con la cobertura de tu obra social.
+          {t("inicio.descripcion")}
         </Paragraph>
 
         <Space size="middle" wrap style={{ marginBottom: 64, justifyContent: "center" }}>
-          <Button type="primary" size="large" icon={<CalendarOutlined />} onClick={() => navigate("/buscar")}>
-            Buscar turnos
+          <Button type="primary" size="large" icon={<CalendarOutlined />} onClick={() => navigate("/buscar") }>
+            {t("inicio.botonBuscar")}
           </Button>
-          <Button size="large" icon={<ArrowRightOutlined />} onClick={() => navigate("/mis-turnos")}>
-            Mis turnos
+          <Button size="large" icon={<ArrowRightOutlined />} onClick={() => navigate("/mis-turnos") }>
+            {t("inicio.botonMisTurnos")}
           </Button>
         </Space>
 
@@ -71,7 +72,7 @@ export default function Hero() {
           <Col xs={24} sm={8}>
             <Card style={{ borderRadius: 16, border: "1px solid rgba(190,18,60,0.12)" }}>
               <Statistic
-                title="Especialidades"
+                title={t("inicio.estadisticas.especialidades")}
                 value={stats.especialidades}
                 prefix={<MedicineBoxOutlined style={{ color: "#be123c" }} />}
               />
@@ -80,7 +81,7 @@ export default function Hero() {
           <Col xs={24} sm={8}>
             <Card style={{ borderRadius: 16, border: "1px solid rgba(190,18,60,0.12)" }}>
               <Statistic
-                title="Médicos disponibles"
+                title={t("inicio.estadisticas.medicos")}
                 value={stats.medicos}
                 prefix={<TeamOutlined style={{ color: "#be123c" }} />}
               />
@@ -89,7 +90,7 @@ export default function Hero() {
           <Col xs={24} sm={8}>
             <Card style={{ borderRadius: 16, border: "1px solid rgba(190,18,60,0.12)" }}>
               <Statistic
-                title="Sedes"
+                title={t("inicio.estadisticas.sedes")}
                 value={stats.sedes}
                 prefix={<EnvironmentOutlined style={{ color: "#be123c" }} />}
               />

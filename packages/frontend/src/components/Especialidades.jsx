@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Row, Col, Card, Input, Typography, Tag, Empty, Button } from "antd";
 import { SearchOutlined } from "@ant-design/icons";
 import { getEspecialidadesGenericas, medicosMock, especialidadesMock } from "../mocks";
@@ -38,6 +39,7 @@ const contarMedicosPorGenerica = () => {
 };
 
 export default function Especialidades() {
+  const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [especialidades, setEspecialidades] = useState([]);
 
@@ -61,10 +63,10 @@ export default function Especialidades() {
       <div style={{ maxWidth: 1280, margin: "0 auto" }}>
         <div style={{ marginBottom: 40 }}>
           <Text style={{ color: "#be123c", fontWeight: 600, fontSize: 14 }}>
-            Nuestras especialidades
+            {t("especialidades.seccionEtiqueta")}
           </Text>
           <Title level={2} style={{ marginTop: 8, fontSize: "clamp(24px, 4vw, 36px)" }}>
-            Atención profesional<br />en cada área de la salud
+            {t("especialidades.tituloLinea1")}<br />{t("especialidades.tituloLinea2")}
           </Title>
         </div>
 
@@ -72,19 +74,19 @@ export default function Especialidades() {
           size="large"
           allowClear
           prefix={<SearchOutlined />}
-          placeholder="Buscar especialidad (ej: cardiología, piel, niños...)"
+          placeholder={t("especialidades.placeholder")}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           suffix={
             <Text type="secondary" style={{ fontSize: 12 }}>
-              {filtradas.length} {filtradas.length === 1 ? "resultado" : "resultados"}
+              {filtradas.length} {filtradas.length === 1 ? t("especialidades.resultadoUno") : t("especialidades.resultadosMultiples")}
             </Text>
           }
           style={{ marginBottom: 32, maxWidth: 720 }}
         />
 
         {filtradas.length === 0 ? (
-          <Empty description={`No encontramos especialidades para "${query}"`} />
+          <Empty description={t("especialidades.noResultados", { query })} />
         ) : (
           <Row gutter={[24, 24]}>
             {filtradas.map((e) => (
@@ -94,14 +96,14 @@ export default function Especialidades() {
                     <span style={{ fontSize: 28 }}>
                       {ICONO_POR_ESPECIALIDAD[e.nombre] ?? ICONO_DEFAULT}
                     </span>
-                    <Tag color="pink">{e.medicos} médicos</Tag>
+                    <Tag color="pink">{e.medicos} {t("especialidades.medicosEtiqueta")}</Tag>
                   </div>
                   <Title level={4} style={{ marginTop: 0, marginBottom: 8 }}>{e.nombre}</Title>
                   <Paragraph type="secondary" style={{ fontSize: 13, marginBottom: 16 }}>
                     {e.descripcion}
                   </Paragraph>
                   <Button type="link" style={{ padding: 0 }}>
-                    Ver médicos →
+                    {t("especialidades.verMedicos")} →
                   </Button>
                 </Card>
               </Col>

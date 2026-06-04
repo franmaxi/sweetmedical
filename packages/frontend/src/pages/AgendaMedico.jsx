@@ -12,6 +12,7 @@ import {
   Tag,
   Typography,
 } from "antd";
+import { useTranslation } from "react-i18next";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import {
@@ -39,11 +40,11 @@ const COLOR_ESTADO = {
   [EstadoTurno.REALIZADO]: "purple",
 };
 
-const FILTROS = [
-  { label: "Próximos", value: "proximos" },
-  { label: "Por confirmar", value: "porConfirmar" },
-  { label: "Histórico", value: "historico" },
-  { label: "Todos", value: "todos" },
+const getFiltros = (t) => [
+  { label: t("agenda.filtros.proximos"), value: "proximos" },
+  { label: t("agenda.filtros.porConfirmar"), value: "porConfirmar" },
+  { label: t("agenda.filtros.historico"), value: "historico" },
+  { label: t("agenda.filtros.todos"), value: "todos" },
 ];
 
 const fmt = (iso) =>
@@ -62,6 +63,7 @@ export default function AgendaMedico() {
 }
 
 function AgendaMedicoInner() {
+  const { t } = useTranslation();
   const { message, modal } = AntApp.useApp();
   const [turnos, setTurnos] = useState([]);
   const [pacientesById, setPacientesById] = useState(new Map());
@@ -69,6 +71,8 @@ function AgendaMedicoInner() {
   const [espById, setEspById] = useState(new Map());
   const [cargando, setCargando] = useState(true);
   const [filtro, setFiltro] = useState("proximos");
+  const filtros = getFiltros(t);
+  const estadoLabel = (e) => t(`estados.${nombreEstado(e).toLowerCase()}`, { defaultValue: nombreEstado(e) });
 
   const recargar = () => {
     setCargando(true);
@@ -77,11 +81,11 @@ function AgendaMedicoInner() {
       getPacientes(),
       getSedes(),
       getEspecialidades(),
-    ]).then(([t, pacientes, sedes, esps]) => {
+    ]).then(([turnosData, pacientes, sedes, esps]) => {
       setPacientesById(new Map(pacientes.map((p) => [p.id, p])));
       setSedesById(new Map(sedes.map((s) => [s.id, s])));
       setEspById(new Map(esps.map((e) => [e.id, e])));
-      setTurnos(t);
+      setTurnos(turnosData);
       setCargando(false);
     });
   };
@@ -90,12 +94,12 @@ function AgendaMedicoInner() {
 
   const hidratados = useMemo(
     () =>
-      turnos.map((t) => ({
-        ...t,
-        key: t.id,
-        pacienteNombre: t.pacienteId ? pacientesById.get(t.pacienteId)?.nombre ?? "—" : "(disponible)",
-        sedeNombre: sedesById.get(t.sedeId)?.nombre ?? "—",
-        especialidadNombre: espById.get(t.especialidadId)?.nombre ?? "—",
+      turnos.map((turno) => ({
+        ...turno,
+        key: turno.id,
+        pacienteNombre: turno.pacienteId ? pacientesById.get(turno.pacienteId)?.nombre ?? "—" : t("agenda.disponible"),
+        sedeNombre: sedesById.get(turno.sedeId)?.nombre ?? "—",
+        especialidadNombre: espById.get(turno.especialidadId)?.nombre ?? "—",
       })),
     [turnos, pacientesById, sedesById, espById],
   );
@@ -112,69 +116,69 @@ function AgendaMedicoInner() {
     return lista.sort((a, b) => a.fechaHora.localeCompare(b.fechaHora));
   }, [hidratados, filtro]);
 
-  const onConfirmar = async (t) => {
-    await confirmarTurno(t.id, { usuarioId: MEDICO_ACTIVO.usuarioId });
-    message.success("Turno confirmado");
+  const onConfirmar = async (turno) => {
+    await confirmarTurno(turno.id, { usuarioId: MEDICO_ACTIVO.usuarioId });
+    message.success(t("agenda.confirmadoOk"));
     recargar();
   };
 
-  const onRealizado = async (t) => {
-    await marcarRealizado(t.id, { usuarioId: MEDICO_ACTIVO.usuarioId });
-    message.success("Turno marcado como realizado");
+  const onRealizado = async (turno) => {
+    await marcarRealizado(turno.id, { usuarioId: MEDICO_ACTIVO.usuarioId });
+    message.success(t("agenda.realizadoOk"));
     recargar();
   };
 
-  const onCancelar = (t) => {
+  const onCancelar = (turno) => {
     let motivo = "";
     modal.confirm({
-      title: "Cancelar turno",
+      title: t("agenda.cancelarTitle"),
       content: (
         <div>
-          <p>{t.pacienteNombre} · {fmt(t.fechaHora)}</p>
+          <p>{turno.pacienteNombre} · {fmt(turno.fechaHora)}</p>
           <Input.TextArea
             rows={3}
-            placeholder="Motivo de la cancelación (obligatorio)"
+            placeholder={t("agenda.cancelarPlaceholder")}
             onChange={(e) => { motivo = e.target.value; }}
           />
         </div>
       ),
-      okText: "Cancelar turno",
+      okText: t("agenda.cancelarOk"),
       okButtonProps: { danger: true },
-      cancelText: "Volver",
+      cancelText: t("agenda.cancelarCancel"),
       onOk: async () => {
         if (!motivo.trim()) {
-          message.error("Tenés que indicar un motivo");
+          message.error(t("agenda.cancelarErrorMotivo"));
           throw new Error("falta motivo");
         }
-        await cancelarTurno(t.id, { usuarioId: MEDICO_ACTIVO.usuarioId, motivo: motivo.trim() });
-        message.success("Turno cancelado");
+        await cancelarTurno(turno.id, { usuarioId: MEDICO_ACTIVO.usuarioId, motivo: motivo.trim() });
+        message.success(t("agenda.canceladoOk"));
         recargar();
       },
     });
   };
 
   const columns = [
-    { title: "Fecha", dataIndex: "fechaHora", render: fmt, sorter: (a, b) => a.fechaHora.localeCompare(b.fechaHora) },
-    { title: "Paciente", dataIndex: "pacienteNombre" },
-    { title: "Especialidad", dataIndex: "especialidadNombre" },
-    { title: "Sede", dataIndex: "sedeNombre" },
+    { title: t("agenda.column.fecha"), dataIndex: "fechaHora", render: fmt, sorter: (a, b) => a.fechaHora.localeCompare(b.fechaHora) },
+    { title: t("agenda.column.paciente"), dataIndex: "pacienteNombre" },
+    { title: t("agenda.column.especialidad"), dataIndex: "especialidadNombre" },
+    { title: t("agenda.column.sede"), dataIndex: "sedeNombre" },
     {
-      title: "Estado",
+      title: t("agenda.column.estado"),
       dataIndex: "estado",
-      render: (e) => <Tag color={COLOR_ESTADO[e]}>{nombreEstado(e)}</Tag>,
+      render: (e) => <Tag color={COLOR_ESTADO[e]}>{estadoLabel(e)}</Tag>,
     },
     {
-      title: "Acciones",
-      render: (_, t) => (
+      title: t("agenda.column.acciones"),
+      render: (_, turno) => (
         <Space wrap>
-          {t.estado === EstadoTurno.RESERVADO && (
-            <Button size="small" type="primary" onClick={() => onConfirmar(t)}>Confirmar</Button>
+          {turno.estado === EstadoTurno.RESERVADO && (
+            <Button size="small" type="primary" onClick={() => onConfirmar(turno)}>{t("agenda.confirmar")}</Button>
           )}
-          {t.estado === EstadoTurno.CONFIRMADO && !esFuturo(t.fechaHora) && (
-            <Button size="small" onClick={() => onRealizado(t)}>Marcar realizado</Button>
+          {turno.estado === EstadoTurno.CONFIRMADO && !esFuturo(turno.fechaHora) && (
+            <Button size="small" onClick={() => onRealizado(turno)}>{t("agenda.marcarRealizado")}</Button>
           )}
-          {[EstadoTurno.RESERVADO, EstadoTurno.CONFIRMADO].includes(t.estado) && esFuturo(t.fechaHora) && (
-            <Button size="small" danger onClick={() => onCancelar(t)}>Cancelar</Button>
+          {[EstadoTurno.RESERVADO, EstadoTurno.CONFIRMADO].includes(turno.estado) && esFuturo(turno.fechaHora) && (
+            <Button size="small" danger onClick={() => onCancelar(turno)}>{t("agenda.cancelar")}</Button>
           )}
         </Space>
       ),
@@ -185,11 +189,11 @@ function AgendaMedicoInner() {
     <Layout style={{ background: "#fafafa", minHeight: "100vh" }}>
       <Navbar />
       <Layout.Content style={{ maxWidth: 1100, margin: "0 auto", padding: "clamp(20px, 4vw, 32px) clamp(12px, 4vw, 24px)", width: "100%" }}>
-        <Title level={2}>Mi agenda</Title>
-        <Text type="secondary">Confirmá, cancelá o marcá como realizados los turnos de tus pacientes.</Text>
+        <Title level={2}>{t("agenda.titulo")}</Title>
+        <Text type="secondary">{t("agenda.subtitulo")}</Text>
 
         <Card style={{ marginTop: 16 }} bodyStyle={{ padding: 16 }}>
-          <Segmented options={FILTROS} value={filtro} onChange={setFiltro} />
+          <Segmented options={filtros} value={filtro} onChange={setFiltro} />
         </Card>
 
         <Card style={{ marginTop: 16 }} bodyStyle={{ padding: 0 }}>
@@ -198,7 +202,7 @@ function AgendaMedicoInner() {
             columns={columns}
             dataSource={visibles}
             scroll={{ x: 720 }}
-            locale={{ emptyText: <Empty description="No hay turnos en esta vista" /> }}
+            locale={{ emptyText: <Empty description={t("agenda.sinTurnos")} /> }}
             pagination={{ pageSize: 10, hideOnSinglePage: true }}
           />
         </Card>

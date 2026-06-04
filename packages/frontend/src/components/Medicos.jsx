@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Row, Col, Card, Avatar, Typography, Button, Space, Tag } from "antd";
 import { EnvironmentOutlined, IdcardOutlined } from "@ant-design/icons";
 import { getMedicos, getEspecialidades, getSedes } from "../mocks";
@@ -22,6 +23,7 @@ const iniciales = (nombre) => {
 const colorAvatar = (m) => AVATAR_COLORS[hashName(m.nombre) % AVATAR_COLORS.length];
 
 export default function Medicos() {
+  const { t } = useTranslation();
   const [medicos, setMedicos] = useState([]);
 
   useEffect(() => {
@@ -44,10 +46,10 @@ export default function Medicos() {
     <section id="medicos" style={{ padding: "clamp(48px, 8vw, 80px) clamp(16px, 4vw, 32px)", background: "#fafafa" }}>
       <div style={{ maxWidth: 1280, margin: "0 auto" }}>
         <div style={{ textAlign: "center", marginBottom: 48 }}>
-          <Text style={{ color: "#be123c", fontWeight: 600, fontSize: 14 }}>Nuestro equipo</Text>
-          <Title level={2} style={{ marginTop: 8, fontSize: "clamp(24px, 4vw, 36px)" }}>Médicos especialistas</Title>
+          <Text style={{ color: "#be123c", fontWeight: 600, fontSize: 14 }}>{t("doctor.seccionEtiqueta")}</Text>
+          <Title level={2} style={{ marginTop: 8, fontSize: "clamp(24px, 4vw, 36px)" }}>{t("doctor.titulo")}</Title>
           <Paragraph type="secondary" style={{ maxWidth: 560, margin: "12px auto 0" }}>
-            Profesionales certificados, con años de experiencia y dedicación a cada uno de nuestros pacientes.
+            {t("doctor.subtitulo")}
           </Paragraph>
         </div>
 
@@ -70,7 +72,7 @@ export default function Medicos() {
                     <Text type="secondary" style={{ fontSize: 13 }}>{m.matricula}</Text>
                   </Space>
                   <Button type="primary" block style={{ marginTop: 12 }}>
-                    Ver agenda
+                    {t("doctor.verAgenda")}
                   </Button>
                 </Space>
               </Card>
@@ -79,7 +81,7 @@ export default function Medicos() {
         </Row>
 
         <div style={{ textAlign: "center", marginTop: 32 }}>
-          <Button size="large">Ver todos los médicos</Button>
+          <Button size="large">{t("doctor.verTodosDoctores")}</Button>
         </div>
       </div>
     </section>

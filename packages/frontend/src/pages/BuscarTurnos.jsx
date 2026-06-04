@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   App as AntApp,
   Layout,
@@ -59,6 +60,7 @@ export default function BuscarTurnos() {
 
 function BuscarTurnosInner() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { message, modal } = AntApp.useApp();
   const [reservando, setReservando] = useState(null);
 
@@ -120,14 +122,20 @@ function BuscarTurnosInner() {
 
   const onReservar = (turno) => {
     modal.confirm({
-      title: "Confirmar reserva",
-      content: `${turno.medicoNombre} · ${turno.especialidadNombre} · ${fmtFecha(turno.fechaHora)} ${fmtHora(turno.fechaHora)} · ${turno.sedeNombre}`,
-      okText: "Reservar",
-      cancelText: "Volver",
+      title: t("buscarTurnos.confirm.title"),
+      content: t("buscarTurnos.confirm.content", {
+        medico: turno.medicoNombre,
+        especialidad: turno.especialidadNombre,
+        fecha: fmtFecha(turno.fechaHora),
+        hora: fmtHora(turno.fechaHora),
+        sede: turno.sedeNombre,
+      }),
+      okText: t("buscarTurnos.confirm.ok"),
+      cancelText: t("buscarTurnos.confirm.cancel"),
       onOk: async () => {
         setReservando(turno.id);
         await reservarTurno(turno.id, PACIENTE_ACTIVO);
-        message.success("¡Turno reservado!");
+        message.success(t("buscarTurnos.successReservado"));
         setResultados((r) => r.filter((t) => t.id !== turno.id));
         setReservando(null);
         navigate("/mis-turnos");
@@ -147,46 +155,46 @@ function BuscarTurnosInner() {
       <Navbar />
       <Content style={{ padding: "clamp(20px, 4vw, 32px) clamp(16px, 4vw, 32px) clamp(40px, 6vw, 64px)" }}>
         <div style={{ maxWidth: 1280, margin: "0 auto" }}>
-          <Text style={{ color: "#be123c", fontWeight: 600, fontSize: 14 }}>Reservá tu turno</Text>
-          <Title level={2} style={{ marginTop: 8 }}>Buscar turnos disponibles</Title>
+          <Text style={{ color: "#be123c", fontWeight: 600, fontSize: 14 }}>{t("buscarTurnos.encabezado")}</Text>
+          <Title level={2} style={{ marginTop: 8 }}>{t("buscarTurnos.titulo")}</Title>
           <Paragraph type="secondary" style={{ maxWidth: 720 }}>
-            Filtrá por especialidad, médico, sede o fecha para encontrar el turno que mejor te queda.
+            {t("buscarTurnos.subtitulo")}
           </Paragraph>
 
           <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
             <Col xs={24} lg={8}>
               <Card
-                title="Filtros"
-                extra={<Button type="link" size="small" icon={<ClearOutlined />} onClick={limpiar}>Limpiar</Button>}
+                title={t("buscarTurnos.filtrosTitulo")}
+                extra={<Button type="link" size="small" icon={<ClearOutlined />} onClick={limpiar}>{t("buscarTurnos.limpiar")}</Button>}
               >
                 <Form layout="vertical">
-                  <Form.Item label="Especialidad">
+                  <Form.Item label={t("buscarTurnos.labelEspecialidad")}>
                     <Select
-                      placeholder="Todas"
+                      placeholder={t("buscarTurnos.placeholderTodas")}
                       allowClear
                       value={especialidadGenericaId}
                       onChange={setEspecialidadGenericaId}
                       options={especialidadesGenericas.map((e) => ({ value: e.id, label: e.nombre }))}
                     />
                   </Form.Item>
-                  <Form.Item label="Médico">
+                  <Form.Item label={t("buscarTurnos.labelMedico")}>
                     <Input
-                      placeholder="Buscar por nombre"
+                      placeholder={t("buscarTurnos.placeholderMedico")}
                       value={medicoQuery}
                       onChange={(e) => setMedicoQuery(e.target.value)}
                       allowClear
                     />
                   </Form.Item>
-                  <Form.Item label="Sede">
+                  <Form.Item label={t("buscarTurnos.labelSede")}>
                     <Select
-                      placeholder="Todas"
+                      placeholder={t("buscarTurnos.placeholderTodas")}
                       allowClear
                       value={sedeId}
                       onChange={setSedeId}
                       options={sedes.map((s) => ({ value: s.id, label: s.nombre }))}
                     />
                   </Form.Item>
-                  <Form.Item label="Fecha desde">
+                  <Form.Item label={t("buscarTurnos.labelFechaDesde")}>
                     <DatePicker
                       style={{ width: "100%" }}
                       value={fechaDesde}
@@ -202,13 +210,15 @@ function BuscarTurnosInner() {
               <Card>
                 <Space style={{ width: "100%", justifyContent: "space-between", marginBottom: 16 }}>
                   <Text>
-                    <Text strong>{resultadosVisibles.length}</Text>{" "}
-                    turno{resultadosVisibles.length === 1 ? "" : "s"} disponible{resultadosVisibles.length === 1 ? "" : "s"}
+                    {t("buscarTurnos.resultCount", {
+                      count: resultadosVisibles.length,
+                      plural: resultadosVisibles.length === 1 ? "" : "s",
+                    })}
                   </Text>
                 </Space>
 
                 {resultadosVisibles.length === 0 && !cargando ? (
-                  <Empty description="No encontramos turnos con esos filtros" style={{ padding: "40px 0" }} />
+                  <Empty description={t("buscarTurnos.noResults")} style={{ padding: "40px 0" }} />
                 ) : (
                   <List
                     loading={cargando}
@@ -222,7 +232,7 @@ function BuscarTurnosInner() {
                             onClick={() => onReservar(turno)}
                             loading={reservando === turno.id}
                           >
-                            Reservar
+                            {t("buscarTurnos.reservar")}
                           </Button>,
                         ]}
                       >

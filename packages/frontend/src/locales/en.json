@@ -1,0 +1,180 @@
+{
+  "navbar": {
+    "brand": "SweetMedical",
+    "inicio": "Home",
+    "buscar": "Search appointments",
+    "misTurnos": "My appointments",
+    "agenda": "My schedule",
+    "disponibilidades": "Availabilities",
+    "menu": "Menu"
+  },
+  "language": {
+    "spanish": "Español",
+    "english": "English",
+    "shortEs": "ES",
+    "shortEn": "EN"
+  },
+  "inicio": {
+    "marca": "SWEET MEDICAL",
+    "tituloLinea1": "Your medical appointment,",
+    "tituloLinea2": "simple and instant",
+    "descripcion": "Book appointments with top healthcare professionals, at the nearest location and with your insurance coverage.",
+    "botonBuscar": "Search appointments",
+    "botonMisTurnos": "My appointments",
+    "estadisticas": {
+      "especialidades": "Specialties",
+      "medicos": "Available doctors",
+      "sedes": "Locations"
+    }
+  },
+  "especialidades": {
+    "seccionEtiqueta": "Our specialties",
+    "tituloLinea1": "Professional care",
+    "tituloLinea2": "in every area of health",
+    "placeholder": "Search specialty (e.g. cardiology, skin, kids...)",
+    "resultadoUno": "result",
+    "resultadosMultiples": "results",
+    "noResultados": "No specialties found for \"{{query}}\"",
+    "medicosEtiqueta": "doctors",
+    "verMedicos": "View doctors"
+  },
+  "doctor": {
+    "seccionEtiqueta": "Our team",
+    "titulo": "Specialist doctors",
+    "subtitulo": "Certified professionals with years of experience and dedication to each of our patients.",
+    "verAgenda": "View schedule",
+    "verTodosDoctores": "View all doctors"
+  },
+  "turno": {
+    "titleLine1": "Book your appointment",
+    "titleLine2": "in less than 1 minute",
+    "descripcion": "Choose specialty, doctor and location. Receive confirmation by email and automatic reminders.",
+    "buscasUnTurno": "Looking for an appointment?",
+    "subtitulo": "Filter by specialty, doctor, location and date to find the appointment that suits you best.",
+    "botonBuscarDisponibles": "Search available appointments",
+    "botonVerMisTurnos": "View my appointments"
+  },
+  "footer": {
+    "descripcion": "Medical appointment management system. Book, manage and receive reminders without lines or waiting.",
+    "encabezadoEspecialidades": "Specialties",
+    "encabezadoEnlaces": "Links",
+    "especialidades": ["Cardiology", "Gynecology", "Traumatology", "Pediatrics", "Ophthalmology"],
+    "enlaces": ["Doctors", "Locations", "Plans and social insurance", "My appointments", "Contact"]
+  },
+  "buscarTurnos": {
+    "encabezado": "Book your appointment",
+    "titulo": "Search available appointments",
+    "subtitulo": "Filter by specialty, doctor, location or date to find the appointment that suits you best.",
+    "filtrosTitulo": "Filters",
+    "limpiar": "Clear",
+    "labelEspecialidad": "Specialty",
+    "labelMedico": "Doctor",
+    "labelSede": "Location",
+    "labelFechaDesde": "Date from",
+    "placeholderTodas": "All",
+    "placeholderMedico": "Search by name",
+    "resultCount": "{{count}} appointment{{plural}} available{{plural}}",
+    "noResults": "No appointments found with those filters",
+    "reservar": "Book",
+    "confirm": {
+      "title": "Confirm booking",
+      "content": "Appointment with {{medico}} · {{especialidad}} · {{fecha}} {{hora}} · {{sede}}",
+      "ok": "Book",
+      "cancel": "Back"
+    },
+    "successReservado": "Appointment booked!"
+  },
+  "agenda": {
+    "titulo": "My schedule",
+    "subtitulo": "Confirm, cancel or mark your patients' appointments as completed.",
+    "filtros": {
+      "proximos": "Upcoming",
+      "porConfirmar": "To confirm",
+      "historico": "History",
+      "todos": "All"
+    },
+    "confirmar": "Confirm",
+    "marcarRealizado": "Mark completed",
+    "cancelar": "Cancel",
+    "cancelarTitle": "Cancel appointment",
+    "cancelarPlaceholder": "Reason for cancellation (required)",
+    "cancelarOk": "Cancel appointment",
+    "cancelarCancel": "Back",
+    "cancelarErrorMotivo": "You must provide a reason",
+    "canceladoOk": "Appointment cancelled",
+    "confirmadoOk": "Appointment confirmed",
+    "realizadoOk": "Appointment marked as completed",
+    "column": {
+      "fecha": "Date",
+      "paciente": "Patient",
+      "especialidad": "Specialty",
+      "sede": "Location",
+      "estado": "Status",
+      "acciones": "Actions"
+    },
+    "sinTurnos": "There are no appointments in this view",
+    "disponible": "(available)"
+  },
+  "estados": {
+    "disponible": "Available",
+    "reservado": "Reserved",
+    "confirmado": "Confirmed",
+    "cancelado": "Cancelled",
+    "realizado": "Completed"
+  },
+  "misTurnos": {
+    "titulo": "My appointments",
+    "subtitulo": "Here you see the appointments you booked and your history.",
+    "cargando": "Loading…",
+    "sinTurnosDescripcion": "You have no appointments in this category",
+    "buscarTurnosBoton": "Search appointments",
+    "cancelarTitle": "Cancel appointment",
+    "cancelarPlaceholder": "Reason for cancellation (required)",
+    "cancelarOk": "Cancel appointment",
+    "cancelarCancel": "Back",
+    "errorFaltaMotivo": "You must provide a reason",
+    "canceladoOk": "Appointment cancelled",
+    "proximos": "Upcoming",
+    "historial": "History"
+  },
+  "notificaciones": {
+    "titulo": "Notifications",
+    "marcarTodas": "Mark all as read",
+    "emptyText": "You have no notifications",
+    "marcarLeida": "Mark as read"
+  },
+  "disponibilidades": {
+    "titulo": "My availabilities",
+    "subtitulo": "Define the days and times you are available.",
+    "agregarDisponibilidad": "Add availability",
+    "nuevaDisponibilidad": "New availability",
+    "agregar": "Add",
+    "cancelar": "Cancel",
+    "labelDia": "Day",
+    "labelHorario": "Time range",
+    "errorElegirDia": "Choose a day",
+    "errorElegirHorario": "Choose a time range",
+    "errorHoraInicio": "Start time must be before end time",
+    "successAgregada": "Availability added",
+    "successEliminada": "Availability removed",
+    "eliminarTitle": "Remove availability",
+    "eliminar": "Remove",
+    "column": {
+      "dia": "Day",
+      "desde": "From",
+      "hasta": "To"
+    },
+    "emptyText": "You haven't added any availability yet",
+    "de": "from",
+    "a": "to"
+  },
+  "dias": {
+    "lunes": "Monday",
+    "martes": "Tuesday",
+    "miercoles": "Wednesday",
+    "jueves": "Thursday",
+    "viernes": "Friday",
+    "sabado": "Saturday",
+    "domingo": "Sunday"
+  }
+}

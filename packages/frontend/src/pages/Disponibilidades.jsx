@@ -13,6 +13,7 @@ import {
   Typography,
 } from "antd";
 import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
+import { useTranslation } from "react-i18next";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import {
@@ -28,10 +29,11 @@ const { Title, Text } = Typography;
 // Sin login, simulamos que la médica activa es Rebecca Rose (id 5).
 const MEDICO_ID = 5;
 
-const DIAS_OPCIONES = Object.entries(DiaSemana).map(([k, v]) => ({
-  value: v,
-  label: k.charAt(0) + k.slice(1).toLowerCase(),
-}));
+const getDiasOpciones = (t) =>
+  Object.entries(DiaSemana).map(([k, v]) => ({
+    value: v,
+    label: t(`dias.${k.toLowerCase()}`),
+  }));
 
 export default function Disponibilidades() {
   return (
@@ -42,11 +44,13 @@ export default function Disponibilidades() {
 }
 
 function DisponibilidadesInner() {
+  const { t } = useTranslation();
   const { message, modal } = AntApp.useApp();
   const [disponibilidades, setDisponibilidades] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [form] = Form.useForm();
+  const diasOpciones = getDiasOpciones(t);
 
   const recargar = () => {
     setCargando(true);
@@ -64,7 +68,7 @@ function DisponibilidadesInner() {
       const horaDesde = values.rango[0].format("HH:mm");
       const horaHasta = values.rango[1].format("HH:mm");
       if (horaDesde >= horaHasta) {
-        message.error("La hora de inicio debe ser menor que la de fin");
+        message.error(t("disponibilidades.errorHoraInicio"));
         return;
       }
       await agregarDisponibilidad(MEDICO_ID, {
@@ -72,7 +76,7 @@ function DisponibilidadesInner() {
         horaDesde,
         horaHasta,
       });
-      message.success("Disponibilidad agregada");
+      message.success(t("disponibilidades.successAgregada"));
       setModalAbierto(false);
       form.resetFields();
       recargar();
@@ -83,14 +87,14 @@ function DisponibilidadesInner() {
 
   const onEliminar = (indice, item) => {
     modal.confirm({
-      title: "Eliminar disponibilidad",
-      content: `${nombreDia(item.diaSemana)} de ${item.horaDesde} a ${item.horaHasta}`,
-      okText: "Eliminar",
+      title: t("disponibilidades.eliminarTitle"),
+      content: `${t(`dias.${nombreDia(item.diaSemana).toLowerCase()}`)} ${t("disponibilidades.de")} ${item.horaDesde} ${t("disponibilidades.a")} ${item.horaHasta}`,
+      okText: t("disponibilidades.eliminar"),
       okButtonProps: { danger: true },
-      cancelText: "Cancelar",
+      cancelText: t("disponibilidades.cancelar"),
       onOk: async () => {
         await eliminarDisponibilidad(MEDICO_ID, indice);
-        message.success("Disponibilidad eliminada");
+        message.success(t("disponibilidades.successEliminada"));
         recargar();
       },
     });
@@ -100,21 +104,18 @@ function DisponibilidadesInner() {
 
   const columns = [
     {
-      title: "Día",
+      title: t("disponibilidades.column.dia"),
       dataIndex: "diaSemana",
-      render: (v) => {
-        const dia = nombreDia(v);
-        return dia.charAt(0) + dia.slice(1).toLowerCase();
-      },
+      render: (v) => t(`dias.${nombreDia(v).toLowerCase()}`),
       sorter: (a, b) => a.diaSemana - b.diaSemana,
     },
-    { title: "Desde", dataIndex: "horaDesde" },
-    { title: "Hasta", dataIndex: "horaHasta" },
+    { title: t("disponibilidades.column.desde"), dataIndex: "horaDesde" },
+    { title: t("disponibilidades.column.hasta"), dataIndex: "horaHasta" },
     {
       title: "",
       render: (_, d) => (
         <Button size="small" danger icon={<DeleteOutlined />} onClick={() => onEliminar(d.indice, d)}>
-          Eliminar
+          {t("disponibilidades.eliminar")}
         </Button>
       ),
     },
@@ -126,11 +127,11 @@ function DisponibilidadesInner() {
       <Layout.Content style={{ maxWidth: 880, margin: "0 auto", padding: "clamp(20px, 4vw, 32px) clamp(12px, 4vw, 24px)", width: "100%" }}>
         <Space wrap style={{ width: "100%", justifyContent: "space-between" }}>
           <div>
-            <Title level={2} style={{ marginBottom: 0 }}>Mis disponibilidades</Title>
-            <Text type="secondary">Definí los días y horarios en los que atendés.</Text>
+            <Title level={2} style={{ marginBottom: 0 }}>{t("disponibilidades.titulo")}</Title>
+            <Text type="secondary">{t("disponibilidades.subtitulo")}</Text>
           </div>
           <Button type="primary" icon={<PlusOutlined />} onClick={() => setModalAbierto(true)}>
-            Agregar disponibilidad
+            {t("disponibilidades.agregarDisponibilidad")}
           </Button>
         </Space>
 
@@ -141,30 +142,30 @@ function DisponibilidadesInner() {
             dataSource={dataSource}
             pagination={false}
             scroll={{ x: 480 }}
-            locale={{ emptyText: "Todavía no cargaste ninguna disponibilidad" }}
+            locale={{ emptyText: t("disponibilidades.emptyText") }}
           />
         </Card>
 
         <Modal
-          title="Nueva disponibilidad"
+          title={t("disponibilidades.nuevaDisponibilidad")}
           open={modalAbierto}
           onOk={onAgregar}
           onCancel={() => { setModalAbierto(false); form.resetFields(); }}
-          okText="Agregar"
-          cancelText="Cancelar"
+          okText={t("disponibilidades.agregar")}
+          cancelText={t("disponibilidades.cancelar")}
         >
           <Form form={form} layout="vertical" initialValues={{ diaSemana: DiaSemana.LUNES }}>
             <Form.Item
               name="diaSemana"
-              label="Día"
-              rules={[{ required: true, message: "Elegí un día" }]}
+              label={t("disponibilidades.labelDia")}
+              rules={[{ required: true, message: t("disponibilidades.errorElegirDia") }]}
             >
-              <Select options={DIAS_OPCIONES} />
+              <Select options={diasOpciones} />
             </Form.Item>
             <Form.Item
               name="rango"
-              label="Horario"
-              rules={[{ required: true, message: "Elegí el rango horario" }]}
+              label={t("disponibilidades.labelHorario")}
+              rules={[{ required: true, message: t("disponibilidades.errorElegirHorario") }]}
             >
               <TimePicker.RangePicker format="HH:mm" minuteStep={15} />
             </Form.Item>
