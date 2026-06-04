@@ -59,17 +59,31 @@ export class TurnoService {
         return await this.turnoRepository.obtenerPaginados(numeroPagina, limitePorPagina, filtros, ordenamiento)
     }
     
-    async obtenerTodosCobertura({ pacienteId, numeroPagina = 1, limitePorPagina = 10, filtros = {} } = {}) {
-
+    async obtenerTodosCobertura({ 
+            pacienteId, 
+            numeroPagina = 1, 
+            limitePorPagina = 10, 
+            filtros = {}, 
+            ordenamiento = [{ campo: 'fechaHora', direccion: 'asc' }]  
+        } = {}) {
+                
         const paciente = await this.pacienteRepository.findById(pacienteId);
         if (!paciente) throw new NotFoundError('Paciente no encontrado');
 
         filtros.estado = EstadoTurno.DISPONIBLE;
         
+
+           const ordenaPorCosto = ordenamiento.some(o => o.campo === 'costoFinal');
+
+        if (ordenaPorCosto && !filtros.especialidadId && !filtros.practicaId) {
+            throw new BadRequestError('Para ordenar por costo necesitás filtrar por especialidad o práctica');
+        }
+
         const { turnos, totalTurnos, totalPaginas } = await this.turnoRepository.obtenerPaginados(
             numeroPagina,
             limitePorPagina,
-            filtros
+            filtros,
+            ordenamiento
         );
 
         const turnosConCobertura = turnos.map(turno => {
@@ -197,47 +211,67 @@ export class TurnoService {
     // tecnicamente, como solo pedimos los turnos de la duracion de la especialidad, 
     // si la cantidad necesaria no matchea significa que no estan los contiguos disponibles
 
-    verificarTurnoExistente(turno, estadoNecesario, mensaje){
-        if (!turno) {
-            throw new NotFoundError("El turno solicitado  no existe")
+    //El médico debe confirmar los turnos cuando se reservan
+    async confirmarReserva(turnoId,usuarioId){
+        const turno = await this.obtenerPorId(turnoId)
+        this.verificarTurnoExistente(turno, EstadoTurno.RESERVADO, `El turno id ${turnoId} esta en estado ${turno.estado}, deberia ser ${EstadoTurno.RESERVADO}`)
+
+        //El usuario debe ser el médico, sino dar error
+        if(turno.medico.usuario_id !== usuarioId){
+            throw new BadRequestError(`El usuario con id ${usuarioId} no es el médico del turno ${turnoId}`)
         }
-        if (turno.estado != estadoNecesario) {
-            throw new UnprocessableEntityError(mensaje)
-        }
+
+        const usuario = await this.usuarioService.obtenerPorId(turno.paciente.usuario._id)
+
+        turno.actualizarEstado(EstadoTurno.CONFIRMADO, usuario, "Turno confirmado por el medico a cargo")
+
+        await this.notificacionService.notificarCambioEstadoTurno(turno)
+        return await this.turnoRepository.update(turnoId, turno)
     }
 
-    verificarPacienteExistente(paciente){
-        if (!paciente) {
-            throw new NotFoundError("El paciente solicitando el turno no existe")
+    //El médico puede rechazar los turnos cuando se reservan
+    async rechazarReserva(turnoId, usuarioId, motivoRechazo){
+        const turno = await this.obtenerPorId(turnoId)
+        this.verificarTurnoExistente(turno, EstadoTurno.RESERVADO, `El turno id ${turnoId} esta en estado ${turno.estado}, deberia ser ${EstadoTurno.RESERVADO}`)
+
+        //El usuario debe ser el médico, sino dar error
+        if(turno.medico.usuario_id !== usuarioId){
+            throw new BadRequestError(`El usuario con id ${usuarioId} no es el médico del turno ${turnoId}`)
         }
+
+        const usuario = await this.usuarioService.obtenerPorId(turno.paciente.usuario._id)
+
+        // si se rechaza lo devolvemos a disponible
+        this.setearTurnoDisponible(turno, usuario, motivoRechazo)
+
+        await this.notificacionService.notificarCambioEstadoTurno(turno)
+        return turno
     }
 
-    async obtenerServicioRequerido(especialidadId, practicaId) {
-        if (especialidadId != null && practicaId == null) {
-            const servicio = await this.especialidadRepository.findById(especialidadId);
-            if (!servicio) {
-                throw new NotFoundError("La especialidad solicitada no existe");
+    async setearTurnoDisponible(turno, usuario, motivoCambio) {
+        turno.actualizarEstado(EstadoTurno.DISPONIBLE, usuario, motivoCambio)
+
+        const turnosCombinados = await this.turnoRepository.obtenerCombinados(turno._id)
+        
+        if ( turnosCombinados.length >= 1) {
+            for(const t of turnosCombinados) {
+                t.actualizarEstado(EstadoTurno.DISPONIBLE,usuario, motivoCambio)
+                t.paciente = null
             }
-            return servicio;
-        } 
-        if (practicaId != null && especialidadId == null) {
-            const servicio = await this.practicaRepository.findById(practicaId);
-            if (!servicio) {
-                throw new NotFoundError("La practica solicitada no existe");
-            }
-            return servicio;
         }
-        throw new UnprocessableEntityError("Error en el formato de especialidad y practica");
+        // refrescamos turno y combinados
+        const respuesta = this.refrescarTurnoCancelado(turno, turnosCombinados)
+
+        await this.turnoRepository.update(turno._id, respuesta.turnoCopia)
+
+        if (respuesta.turnosCombinados.length > 1) { 
+            for (const t of respuesta.turnosCombinados) { 
+                await this.turnoRepository.update(t._id, t)
+            }
+        }
     }
+        
     
-    async obtenerTurnosSiguientesNecesarios(turno, servicio){
-        // Buscamos los turnos siguientes al actual, mismo dia, disponibles y hora mayor
-        const fechaMaxima = new Date(turno.fechaHora + servicio.duracionTurnoEnMins * 60 * 1000)
-        // entre $gt fechaTurno &lt fechaMaxima - Disponibilidad = DISPONIBLE - medico = medico_id - traer Ordenados por fechaHora
-        const turnosSiguientes = await this.turnoRepository.obtenerSiguientesDisponibles(turno.fechaHora,fechaMaxima,turno.medico._id)
-
-        return turnosSiguientes
-    }
 
     // Solo se puede solicitar para días que el medico atiende los servicios
     async solicitarCambioDeFecha(turnoId, usuarioId, fechaPropuesta, motivo){
@@ -368,47 +402,7 @@ export class TurnoService {
     }
 
 
-    //El médico debe confirmar los turnos cuando se reservan
-    async confirmarReserva(turnoId,usuarioId){
-        const turno = await this.obtenerPorId(turnoId)
-
-        if(turno.estado != EstadoTurno.RESERVADO){
-            throw new BadRequestError(`El turno id ${turnoId} esta en estado ${turno.estado}, deberia ser ${EstadoTurno.RESERVADO}`)
-        }
-
-        //El usuario debe ser el médico, sino dar error
-        if(turno.medico.usuario_id !== usuarioId){
-            throw new BadRequestError(`El usuario con id ${usuarioId} no es el médico del turno ${turnoId}`)
-        }
-
-        const usuario = await this.usuarioService.obtenerPorId(turno.paciente.usuario._id)
-
-        turno.actualizarEstado(EstadoTurno.CONFIRMADO, usuario, "TODO") //TODO
-
-        await this.notificacionService.notificarCambioEstadoTurno(turno)
-        return await this.turnoRepository.update(turnoId, turno)
-    }
-
-     //El médico puede rechazar los turnos cuando se reservan
-    async rechazarReserva(turnoId,usuarioId){
-        const turno = await this.obtenerPorId(turnoId)
-
-        if(turno.estado != EstadoTurno.RESERVADO){
-            throw new BadRequestError(`El turno id ${turnoId} esta en estado ${turno.estado}, deberia ser ${EstadoTurno.RESERVADO}`)
-        }
-
-        //El usuario debe ser el médico, sino dar error
-        if(turno.medico.usuario_id !== usuarioId){
-            throw new BadRequestError(`El usuario con id ${usuarioId} no es el médico del turno ${turnoId}`)
-        }
-
-        const usuario = await this.usuarioService.obtenerPorId(turno.paciente.usuario._id)
-
-        turno.actualizarEstado(EstadoTurno.CANCELADO, usuario, "TODO") //TODO
-
-        await this.notificacionService.notificarCambioEstadoTurno(turno)
-        return await this.turnoRepository.update(turnoId, turno)
-    }
+    
 
     async cancelar(turnoId, usuarioId, motivo) {
         const horasMinimasParaCancelar = parseInt(process.env.HORAS_MINIMAS_CANCELAR)
@@ -438,7 +432,7 @@ export class TurnoService {
             
             turno.actualizarEstado(EstadoTurno.CANCELADO, usuario, motivo)
             await this.turnoRepository.update(turno._id,turno)
-            if( turnosCombinados.length > 1) {
+            if( turnosCombinados.length >= 1) {
                 for(const t of turnosCombinados){
                     t.actualizarEstado(EstadoTurno.CANCELADO,usuario,motivo)
                     await this.turnoRepository.update(t._id,t)
@@ -452,7 +446,7 @@ export class TurnoService {
 
             if (turno.disponibilidad) { //disponibilidad si existe, osea no esta en null
                 const turnoCopia = this.copiarTurnoCancelado(turno) // especialidad y practica estan null
-                if( turnosCombinados.length > 1) {
+                if( turnosCombinados.length >= 1) {
                     for(const t of turnosCombinados){
                         t.actualizarEstado(EstadoTurno.DISPONIBLE,usuario,motivo)
                         t.paciente = null
@@ -684,6 +678,8 @@ export class TurnoService {
     }
 
 
+    // --- Funciones auxiliares --- //
+
     copiarTurnoCancelado(turno){
         return new Turno({
             
@@ -714,4 +710,47 @@ export class TurnoService {
             return mismoDia && enHorario;
         });
     }
+
+    verificarTurnoExistente(turno, estadoNecesario, mensaje){
+        if (!turno) {
+            throw new NotFoundError("El turno solicitado  no existe")
+        }
+        if (turno.estado != estadoNecesario) {
+            throw new UnprocessableEntityError(mensaje)
+        }
+    }
+
+    verificarPacienteExistente(paciente){
+        if (!paciente) {
+            throw new NotFoundError("El paciente solicitando el turno no existe")
+        }
+    }
+
+    async obtenerServicioRequerido(especialidadId, practicaId) {
+        if (especialidadId != null && practicaId == null) {
+            const servicio = await this.especialidadRepository.findById(especialidadId);
+            if (!servicio) {
+                throw new NotFoundError("La especialidad solicitada no existe");
+            }
+            return servicio;
+        } 
+        if (practicaId != null && especialidadId == null) {
+            const servicio = await this.practicaRepository.findById(practicaId);
+            if (!servicio) {
+                throw new NotFoundError("La practica solicitada no existe");
+            }
+            return servicio;
+        }
+        throw new UnprocessableEntityError("Error en el formato de especialidad y practica");
+    }
+    
+    async obtenerTurnosSiguientesNecesarios(turno, servicio){
+        // Buscamos los turnos siguientes al actual, mismo dia, disponibles y hora mayor
+        const fechaMaxima = new Date(turno.fechaHora + servicio.duracionTurnoEnMins * 60 * 1000)
+        // entre $gt fechaTurno &lt fechaMaxima - Disponibilidad = DISPONIBLE - medico = medico_id - traer Ordenados por fechaHora
+        const turnosSiguientes = await this.turnoRepository.obtenerSiguientesDisponibles(turno.fechaHora,fechaMaxima,turno.medico._id)
+
+        return turnosSiguientes
+    }
+
 }

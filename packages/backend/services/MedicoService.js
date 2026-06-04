@@ -279,6 +279,15 @@ export class MedicoService {
     async crearDisponibilidad(medicoId, datosDisponibilidad) {
         const validMedicoId = objectIdSchema.parse(String(medicoId));
         
+        //Validacion de que el medico exista
+        const medico = this.obtenerPorId(validMedicoId);
+
+        const contieneSede = medico.sedes.some(s => (s.nombre === datosDisponibilidad.sede.nombre) 
+                                                    && (s.direccion === datosDisponibilidad.sede.direccion))
+        if(!contieneSede){
+            throw new BadRequestError(`El medico no tiene la sede ${datosDisponibilidad.sede.nombre}`)
+        }
+
         const dispo = new DisponibilidadHoraria({
             diaSemana: datosDisponibilidad.diaSemana,
             horaDesde: datosDisponibilidad.horaDesde,
@@ -290,7 +299,9 @@ export class MedicoService {
         dispo.practicas = datosDisponibilidad.practicas || [];
 
         const medicoActualizado = await this.medicoRepository.addDisponibilidad(validMedicoId, dispo);
+
         const dispoList = medicoActualizado.disponibilidades || [];
+
         return dispoList[dispoList.length - 1] || null;
     }
 
@@ -314,9 +325,19 @@ export class MedicoService {
 
         await this.medicoRepository.updateDisponibilidad(validMedicoId, validDispoId, dispo);
 
-        // llamar al turno service para decirle que se modifico una disponibilidad y que haga lo necesario
+        // TODO llamar al turno service para decirle que se modifico una disponibilidad y que haga lo necesario
 
+        //TODO debe actuar distinto dependiendo q se modifique.
         return await this.medicoRepository.obtenerDisponibilidadPorId(validMedicoId, validDispoId);
+    }
+
+    async eliminarDisponiblidad(medicoId, disponibilidadId){
+        const validMedicoId = objectIdSchema.parse(String(medicoId));
+        const validDispoId = objectIdSchema.parse(String(disponibilidadId));
+
+        const dispoExistente = await this.medicoRepository.obtenerDisponibilidadPorId(validMedicoId, validDispoId);
+        if (!dispoExistente) throw new NotFoundError("Disponibilidad no encontrada");
+        
     }
 
     // ======================= SEDES =============================

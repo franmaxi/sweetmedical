@@ -6,6 +6,7 @@ import {
     solicitudFechaCambioBodySchema,
     responderCambioDeFecha,
     turnoQuerySchema,
+    responderReserva
 } from "../validations/turnoValidation.js";
 
 export class TurnoController {
@@ -110,6 +111,53 @@ reservar = async(req, res, next) =>  {
     }
 };
 
+// TODO hacer el aceptar o rechazar reserva
+// PATCH /turnos/:id/aceptar-reserva
+// PATCH /turnos/:id/rechazar-reserva
+
+// PATCH /turnos/:id --> nuevo estado y datos extra que se necesiten
+// objeto body con estadoTurno = CONFIRMADO / RECHAZADO / CANCELADO / SOLICITUDCAMBIOFECHA
+
+// PATCH /turnos/:id/aceptar-reserva
+confirmarReserva = async(req, res, next) =>  {
+    try {
+        const { id: turnoId } = paramsIdSchema.parse(req.params)
+        const { usuario } = estadosBodySchema.parse(req.body)
+
+        const turno = await this.turnoService.confirmarReserva(turnoId, usuario)
+
+        return res.status(200).json({
+            status: "success",
+            data: turno
+        })
+    } catch (error) {
+        return next(error)
+    }
+}
+
+// PATCH /turnos/:id/rechazar-reserva
+rechazarReserva = async(req, res, next) =>  {
+    try {
+        const { id: turnoId } = paramsIdSchema.parse(req.params)
+        const { usuarioId, motivo, reservaAceptada } = responderReserva.parse(req.body)
+
+        let turno
+        if(reservaAceptada){
+            turno = await this.turnoService.confirmarReserva(turnoId, usuarioId)
+        } else {
+            turno = await this.turnoService.rechazarReserva(turnoId, usuarioId, motivo)
+        }
+
+        return res.status(200).json({
+            status: "success",
+            data: turno
+        })
+        
+    } catch (error) {
+        return next(error)
+    }
+}
+
 // PATCH /turnos/:id/
 cancelar = async(req, res, next) => {
     try {
@@ -200,6 +248,7 @@ consultarAgenda = async (req, res, next) => {
         return next(error);
     }
 }
+
 
 generarBatchForzado = async(req, res, next) => {
     try {

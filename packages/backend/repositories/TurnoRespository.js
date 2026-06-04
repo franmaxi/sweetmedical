@@ -111,59 +111,123 @@ export class TurnoRepository{
         return await this.model.findByIdAndDelete(id);
     }
 
-    async obtenerPaginados(numeroPagina, limitePorPagina, filtros = {}, ordenamiento = {} ) {
-        const query = {}
+    async obtenerPaginados(numeroPagina, limitePorPagina, filtros = {}, ordenamiento = []) {
 
-        // Por defecto enviamos las fechas ordenadas en forma ASC
-        const campo = ordenamiento.campo ?? 'fechaHora'
-        const direccion = ordenamiento.direccion === 'desc' ? -1 : 1;
+        const match = await this._construirMatch(filtros);
+        const ordenarPorCosto = ordenamiento.some(o => o.campo === 'costoFinal');
 
-        //TODO Agregar el ordenamiento segun el costoFinal
-        if (filtros.medicoId)       query.medico = filtros.medicoId
-        if (filtros.pacienteId)     query.paciente = filtros.pacienteId
-        if (filtros.estado)         query.estado = filtros.estado
-        if (filtros.sedeId)         query.sede = filtros.sedeId
-
-        // filtra por la especialidad generica ID
-        if (filtros.especialidadId) {
-            const especialidadesHijasIds = await EspecialidadModel
-                .find({ especialidadGenerica: filtros.especialidadId})
-                .distinct('_id');
-            query.especialidad = { $in: especialidadesHijasIds };
+        if (ordenarPorCosto) {
+            return this.obtenerPaginadosPorCosto(numeroPagina, limitePorPagina, match, ordenamiento, filtros);
         }
-        // filtramos por la practica generica ID
+
+        // Por mas que no pasen un ordenamiento, se lo vamos a devolver ordenado por fecha asc
+        const sort = this.construirSort(ordenamiento);
+        const skip = (numeroPagina - 1) * limitePorPagina;
+        const totalTurnos = await this.model.countDocuments(match);
+        const totalPaginas = totalTurnos === 0 ? 0 : Math.ceil(totalTurnos / limitePorPagina);
+
+        const turnos = await this.model.find(match)
+            .sort(sort)
+            .populate('medico')
+            .populate('sede')
+            .populate('especialidad')
+            .populate('practica')
+            .skip(skip)
+            .limit(limitePorPagina);
+
+        return { turnos, totalTurnos, totalPaginas };
+    }
+
+    construirSort(ordenamiento, aliases = {}) {
+        // Armamos el ordenamiento, agregue que podamos ordenar por mas de un parametro,
+        // podemos ordenar por fecha y hora, costoFinal o ambos al mismo tiempo
+        if (!ordenamiento.length) return { fechaHora: 1 };
+
+        return ordenamiento.reduce((sort, { campo, direccion }) => {
+            const campoFinal = aliases[campo] ?? campo;
+            sort[campoFinal] = direccion === 'desc' ? -1 : 1;
+            return sort;
+        }, {});
+    }
+
+    async obtenerPaginadosPorCosto(numeroPagina, limitePorPagina, match, ordenamiento, filtros) {
+        const esEspecialidad = !!filtros.especialidadId;
+        // Reemplazamos 'costoFinal' por el campo calculado en la aggregation
+        const sort = this._construirSort(ordenamiento, { costoFinal: 'costoBaseOrdenamiento' });
+
+        const pipeline = [
+            { $match: match },
+
+            {
+                $lookup: {
+                    from: esEspecialidad ? 'especialidads' : 'practicas',
+                    localField: esEspecialidad ? 'especialidad' : 'practica',
+                    foreignField: '_id',
+                    as: 'itemsParaOrdenar'
+                }
+            },
+
+            {
+                // no se persiste
+                $addFields: {
+                    costoBaseOrdenamiento: { $min: '$itemsParaOrdenar.costo' }
+                }
+            },
+
+            { $sort: sort },
+
+            {
+                $facet: {
+                    turnos: [
+                        { $skip: (numeroPagina - 1) * limitePorPagina },
+                        { $limit: limitePorPagina },
+                        { $lookup: { from: 'medicos',       localField: 'medico',       foreignField: '_id', as: 'medico'      } },
+                        { $lookup: { from: 'sedes',         localField: 'sede',         foreignField: '_id', as: 'sede'        } },
+                        { $lookup: { from: 'especialidads', localField: 'especialidad', foreignField: '_id', as: 'especialidad' } },
+                        { $lookup: { from: 'practicas',     localField: 'practica',     foreignField: '_id', as: 'practica'    } },
+                        { $unwind: '$medico' },
+                        { $unwind: '$sede'   },
+                    ],
+                    total: [{ $count: 'count' }]
+                }
+            }
+        ];
+
+        const [resultado] = await this.model.aggregate(pipeline);
+        const totalTurnos = resultado.total[0]?.count ?? 0;
+        const totalPaginas = totalTurnos === 0 ? 0 : Math.ceil(totalTurnos / limitePorPagina);
+
+        return { turnos: resultado.turnos, totalTurnos, totalPaginas };
+}
+    async _construirMatch(filtros) {
+        const match = {};
+
+        if (filtros.estado)   match.estado = filtros.estado;
+        if (filtros.medicoId) match.medico = filtros.medicoId;
+        if (filtros.sedeId)   match.sede   = filtros.sedeId;
+
+        if (filtros.especialidadId) {
+            const ids = await EspecialidadModel
+                .find({ especialidadGenerica: filtros.especialidadId })
+                .distinct('_id');
+            match.especialidad = { $in: ids };
+        }
+
         if (filtros.practicaId) {
-            const practicasHijasIds = await PracticaModel
-            .find({ practicaGenerica: filtros.practicaId})
-            .distinct('_id');
-            query.practica = { $in: practicasHijasIds}
+            const ids = await PracticaModel
+                .find({ practicaGenerica: filtros.practicaId })
+                .distinct('_id');
+            match.practica = { $in: ids };
         }
 
         if (filtros.desde || filtros.hasta) {
-            query.fechaHora = {};
-            if (filtros.desde) query.fechaHora.$gte = filtros.desde
-            if (filtros.hasta) query.fechaHora.$lte = filtros.hasta
+            match.fechaHora = {};
+            if (filtros.desde) match.fechaHora.$gte = filtros.desde;
+            if (filtros.hasta) match.fechaHora.$lte = filtros.hasta;
         }
 
-        const skip = (numeroPagina - 1) * limitePorPagina;
-        const totalTurnos = await this.model.countDocuments(query)
-        const totalPaginas = totalTurnos === 0 ? 0 : Math.ceil(totalTurnos / limitePorPagina)
-        const turnos = await this.model.find(query)
-                .sort({ [campo]: direccion })
-                .populate('medico')
-                .populate('paciente')
-                .populate('sede')
-                .populate('especialidad')   
-                .populate('practica')
-                .skip(skip)
-                .limit(limitePorPagina)
-
-            // ¿Teniamos que devolver la cantidad Total de turnos o solamente la cantidad de turnos 
-            // que estamos devolviendo en la pagina?
-        
-        return { turnos, totalTurnos, totalPaginas }
-    }
-
+        return match;
+}
     async obtenerCombinados(turno) {
         const duracion = turno.especialidad?.duracionTurnoEnMins ?? turno.practica?.duracionTurnoEnMins
         const fechaFin = new Date(turno.fechaHora.getTime() + duracion * 60 * 1000)

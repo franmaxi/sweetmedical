@@ -64,6 +64,18 @@ export const solicitudCambioSchema = z.object({
     .trim(),
 });
 
+// PATCH /turnos/:id/responder-cambio-fecha
+export const responderReserva = z.object({
+    usuarioId: objectIdSchema,
+    motivo: z
+        .string({ required_error: "El motivo es obligatorio." })
+        .min(5, "El motivo debe tener al menos 5 caracteres.")
+        .trim(),
+    reservaAceptada: z.boolean({
+        required_error: "El campo reservaAceptada es requerido.",
+        invalid_type_error: "El campo reservaAceptada debe ser true o false."
+    })
+}).strict("No se permiten campos adicionales en la solicitud.");
 
 // PATCH /turnos/:id/responder-cambio-fecha
 export const responderCambioDeFecha = z.object({
