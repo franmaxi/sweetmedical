@@ -113,7 +113,7 @@ export class TurnoRepository{
 
     async obtenerPaginados(numeroPagina, limitePorPagina, filtros = {}, ordenamiento = []) {
 
-        const match = await this._construirMatch(filtros);
+        const match = await this.construirMatch(filtros);
         const ordenarPorCosto = ordenamiento.some(o => o.campo === 'costoFinal');
 
         if (ordenarPorCosto) {
@@ -199,7 +199,7 @@ export class TurnoRepository{
 
         return { turnos: resultado.turnos, totalTurnos, totalPaginas };
 }
-    async _construirMatch(filtros) {
+    async construirMatch(filtros) {
         const match = {};
 
         if (filtros.estado)   match.estado = filtros.estado;
@@ -225,7 +225,6 @@ export class TurnoRepository{
             if (filtros.desde) match.fechaHora.$gte = filtros.desde;
             if (filtros.hasta) match.fechaHora.$lte = filtros.hasta;
         }
-
         return match;
 }
     async obtenerCombinados(turno) {

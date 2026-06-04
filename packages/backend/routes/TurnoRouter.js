@@ -33,11 +33,8 @@ router.patch('/:id/', (req, res, next) => {
     res.status(400).json({ error: 'Acción no válida' });
     });
 
-router.route('/:id/aceptar-reserva')
-	.patch((req, res, next) => turnoController.solicitarCambioDeFecha(req, res, next));
-    
-router.route('/:id/responder-cambio-fecha')
-	.patch((req, res, next) => turnoController.responderCambioDeFecha(req, res, next));
+router.route('/:id/responder-reserva')
+	.patch((req, res, next) => turnoController.responderReserva(req, res, next));
     
 router.route('/:id/solicitar-cambio-fecha')
 	.patch((req, res, next) => turnoController.solicitarCambioDeFecha(req, res, next));

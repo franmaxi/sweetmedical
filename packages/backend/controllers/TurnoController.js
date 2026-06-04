@@ -118,25 +118,10 @@ reservar = async(req, res, next) =>  {
 // PATCH /turnos/:id --> nuevo estado y datos extra que se necesiten
 // objeto body con estadoTurno = CONFIRMADO / RECHAZADO / CANCELADO / SOLICITUDCAMBIOFECHA
 
-// PATCH /turnos/:id/aceptar-reserva
-confirmarReserva = async(req, res, next) =>  {
-    try {
-        const { id: turnoId } = paramsIdSchema.parse(req.params)
-        const { usuario } = estadosBodySchema.parse(req.body)
 
-        const turno = await this.turnoService.confirmarReserva(turnoId, usuario)
 
-        return res.status(200).json({
-            status: "success",
-            data: turno
-        })
-    } catch (error) {
-        return next(error)
-    }
-}
-
-// PATCH /turnos/:id/rechazar-reserva
-rechazarReserva = async(req, res, next) =>  {
+// PATCH /turnos/:id/responder-reserva
+responderReserva = async(req, res, next) =>  {
     try {
         const { id: turnoId } = paramsIdSchema.parse(req.params)
         const { usuarioId, motivo, reservaAceptada } = responderReserva.parse(req.body)
