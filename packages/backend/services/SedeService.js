@@ -1,7 +1,6 @@
 import {
     BadRequestError,
-    NotFoundError,
-    UnprocessableEntityError,
+    NotFoundError
 } from "../errors/AppErrors.js"
 
 import { SedeRepository } from "../repositories/SedeRepository.js";
@@ -53,13 +52,12 @@ export class SedeService{
         return sede
     }
     async existeDireccionSede(direccionSede) {
-    const sede = await this.sedeRepository.findByDireccion(direccionSede);
-    return !!sede;
-   }
+        const sede = await this.sedeRepository.findByDireccion(direccionSede);
+        return !!sede;
+    }
 
-  async existeNombreSede(nombreSede) {
-    const sede = await this.sedeRepository.findByNombre(nombreSede);
-    return !!sede;
-}
-
+    async existeNombreSede(nombreSede) {
+        const sede = await this.sedeRepository.findByNombre(nombreSede);
+        return !!sede;
+    }
 }

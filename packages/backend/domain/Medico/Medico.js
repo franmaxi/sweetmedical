@@ -36,11 +36,28 @@ export class Medico {
         });
     }
 
-    eliminarDisponibilidad(disponibilidad){ 
-        const indice = this.disponibilidades.findIndex(n => n._id == disponibilidad._id);
+    eliminarDisponibilidad(disponibilidadId){ 
+        const indice = this.disponibilidades.findIndex(n => n._id == disponibilidadId);
 
         if (indice !== -1) {
             this.disponibilidades.splice(indice, 1);
+        } else{
+            throw new BadRequestError("El médico no posee la disponibilidad con ID" + disponibilidadId)
+        }
+    }
+
+    eliminarSedeYDisponibilidades(sedeId) {
+        const stringSedeId = String(sedeId);
+
+        this.disponibilidades = this.disponibilidades.filter(
+            dispo => String(dispo.sede._id || dispo.sede) !== stringSedeId
+        );
+
+        const indiceSede = this.sedes.findIndex(s => String(s._id || s) === stringSedeId);
+        if (indiceSede !== -1) {
+            this.sedes.splice(indiceSede, 1);
+        } else {
+            throw new BadRequestError("El médico no estaba asignado a la sede con ID: " + sedeId);
         }
     }
 
@@ -50,6 +67,20 @@ export class Medico {
 
     agregarPractica(practica){
         this.practicas.push(practica);
+    }
+
+    agregarSede(sede){
+        this.sedes.push(sede)
+    }
+
+    eliminarSede(sedeId){
+        const indice = this.sedes.findIndex(n => n._id == sedeId);
+
+        if (indice !== -1) {
+            this.sedes.splice(indice, 1);
+        } else{
+            throw new BadRequestError("El médico no posee la sede con ID" + sedeId)
+        }
     }
 
     practicaGenericaPertenece(idPadre) {

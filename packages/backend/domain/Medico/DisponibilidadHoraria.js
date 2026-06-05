@@ -1,3 +1,4 @@
+import { BadRequestError } from "../../errors/AppErrors.js";
 import { disponibilidadDomainSchema } from "../../validations/medicoValidation.js";
 
 export class DisponibilidadHoraria {
@@ -24,6 +25,22 @@ export class DisponibilidadHoraria {
         }
         return this.convertirHoraEnMinutos(this.horaDesde) < dispo.convertirHoraEnMinutos(dispo.horaHasta) && 
                this.convertirHoraEnMinutos(this.horaHasta) > dispo.convertirHoraEnMinutos(dispo.horaDesde);
+    }
+
+    eliminarEspecialidad(id){
+        const indice = this.especialidades.findIndex(n => String(n._id || n) === String(id));
+
+        if (indice !== -1) {
+            this.especialidades.splice(indice, 1);
+        } 
+    }
+
+    eliminarPractica(id){
+        const indice = this.practicas.findIndex(n => String(n._id || n) === String(id));
+        
+        if (indice !== -1) {
+            this.practicas.splice(indice, 1);
+        } 
     }
     
     obtenerDiferenciaEnMinutos(){

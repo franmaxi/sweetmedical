@@ -90,13 +90,23 @@ export class EspecialidadService {
         return await this.especialidadRepository.update(validId, especialidad, session);
     }
 
-    async eliminar(id, session = null){
-        const validId = objectIdSchema.parse(id);
+    async eliminar(ids, session = null) {
+        const listaIds = [ids].flat();
 
-        await this.obtenerPorId(validId);
+        const idsValidados = listaIds.map(id => objectIdSchema.parse(id));
 
-  
-        return await this.especialidadRepository.delete(validId, session);
+        if (idsValidados.length === 0) return null;
+
+        const cantidadExistente = await this.especialidadRepository.countDocuments({
+            _id: { $in: idsValidados },
+            eliminado: false
+        });
+        
+        if (cantidadExistente !== idsValidados.length) {
+            throw new NotFoundError("Una o más especialidades no fueron encontradas o ya fueron eliminadas.");
+        }
+
+        return await this.especialidadRepository.deleteMany(idsValidados, session);
     }
 
     async obtenerPorNombre(nombre) {

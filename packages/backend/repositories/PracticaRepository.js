@@ -64,6 +64,14 @@ export class PracticaRepository {
         return await this.model.findByIdAndUpdate(id, { eliminado: true }, { new: true , session}).populate('practicaGenerica');
     }
 
+    async deleteMany(ids, session = null) {
+        return await this.model.updateMany(
+            { _id: { $in: ids } },
+            { $set: { eliminado: true } },
+            { session }
+        );
+    }
+
     //auxiliar
     findByFiltersLocal(filtros = {}) {
         return this.model.find(filtros).populate('practicaGenerica'); 
