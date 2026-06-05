@@ -22,20 +22,18 @@ const crearPlan = ({ coberturaEspecialidad = [], coberturaPractica = [] } = {}) 
     coberturaEspecialidad,
     coberturaPractica,
     obtenerCoberturaEspecialidad(especialidad) {
-        // especialidad puede ser el objeto completo o solo el id
         const generica = especialidad?.especialidadGenerica ?? especialidad;
         const c = coberturaEspecialidad.find(
             c => c.especialidadGenerica?.toString() === generica?.toString()
         );
-        return c ? c.nivel : null;
+        return c ?? null; // devuelve objeto completo { nivel, pocentajeDescuento }
     },
     obtenerCoberturaPractica(practica) {
-        // igual para práctica
         const generica = practica?.practicaGenerica ?? practica;
         const c = coberturaPractica.find(
             c => c.practicaGenerica?.toString() === generica?.toString()
         );
-        return c ? c.nivel : null;
+        return c ?? null;
     },
 });
 
@@ -44,9 +42,10 @@ const crearEspecialidad = ({ id = 'esp-1', nombre = 'Cardiología', costo = 1000
     nombre,
     costo,
     especialidadGenerica,
-    calcularCostoSegunCobertura(nivelCobertura) {
-        if (nivelCobertura === NivelCobertura.TOTAL)   return 0;
-        if (nivelCobertura === NivelCobertura.PARCIAL) return costo * 0.5;
+    calcularCostoSegunCobertura(cobertura) {
+        if (!cobertura) return costo;
+        if (cobertura.nivel === NivelCobertura.TOTAL) return 0;
+        if (cobertura.nivel === NivelCobertura.PARCIAL) return costo * (1 - cobertura.pocentajeDescuento / 100);
         return costo;
     },
 });
@@ -56,9 +55,10 @@ const crearPractica = ({ id = 'prac-1', nombre = 'Electrocardiograma', costo = 5
     nombre,
     costo,
     practicaGenerica,
-    calcularCostoSegunCobertura(nivelCobertura) {
-        if (nivelCobertura === NivelCobertura.TOTAL)   return 0;
-        if (nivelCobertura === NivelCobertura.PARCIAL) return costo * 0.5;
+    calcularCostoSegunCobertura(cobertura) {
+        if (!cobertura) return costo;
+        if (cobertura.nivel === NivelCobertura.TOTAL) return 0;
+        if (cobertura.nivel === NivelCobertura.PARCIAL) return costo * (1 - cobertura.pocentajeDescuento / 100);
         return costo;
     },
 });
@@ -66,7 +66,10 @@ const crearPractica = ({ id = 'prac-1', nombre = 'Electrocardiograma', costo = 5
 const crearPaciente = ({ plan = crearPlan() } = {}) => ({
     _id: 'pac-1',
     nombre: 'Juan Pérez',
-    plan,
+    plan: 'plan-id-1',
+    obraSocial: {
+        planes: [{ ...plan, _id: 'plan-id-1' }]
+    }
 });
 
 const crearTurno = ({ id = 'turno-1', especialidades = [], practicas = [] } = {}) => ({
@@ -150,7 +153,7 @@ describe('TurnoService - obtenerTodosCobertura', () => {
 
         test('devuelve costoFinal 0 cuando la cobertura es TOTAL', async () => {
             const plan = crearPlan({
-                coberturaEspecialidad: [{ especialidadGenerica: 'gen-1', nivel: NivelCobertura.TOTAL }],
+                coberturaEspecialidad: [{ especialidadGenerica: 'gen-1', nivel: NivelCobertura.TOTAL, pocentajeDescuento: 100 }],
             });
             mocks.pacienteRepository.findById.mockResolvedValue(crearPaciente({ plan }));
             mocks.turnoRepository.obtenerPaginados.mockResolvedValue(
@@ -164,7 +167,7 @@ describe('TurnoService - obtenerTodosCobertura', () => {
 
         test('devuelve costoFinal al 50% cuando la cobertura es PARCIAL', async () => {
             const plan = crearPlan({
-                coberturaEspecialidad: [{ especialidadGenerica: 'gen-1', nivel: NivelCobertura.PARCIAL }],
+                coberturaEspecialidad: [{ especialidadGenerica: 'gen-1', nivel: NivelCobertura.PARCIAL, pocentajeDescuento: 50 }],
             });
             mocks.pacienteRepository.findById.mockResolvedValue(crearPaciente({ plan }));
             mocks.turnoRepository.obtenerPaginados.mockResolvedValue(
@@ -189,7 +192,7 @@ describe('TurnoService - obtenerTodosCobertura', () => {
 
         test('calcula costoFinal para prácticas con cobertura PARCIAL', async () => {
             const plan = crearPlan({
-                coberturaPractica: [{ practicaGenerica: 'prac-gen-1', nivel: NivelCobertura.PARCIAL }],
+                coberturaPractica: [{ practicaGenerica: 'prac-gen-1', nivel: NivelCobertura.PARCIAL, pocentajeDescuento: 50 }],
             });
             mocks.pacienteRepository.findById.mockResolvedValue(crearPaciente({ plan }));
             mocks.turnoRepository.obtenerPaginados.mockResolvedValue(
@@ -203,7 +206,7 @@ describe('TurnoService - obtenerTodosCobertura', () => {
 
         test('calcula costoFinal para prácticas con cobertura TOTAL', async () => {
             const plan = crearPlan({
-                coberturaPractica: [{ practicaGenerica: 'prac-gen-1', nivel: NivelCobertura.TOTAL }],
+                coberturaPractica: [{ practicaGenerica: 'prac-gen-1', nivel: NivelCobertura.TOTAL, pocentajeDescuento: 100 }],
             });
             mocks.pacienteRepository.findById.mockResolvedValue(crearPaciente({ plan }));
             mocks.turnoRepository.obtenerPaginados.mockResolvedValue(
@@ -218,8 +221,8 @@ describe('TurnoService - obtenerTodosCobertura', () => {
         test('calcula costoFinal para múltiples especialidades con distintas coberturas', async () => {
             const plan = crearPlan({
                 coberturaEspecialidad: [
-                    { especialidadGenerica: 'gen-1', nivel: NivelCobertura.TOTAL },
-                    { especialidadGenerica: 'gen-2', nivel: NivelCobertura.PARCIAL },
+                    { especialidadGenerica: 'gen-1', nivel: NivelCobertura.TOTAL,   pocentajeDescuento: 100 },
+                    { especialidadGenerica: 'gen-2', nivel: NivelCobertura.PARCIAL, pocentajeDescuento: 50  },
                 ],
             });
             const turno = crearTurno({
@@ -259,7 +262,7 @@ describe('TurnoService - obtenerTodosCobertura', () => {
 
         test('mapea correctamente los campos de especialidad devuelta', async () => {
             const plan = crearPlan({
-                coberturaEspecialidad: [{ especialidadGenerica: 'gen-1', nivel: NivelCobertura.PARCIAL }],
+                coberturaEspecialidad: [{ especialidadGenerica: 'gen-1', nivel: NivelCobertura.PARCIAL, pocentajeDescuento: 50 }],
             });
             const turno = crearTurno({
                 especialidades: [crearEspecialidad({ id: 'esp-1', nombre: 'Cardiología', costo: 800 })],

@@ -71,23 +71,39 @@ export class TurnoService {
         if (!paciente) throw new NotFoundError('Paciente no encontrado');
 
         filtros.estado = EstadoTurno.DISPONIBLE;
-        
 
-           const ordenaPorCosto = ordenamiento.some(o => o.campo === 'costoFinal');
+        const ordenaPorCosto = ordenamiento.some(o => o.campo === 'costoFinal');
 
         if (ordenaPorCosto && !filtros.especialidadId && !filtros.practicaId) {
             throw new BadRequestError('Para ordenar por costo necesitás filtrar por especialidad o práctica');
+        }
+
+        // Obtener el plan ANTES de llamar al repo, porque puede ser necesario para el ordenamiento
+        const plan = paciente.obraSocial.planes.find(
+            p => p._id.toString() === paciente.plan.toString()
+        );
+
+        // Cuando se ordena por costoFinal, buscamos el objeto de cobertura completo
+        // (con pocentajeDescuento) para que el aggregation calcule el costo real post-cobertura
+        let coberturaOrden = null;
+        if (ordenaPorCosto) {
+            if (filtros.especialidadId) {
+                coberturaOrden = plan?.coberturaEspecialidad?.find(
+                    c => c.especialidadGenerica?.toString() === filtros.especialidadId.toString()
+                ) ?? null;
+            } else if (filtros.practicaId) {
+                coberturaOrden = plan?.coberturaPractica?.find(
+                    c => c.practicaGenerica?.toString() === filtros.practicaId.toString()
+                ) ?? null;
+            }
         }
 
         const { turnos, totalTurnos, totalPaginas } = await this.turnoRepository.obtenerPaginados(
             numeroPagina,
             limitePorPagina,
             filtros,
-            ordenamiento
-        );
-
-        const plan = paciente.obraSocial.planes.find(
-            p => p._id.toString() === paciente.plan.toString()
+            ordenamiento,
+            coberturaOrden
         );
 
         const turnosConCobertura = turnos.map(turno => {
@@ -101,15 +117,15 @@ export class TurnoService {
                 : (turno.practica ? [turno.practica] : []);
 
             const especialidadesConCosto = especialidades.map(e => {
-                const nivelCobertura = plan ? plan.obtenerCoberturaEspecialidad(e) : null;
-                const costoFinal = e.calcularCostoSegunCobertura(nivelCobertura);
-                return { id: e._id, nombre: e.nombre, cobertura: nivelCobertura, costoFinal };
+                const cobertura = plan ? plan.obtenerCoberturaEspecialidad(e) : null;
+                const costoFinal = e.calcularCostoSegunCobertura(cobertura);
+                return { id: e._id, nombre: e.nombre, cobertura: cobertura?.nivel ?? null, costoFinal };
             });
 
             const practicasConCosto = practicas.map(p => {
-                const nivelCobertura = plan ? plan.obtenerCoberturaPractica(p) : null;
-                const costoFinal = p.calcularCostoSegunCobertura(nivelCobertura);
-                return { id: p._id, nombre: p.nombre, cobertura: nivelCobertura, costoFinal };
+                const cobertura = plan ? plan.obtenerCoberturaPractica(p) : null;
+                const costoFinal = p.calcularCostoSegunCobertura(cobertura);
+                return { id: p._id, nombre: p.nombre, cobertura: cobertura?.nivel ?? null, costoFinal };
             });
 
             return {
@@ -130,7 +146,6 @@ export class TurnoService {
             };
         });
 
-
         return {
             turnos: turnosConCobertura,
             totalTurnos,
@@ -139,6 +154,7 @@ export class TurnoService {
             limitePorPagina,
         };
     }
+
 
 
     async obtenerPorId(id) {

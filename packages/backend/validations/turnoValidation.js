@@ -101,11 +101,17 @@ export const turnoFiltrosSchema = z.object({
     hasta: z.coerce.date().optional(),
 });
 
-// Query completa: paginación + pacienteId + filtros
+// Query completa: paginación + pacienteId + filtros + ordenamiento
 export const turnoQuerySchema = z.object({
     page: z.coerce.number().int().min(1).default(1),
     limit: z.coerce.number().int().positive().default(10),
     pacienteId: objectId.optional(),
+    ordenarPor: z.enum(['fechaHora', 'costoFinal'], {
+        invalid_type_error: "El campo ordenarPor debe ser 'fechaHora' o 'costoFinal'."
+    }).optional(),
+    ordenDireccion: z.enum(['asc', 'desc'], {
+        invalid_type_error: "El campo ordenDireccion debe ser 'asc' o 'desc'."
+    }).optional().default('asc'),
 }).merge(turnoFiltrosSchema);
 
 

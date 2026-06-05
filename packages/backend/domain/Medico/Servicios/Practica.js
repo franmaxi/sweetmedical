@@ -14,9 +14,11 @@ export class Practica {
         this.eliminado = false
     }
 
-    calcularCostoSegunCobertura(nivelCobertura) {
-        if (nivelCobertura == NivelCobertura.TOTAL) return 0;
-        if (nivelCobertura == NivelCobertura.PARCIAL) return this.costo * 0.5;
+    calcularCostoSegunCobertura(cobertura) {
+        if (!cobertura) return this.costo;
+        if (cobertura.nivel == NivelCobertura.TOTAL) return 0;
+        if (cobertura.nivel == NivelCobertura.PARCIAL)
+            return this.costo * (1 - cobertura.pocentajeDescuento / 100);
         return this.costo;
     }
 }

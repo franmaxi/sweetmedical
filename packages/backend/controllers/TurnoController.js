@@ -29,7 +29,12 @@ export class TurnoController {
 findAll = async (req, res, next) => {
     try {
         // el (...filtros) recolecta todo lo que no entró
-        const { page: numeroPagina, limit: limitePorPagina, pacienteId, ...filtros } = turnoQuerySchema.parse(req.query); 
+        const { page: numeroPagina, limit: limitePorPagina, pacienteId, ordenarPor, ordenDireccion, ...filtros } = turnoQuerySchema.parse(req.query);
+
+        // Construir el array de ordenamiento para el servicio/repositorio
+        const ordenamiento = ordenarPor
+            ? [{ campo: ordenarPor, direccion: ordenDireccion }]
+            : [];
 
         let resultado = null
 
@@ -38,13 +43,15 @@ findAll = async (req, res, next) => {
                 pacienteId,
                 numeroPagina,
                 limitePorPagina,
-                filtros
+                filtros,
+                ordenamiento
             });
         } else {
             resultado = await this.turnoService.obtenerTodos({
                 numeroPagina,
                 limitePorPagina,
-                filtros
+                filtros,
+                ordenamiento
             })
         }
 

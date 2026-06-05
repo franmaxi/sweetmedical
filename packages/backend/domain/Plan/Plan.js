@@ -15,7 +15,7 @@ export class Plan {
         const cobertura = this.coberturaEspecialidad.find(
             c => c.especialidadGenerica?.toString() === generica?.toString()
         );
-        return cobertura ? cobertura.nivel : null;
+        return cobertura ?? null;
     }
 
     obtenerCoberturaPractica(practica) {
@@ -23,7 +23,7 @@ export class Plan {
         const cobertura = this.coberturaPractica.find(
             c => c.practicaGenerica?.toString() === generica?.toString()
         );
-        return cobertura ? cobertura.nivel : null;
+        return cobertura ?? null;
     }
 
 

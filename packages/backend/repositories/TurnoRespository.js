@@ -36,7 +36,9 @@ export class TurnoRepository{
         .populate("disponibilidad.especialidades") 
     }
 
+
     async obtenerSiguientesDisponibles(fechaTurno,fechaMaximo,medicoId){
+
         // devuelve los turnos entre las fechas dadas, que esten disponibles, sean para el medico pasado por parametro
         // se devuelve ordenado por fechaHora de menor a mayor
         return await this.model.find({
@@ -111,13 +113,13 @@ export class TurnoRepository{
         return await this.model.findByIdAndDelete(id);
     }
 
-    async obtenerPaginados(numeroPagina, limitePorPagina, filtros = {}, ordenamiento = []) {
+    async obtenerPaginados(numeroPagina, limitePorPagina, filtros = {}, ordenamiento = [], coberturaOrden = null) {
 
         const match = await this.construirMatch(filtros);
         const ordenarPorCosto = ordenamiento.some(o => o.campo === 'costoFinal');
 
         if (ordenarPorCosto) {
-            return this.obtenerPaginadosPorCosto(numeroPagina, limitePorPagina, match, ordenamiento, filtros);
+            return this.obtenerPaginadosPorCosto(numeroPagina, limitePorPagina, match, ordenamiento, filtros, coberturaOrden);
         }
 
         // Por mas que no pasen un ordenamiento, se lo vamos a devolver ordenado por fecha asc
@@ -150,10 +152,22 @@ export class TurnoRepository{
         }, {});
     }
 
-    async obtenerPaginadosPorCosto(numeroPagina, limitePorPagina, match, ordenamiento, filtros) {
+    async obtenerPaginadosPorCosto(numeroPagina, limitePorPagina, match, ordenamiento, filtros, coberturaOrden = null) {
         const esEspecialidad = !!filtros.especialidadId;
-        // Reemplazamos 'costoFinal' por el campo calculado en la aggregation
-        const sort = this._construirSort(ordenamiento, { costoFinal: 'costoBaseOrdenamiento' });
+        const sort = this.construirSort(ordenamiento, { costoFinal: 'costoFinalOrdenamiento' });
+        const skip = (numeroPagina - 1) * limitePorPagina;
+
+        // Calcular el multiplicador de cobertura del paciente para esta especialidad/práctica.
+        // Se computa en JS y se embebe como constante en el pipeline de MongoDB.
+        // Ejemplos: TOTAL → 0, PARCIAL 60% → 0.40 (paciente paga el 40%), sin cobertura → 1
+        let multiplicadorCobertura = 1;
+        if (coberturaOrden) {
+            if (coberturaOrden.nivel === 'TOTAL') {
+                multiplicadorCobertura = 0;
+            } else if (coberturaOrden.nivel === 'PARCIAL') {
+                multiplicadorCobertura = 1 - coberturaOrden.pocentajeDescuento / 100;
+            }
+        }
 
         const pipeline = [
             { $match: match },
@@ -161,16 +175,30 @@ export class TurnoRepository{
             {
                 $lookup: {
                     from: esEspecialidad ? 'especialidads' : 'practicas',
-                    localField: esEspecialidad ? 'especialidad' : 'practica',
-                    foreignField: '_id',
+                    let: { ids: { $ifNull: [esEspecialidad ? '$especialidad' : '$practica', []] } },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $or: [
+                                        { $in: ['$_id', '$$ids'] },
+                                        { $in: [{ $toString: '$_id' }, '$$ids'] }
+                                    ]
+                                }
+                            }
+                        }
+                    ],
                     as: 'itemsParaOrdenar'
                 }
             },
 
             {
-                // no se persiste
                 $addFields: {
-                    costoBaseOrdenamiento: { $min: '$itemsParaOrdenar.costo' }
+                    // Aplicar el multiplicador de cobertura del paciente sobre el costo base
+                    // de la especialidad/práctica para obtener el costoFinal real post-descuento
+                    costoFinalOrdenamiento: {
+                        $multiply: [{ $min: '$itemsParaOrdenar.costo' }, multiplicadorCobertura]
+                    }
                 }
             },
 
@@ -178,16 +206,7 @@ export class TurnoRepository{
 
             {
                 $facet: {
-                    turnos: [
-                        { $skip: (numeroPagina - 1) * limitePorPagina },
-                        { $limit: limitePorPagina },
-                        { $lookup: { from: 'medicos',       localField: 'medico',       foreignField: '_id', as: 'medico'      } },
-                        { $lookup: { from: 'sedes',         localField: 'sede',         foreignField: '_id', as: 'sede'        } },
-                        { $lookup: { from: 'especialidads', localField: 'especialidad', foreignField: '_id', as: 'especialidad' } },
-                        { $lookup: { from: 'practicas',     localField: 'practica',     foreignField: '_id', as: 'practica'    } },
-                        { $unwind: '$medico' },
-                        { $unwind: '$sede'   },
-                    ],
+                    ids:   [{ $skip: skip }, { $limit: limitePorPagina }, { $project: { _id: 1 } }],
                     total: [{ $count: 'count' }]
                 }
             }
@@ -197,8 +216,24 @@ export class TurnoRepository{
         const totalTurnos = resultado.total[0]?.count ?? 0;
         const totalPaginas = totalTurnos === 0 ? 0 : Math.ceil(totalTurnos / limitePorPagina);
 
-        return { turnos: resultado.turnos, totalTurnos, totalPaginas };
-}
+        if (totalTurnos === 0) return { turnos: [], totalTurnos, totalPaginas };
+
+        // Re-fetcheamos los turnos por ID con populate completo, preservando el orden del aggregation
+        const idsOrdenados = resultado.ids.map(t => t._id);
+        const turnosSinOrden = await this.model
+            .find({ _id: { $in: idsOrdenados } })
+            .populate('medico')
+            .populate('sede')
+            .populate('especialidad')
+            .populate('practica');
+
+        // Reordenamos según el orden del aggregation (find no garantiza el orden de $in)
+        const turnosMap = new Map(turnosSinOrden.map(t => [t._id.toString(), t]));
+        const turnos = idsOrdenados.map(id => turnosMap.get(id.toString())).filter(Boolean);
+
+        return { turnos, totalTurnos, totalPaginas };
+    }
+
     async construirMatch(filtros) {
         const match = {};
 
