@@ -20,6 +20,9 @@ router.route('/:id')
 	.get((req, res, next) => turnoController.findById(req, res, next))
 
 router.patch('/:id/', (req, res, next) => {
+    if (!req.body || typeof req.body.estado !== 'string') {
+        return res.status(400).json({ error: 'El campo "estado" es requerido y debe ser un texto.' });
+    }
     let estado = req.body.estado.toUpperCase()
     if (estado === EstadoTurno.REALIZADO) { // Tiene el pacienteId, especialidadId, practicaId
         return turnoController.realizar(req, res, next);

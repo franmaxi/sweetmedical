@@ -192,12 +192,12 @@ export class TurnoService {
 
         // verificar que el servicio este contenido en la disponibilidad
         if (especialidadId != null) {
-            const incluyeEspecialidad = disponibilidad.especialidades.some(e => e.toString() === especialidadId.toString());
+            const incluyeEspecialidad = disponibilidad.especialidades.some(e => e._id.toString() === especialidadId.toString());
             if (!incluyeEspecialidad) {
                 throw new UnprocessableEntityError("El médico no atiende esa especialidad en la disponibilidad seleccionada");
             }
         } else if (practicaId != null) { 
-            const incluyePractica = disponibilidad.practicas.some(p => p.toString() === practicaId.toString());
+            const incluyePractica = disponibilidad.practicas.some(p => p._id.toString() === practicaId.toString());
             if (!incluyePractica) {
                 throw new UnprocessableEntityError("El médico no realiza esa práctica en la disponibilidad seleccionada");
             }
@@ -208,7 +208,7 @@ export class TurnoService {
         
         // calculo la cantidad de turnos que necesito, e itero sobre la lista de turnos ORDENADA verificando que el i actual no sea mayor
         const turnosNecesarios = (servicio.duracionTurnoEnMins / this.duracionTurnos)
-        if (turnosSiguientes.length < turnosNecesarios) {
+        if (turnosSiguientes.length < turnosNecesarios - 1) {
             throw new UnprocessableEntityError("No existe tiempo suficiente para el servicio solicitado")
         }
 
@@ -775,7 +775,7 @@ export class TurnoService {
     
     async obtenerTurnosSiguientesNecesarios(turno, servicio){
         // Buscamos los turnos siguientes al actual, mismo dia, disponibles y hora mayor
-        const fechaMaxima = new Date(turno.fechaHora + servicio.duracionTurnoEnMins * 60 * 1000)
+        const fechaMaxima = new Date(turno.fechaHora.getTime() + servicio.duracionTurnoEnMins * 60 * 1000)
         // entre $gt fechaTurno &lt fechaMaxima - Disponibilidad = DISPONIBLE - medico = medico_id - traer Ordenados por fechaHora
         const turnosSiguientes = await this.turnoRepository.obtenerSiguientesDisponibles(turno.fechaHora,fechaMaxima,turno.medico._id)
 

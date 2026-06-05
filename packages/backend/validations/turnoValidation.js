@@ -31,6 +31,7 @@ export const turnoBodySchema = z.object({
 
 // PATCH /turnos/:id/ (reservar, cancelar, realizar)
 export const estadosBodySchema = z.object({
+    estado: z.string().optional(),
     pacienteId: objectId.optional().nullable().default(null),
     medicoId: objectId.optional().nullable().default(null),
     especialidadId: objectId.optional().nullable().default(null),

@@ -14,7 +14,6 @@ export class TurnoRepository{
             .populate("medico")
             .populate("paciente")
             .populate("sede")
-            .populate('disponibilidad')
             .populate('especialidad')
             .populate('practica')
     }
