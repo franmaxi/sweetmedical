@@ -5,6 +5,7 @@ import {
     BadRequestError,
     NotFoundError,
     UnprocessableEntityError,
+    ValidationError,
 } from "../errors/AppErrors.js"
 
 import { TurnoRepository } from "../repositories/TurnoRespository.js"
@@ -71,7 +72,12 @@ export class TurnoService {
         if (!paciente) throw new NotFoundError('Paciente no encontrado');
 
         filtros.estado = EstadoTurno.DISPONIBLE;
-
+        
+        if (filtros.desde != null && filtros.hasta != null) {
+            if (filtros.desde > filtros.hasta) {
+                throw new ValidationError('La fecha de inicio no puede ser mayor a la fecha de fin');
+            }
+        }      
         const ordenaPorCosto = ordenamiento.some(o => o.campo === 'costoFinal');
 
         if (ordenaPorCosto && !filtros.especialidadId && !filtros.practicaId) {
@@ -695,7 +701,7 @@ export class TurnoService {
         await this.turnoRepository.updateAll(t, ...turnosAModificar)
     }
 
-    async modificarTurnosPorDisponibilidadModificada(disponibilidad){
+    async modificarTurnosPorDisponibilidadModificada(disponibilidad, session = null){
         // turnos existentes reservados/cancelados/combinados/confirmados no hacemos nada
 
         // solamente para los disponibles, a partir de de la fecha de ahora modificamos los datos

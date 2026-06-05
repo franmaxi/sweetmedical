@@ -226,6 +226,7 @@ export class MedicoService {
         const session = await mongoose.startSession()
         session.startTransaction();
         try{
+            const disposActualizadas  = await this.limpiarServiciosDeDisponibilidades(medico.disponibilidades, listaEsp, listaPrac, session)
 
             for(const especialidadId of listaEsp){
                 const validEspId = objectIdSchema.parse(String(especialidadId));
@@ -236,10 +237,8 @@ export class MedicoService {
                 }
 
                 medico.eliminarEspecialidad(validEspId);
-                
-                //TODO tener en cuenta como se modifican los turnos disponibles
-            }
 
+            }
 
             for (const practicaId of listaPrac){
                 const validPracId = objectIdSchema.parse(String(practicaId));
@@ -255,7 +254,7 @@ export class MedicoService {
             await this.especialidadService.eliminar(listaEsp, session);
             await this.practicaService.eliminar(listaPrac, session);
 
-            const { modificadas, eliminadas } = this.limpiarServiciosDeDisponibilidades(medico.disponibilidades, listaEsp, listaPrac)
+            medico.disponibilidades = disposActualizadas
 
             const medicoGuardado = await this.medicoRepository.update(medico._id,medico, session);
             
@@ -272,55 +271,41 @@ export class MedicoService {
         //TODO si se elimina una q solo esta en un lugar, se debe eliminar la dispo
     }
 
-    limpiarServiciosDeDisponibilidades(disponibilidades, especialidadesId, practicasId) {
-    const espIds = especialidadesId.map(id => String(id));
-    const pracIds = practicasId.map(id => String(id));
+    async limpiarServiciosDeDisponibilidades(disponibilidades, especialidadesId, practicasId, session = null) {
+        const espIds = especialidadesId.map(id => String(id));
+        const pracIds = practicasId.map(id => String(id));
 
-    const disponibilidadesModificadas = [];
-    const disponibilidadesEliminadas = [];
-    const nuevoArrayDisponibilidades = [];
+        const nuevoArrayDisponibilidades = [];
 
-    for (const disponibilidad of disponibilidades) {
-        let sufrioCambios = false;
-        const dispoIdStr = String(disponibilidad._id);
+        for (const disponibilidad of disponibilidades) {
+            let sufrioCambios = false;
 
-        // 1. Verificar si tiene especialidades a quitar
-        const tieneEsp = disponibilidad.especialidades.some(e => espIds.includes(String(e._id || e)));
-        if (tieneEsp) {
-            espIds.forEach(id => disponibilidad.eliminarEspecialidad(id));
-            sufrioCambios = true;
+            const tieneEsp = disponibilidad.especialidades.some(e => espIds.includes(String(e._id || e)));
+            if (tieneEsp) {
+                espIds.forEach(id => disponibilidad.eliminarEspecialidad(id));
+                sufrioCambios = true;
+            }
+
+            const tienePrac = disponibilidad.practicas.some(p => pracIds.includes(String(p._id || p)));
+            if (tienePrac) {
+                pracIds.forEach(id => disponibilidad.eliminarPractica(id));
+                sufrioCambios = true;
+            }
+
+            if (sufrioCambios) {
+                nuevoArrayDisponibilidades.push(disponibilidad);
+                
+                //aca modificamos los turnos
+                await this.turnoService.modificarTurnosPorDisponibilidadModificada(disponibilidad, session) 
+
+            } else {
+                nuevoArrayDisponibilidades.push(disponibilidad);
+            }
         }
 
-        // 2. Verificar si tiene prácticas a quitar
-        const tienePrac = disponibilidad.practicas.some(p => pracIds.includes(String(p._id || p)));
-        if (tienePrac) {
-            pracIds.forEach(id => disponibilidad.eliminarPractica(id));
-            sufrioCambios = true;
-        }
-
-        // 3. Decidir el destino de la disponibilidad
-        if (disponibilidad.especialidades.length === 0 && disponibilidad.practicas.length === 0) {
-            // Se quedó vacía: va a la lista de eliminadas y NO se guarda en el nuevo array
-            disponibilidadesEliminadas.push(dispoIdStr);
-        } else if (sufrioCambios) {
-            // Se modificó pero aún le quedan otros servicios: se guarda y se registra
-            disponibilidadesModificadas.push(dispoIdStr);
-            nuevoArrayDisponibilidades.push(disponibilidad);
-        } else {
-            // No sufrió ningún cambio: se guarda tal cual
-            nuevoArrayDisponibilidades.push(disponibilidad);
-        }
+        return nuevoArrayDisponibilidades
+    
     }
-
-    // Reemplazamos el array completo del médico con el filtrado
-    disponibilidades = nuevoArrayDisponibilidades;
-
-    // LE DEVOLVEMOS EL REPORTE AL SERVICIO
-    return {
-        modificadas: disponibilidadesModificadas, // IDs de las que cambiaron parcialmente
-        eliminadas: disponibilidadesEliminadas    // IDs de las que desaparecieron
-    };
-}
     
     // ======================= DISPONIBILIDADES =============================
     async obtenerDisponibilidades(medicoId) {
