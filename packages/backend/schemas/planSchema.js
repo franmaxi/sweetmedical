@@ -3,8 +3,8 @@ import { Plan } from '../domain/Plan/Plan.js';
 import { NivelCobertura } from '../domain/Enumerados/NivelCobertura.js';
 
 const CoberturaEspecialidad = new mongoose.Schema({
-    especialidad:{ type: mongoose.Schema.Types.ObjectId,
-        ref: 'Especialidad',
+    especialidadGenerica:{ type: mongoose.Schema.Types.ObjectId,
+        ref: 'EspecialidadGenerica',
         required: true},
     nivel: {
         type: String, 
@@ -17,8 +17,8 @@ const CoberturaEspecialidad = new mongoose.Schema({
 }, {_id : false})
 
 const CoberturaPractica = new mongoose.Schema({
-    practica:{ type: mongoose.Schema.Types.ObjectId,
-        ref: 'Practica',
+    practicaGenerica:{ type: mongoose.Schema.Types.ObjectId,
+        ref: 'PracticaGenerica',
         required: true},
     nivel: {
         type: String, 

@@ -37,3 +37,9 @@ export class ForbiddenError extends AppError {
         super(message, 403)
     }
 }
+export class ValidationError extends AppError {
+    constructor(message) {
+        super(message, 403)
+    }
+    
+}

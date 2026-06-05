@@ -210,14 +210,16 @@ export class TurnoRepository{
             const ids = await EspecialidadModel
                 .find({ especialidadGenerica: filtros.especialidadId })
                 .distinct('_id');
-            match.especialidad = { $in: ids };
+            const stringIds = ids.map(id => id.toString());
+            match.especialidad = { $in: [...ids, ...stringIds] };
         }
 
         if (filtros.practicaId) {
             const ids = await PracticaModel
                 .find({ practicaGenerica: filtros.practicaId })
                 .distinct('_id');
-            match.practica = { $in: ids };
+            const stringIds = ids.map(id => id.toString());
+            match.practica = { $in: [...ids, ...stringIds] };
         }
 
         if (filtros.desde || filtros.hasta) {

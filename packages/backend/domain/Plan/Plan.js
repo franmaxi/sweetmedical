@@ -11,12 +11,18 @@ export class Plan {
     }
 
     obtenerCoberturaEspecialidad(especialidad) {
-        const cobertura = this.coberturaEspecialidad.find(c => c.especialidadGenerica?.toString() === especialidad?.toString());
+        const generica = especialidad?.especialidadGenerica ?? especialidad;
+        const cobertura = this.coberturaEspecialidad.find(
+            c => c.especialidadGenerica?.toString() === generica?.toString()
+        );
         return cobertura ? cobertura.nivel : null;
     }
 
     obtenerCoberturaPractica(practica) {
-        const cobertura = this.coberturaPractica.find(c => c.practicaGenerica?.toString() === practica?.toString());
+        const generica = practica?.practicaGenerica ?? practica;
+        const cobertura = this.coberturaPractica.find(
+            c => c.practicaGenerica?.toString() === generica?.toString()
+        );
         return cobertura ? cobertura.nivel : null;
     }
 

@@ -13,12 +13,12 @@ const historialEstadoSchema = new mongoose.Schema({
 const turnoSchema = new mongoose.Schema({
     medico:{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'medico',
+        ref: 'Medico',
         required: true
     },
     paciente:{
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'paciente',
+        ref: 'Paciente',
         default: null
     },
     fechaHora:{

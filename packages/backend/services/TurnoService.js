@@ -42,7 +42,7 @@ export class TurnoService {
     }
     
     //nos interesa PARA EL HISTORIAl que nos traiga los turnos realizados, cancelados y reservados, no quiero que aparezcan los combinados (se puede filtrar para que algo no aparezca con mongoose). Chequear si se pueden pasar multiples estados
-    async obtenerTodos({ pacienteId, medicoId, numeroPagina = 1, limitePorPagina = 10, filtros = {}, ordenamiento = {} } = {} ) {
+    async obtenerTodos({ pacienteId, medicoId, numeroPagina = 1, limitePorPagina = 10, filtros = {}, ordenamiento = [] } = {} ) {
         
         if (pacienteId) {
             const paciente = await this.pacienteRepository.findById(pacienteId);
@@ -86,16 +86,28 @@ export class TurnoService {
             ordenamiento
         );
 
+        const plan = paciente.obraSocial.planes.find(
+            p => p._id.toString() === paciente.plan.toString()
+        );
+
         const turnosConCobertura = turnos.map(turno => {
             
-            const especialidadesConCosto = turno.especialidad.map(e => {
-                const nivelCobertura = paciente.plan.obtenerCoberturaEspecialidad(e);
+            const especialidades = Array.isArray(turno.especialidad)
+                ? turno.especialidad
+                : (turno.especialidad ? [turno.especialidad] : []);
+
+            const practicas = Array.isArray(turno.practica)
+                ? turno.practica
+                : (turno.practica ? [turno.practica] : []);
+
+            const especialidadesConCosto = especialidades.map(e => {
+                const nivelCobertura = plan ? plan.obtenerCoberturaEspecialidad(e) : null;
                 const costoFinal = e.calcularCostoSegunCobertura(nivelCobertura);
                 return { id: e._id, nombre: e.nombre, cobertura: nivelCobertura, costoFinal };
             });
 
-            const practicasConCosto = turno.practica.map(p => {
-                const nivelCobertura = paciente.plan.obtenerCoberturaPractica(p);
+            const practicasConCosto = practicas.map(p => {
+                const nivelCobertura = plan ? plan.obtenerCoberturaPractica(p) : null;
                 const costoFinal = p.calcularCostoSegunCobertura(nivelCobertura);
                 return { id: p._id, nombre: p.nombre, cobertura: nivelCobertura, costoFinal };
             });
@@ -117,6 +129,7 @@ export class TurnoService {
                 estado: turno.estado,
             };
         });
+
 
         return {
             turnos: turnosConCobertura,

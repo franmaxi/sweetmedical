@@ -7,9 +7,8 @@ export class ObraSocialRepository{
 
     #populate(query) {
         return query
-            //.populate("planes") 
-            .populate("planes.coberturaEspecialidad.especialidad") 
-            .populate("planes.coberturaPractica.practica")
+            .populate("planes.coberturaEspecialidad.especialidadGenerica") 
+            .populate("planes.coberturaPractica.practicaGenerica")
     }
 
     async findAll() {
