@@ -85,7 +85,8 @@ export class MedicoService {
 
         const datosUsuario = {
             nombreUsuario: datosMedico.nombreUsuario,
-            password: datosMedico.password || medicoExistente.usuario.password 
+            // Solo se actualiza la contraseña si se provee una nueva
+            ...(datosMedico.password ? { password: datosMedico.password } : {})
         };
 
         await this.usuarioService.actualizar(medicoExistente.usuario._id,datosUsuario);
@@ -117,8 +118,7 @@ export class MedicoService {
 
     async agregarServicios(medicoId, especialidades, practicas) {
         const validMedicoId = objectIdSchema.parse(String(medicoId));
-        const medico = await this.obtenerPorId(validMedicoId);
-        if (!medico) throw new NotFoundError("Medico no encontrado");
+        const medico = await this.obtenerPorId(validMedicoId); // lanza NotFoundError si no existe
 
         //Usaremos sesiones transaccionales. Si algo falla, se revierte completo y no se guardará nada.
         const session = await mongoose.startSession()
@@ -174,8 +174,7 @@ export class MedicoService {
 
     async modificarServicios(medicoId, especialidades, practicas) {
         const validMedicoId = objectIdSchema.parse(String(medicoId));
-        const medico = await this.obtenerPorId(validMedicoId);
-        if (!medico) throw new NotFoundError("Medico no encontrado");
+        const medico = await this.obtenerPorId(validMedicoId); // lanza NotFoundError si no existe
 
         const session = await mongoose.startSession()
         session.startTransaction();
@@ -292,14 +291,12 @@ export class MedicoService {
                 sufrioCambios = true;
             }
 
-            if (sufrioCambios) {
-                nuevoArrayDisponibilidades.push(disponibilidad);
-                
-                //aca modificamos los turnos
-                await this.turnoService.modificarTurnosPorDisponibilidadModificada(disponibilidad, session) 
+            // Siempre conservamos la disponibilidad (con o sin cambios)
+            nuevoArrayDisponibilidades.push(disponibilidad);
 
-            } else {
-                nuevoArrayDisponibilidades.push(disponibilidad);
+            if (sufrioCambios) {
+                // Notificamos al servicio de turnos sobre los cambios en la disponibilidad
+                await this.turnoService.modificarTurnosPorDisponibilidadModificada(disponibilidad, session);
             }
         }
 
@@ -325,7 +322,7 @@ export class MedicoService {
         const validMedicoId = objectIdSchema.parse(String(medicoId));
         
         //Validacion de que el medico exista
-        const medico = this.obtenerPorId(validMedicoId);
+        const medico = await this.obtenerPorId(validMedicoId);
 
         const contieneSede = medico.sedes.some(s => (s.nombre === datosDisponibilidad.sede.nombre) 
                                                     && (s.direccion === datosDisponibilidad.sede.direccion))
@@ -354,7 +351,7 @@ export class MedicoService {
         const validMedicoId = objectIdSchema.parse(String(medicoId));
         const validDispoId = objectIdSchema.parse(String(disponibilidadId));
 
-        const medico = this.obtenerPorId(validMedicoId);
+        const medico = await this.obtenerPorId(validMedicoId);
 
         const contieneSede = medico.sedes.some(s => (s.nombre === datosDisponibilidad.sede.nombre) 
                                                     && (s.direccion === datosDisponibilidad.sede.direccion))
@@ -381,11 +378,11 @@ export class MedicoService {
         return await this.medicoRepository.updateDisponibilidad(validMedicoId, validDispoId, dispo);
     }
 
-    async eliminarDisponiblidad(medicoId, disponibilidadId){
+    async eliminarDisponibilidad(medicoId, disponibilidadId){
         const validMedicoId = objectIdSchema.parse(String(medicoId));
         const validDispoId = objectIdSchema.parse(String(disponibilidadId));
 
-        const medico = this.obtenerPorId(medicoId)
+        const medico = await this.obtenerPorId(validMedicoId);
 
         const dispoExistente = await this.obtenerDisponibilidad(validMedicoId, validDispoId)
         if (!dispoExistente) throw new NotFoundError("Disponibilidad no encontrada");
@@ -421,8 +418,7 @@ export class MedicoService {
     async quitarSedes(medicoId, sedesId) {
         const validMedicoId = objectIdSchema.parse(String(medicoId));
 
-        const medico = await this.obtenerPorId(validMedicoId);
-        if (!medico) throw new NotFoundError("Médico no encontrado");
+        const medico = await this.obtenerPorId(validMedicoId); // lanza NotFoundError si no existe
 
         for (const id of sedesId) {
             const validSedeId = objectIdSchema.parse(String(id));

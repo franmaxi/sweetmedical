@@ -4,7 +4,8 @@ import {
     medicoBodySchema, 
     medicoBodyUpdateSchema, 
     disponibilidadBodySchema, 
-    serviciosBodySchema 
+    serviciosBodySchema,
+    sedesBodySchema
 } from "../validations/medicoValidation.js";
 
 export class MedicoController {
@@ -175,8 +176,8 @@ export class MedicoController {
     modificarServicio = async (req, res, next) => {
         try {
             const { id: medicoId } = paramsIdSchema.parse(req.params);
-            const validBody = servicioBodySchema.parse(req.body);
-            const servicioModificado = await this.medicoService.modificarServicios(medicoId, validBody.especialidad ?? null, validBody.practica ?? null);
+            const validBody = serviciosBodySchema.parse(req.body);
+            const servicioModificado = await this.medicoService.modificarServicios(medicoId, validBody.especialidades, validBody.practicas);
             return res.status(200).json({
                 status: "success",
                 data: servicioModificado
@@ -189,13 +190,58 @@ export class MedicoController {
     eliminarServicios = async (req, res, next) => {
         try {
             const { id: medicoId } = paramsIdSchema.parse(req.params);
-            const validBody = servicioBodySchema.parse(req.body);
-            const especialidadId = validBody.especialidad ? (typeof validBody.especialidad === 'object' ? validBody.especialidad._id || validBody.especialidad._id : validBody.especialidad) : null;
-            const practicaId = validBody.practica ? (typeof validBody.practica === 'object' ? validBody.practica._id || validBody.practica._id : validBody.practica) : null;
-            const serviciosEliminados = await this.medicoService.eliminarServicios(medicoId, especialidadId, practicaId);
+            const { especialidades, practicas } = serviciosBodySchema.parse(req.body);
+            const especialidadesId = especialidades.map(e => e._id).filter(Boolean);
+            const practicasId = practicas.map(p => p._id).filter(Boolean);
+            const serviciosEliminados = await this.medicoService.eliminarServicios(medicoId, especialidadesId, practicasId);
             return res.status(200).json({
                 status: "success",
                 data: serviciosEliminados
+            });
+        } catch (error) {
+            return next(error);
+        }
+    }
+
+    // DELETE /medicos/:id/disponibilidades/:disponibilidadId
+    eliminarDisponibilidad = async (req, res, next) => {
+        try {
+            const { id: medicoId } = paramsIdSchema.parse(req.params);
+            const disponibilidadId = objectIdSchema.parse(req.params.disponibilidadId);
+            const medicoActualizado = await this.medicoService.eliminarDisponibilidad(medicoId, disponibilidadId);
+            return res.status(200).json({
+                status: "success",
+                data: medicoActualizado
+            });
+        } catch (error) {
+            return next(error);
+        }
+    }
+
+    // POST /medicos/:id/sedes  — body: { sedesId: ["id1", "id2"] }
+    agregarSedes = async (req, res, next) => {
+        try {
+            const { id: medicoId } = paramsIdSchema.parse(req.params);
+            const { sedesId } = sedesBodySchema.parse(req.body);
+            const medicoActualizado = await this.medicoService.agregarSedes(medicoId, sedesId);
+            return res.status(200).json({
+                status: "success",
+                data: medicoActualizado
+            });
+        } catch (error) {
+            return next(error);
+        }
+    }
+
+    // DELETE /medicos/:id/sedes  — body: { sedesId: ["id1", "id2"] }
+    quitarSedes = async (req, res, next) => {
+        try {
+            const { id: medicoId } = paramsIdSchema.parse(req.params);
+            const { sedesId } = sedesBodySchema.parse(req.body);
+            const medicoActualizado = await this.medicoService.quitarSedes(medicoId, sedesId);
+            return res.status(200).json({
+                status: "success",
+                data: medicoActualizado
             });
         } catch (error) {
             return next(error);

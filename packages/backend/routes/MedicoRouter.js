@@ -21,11 +21,15 @@ router.route('/:id/disponibilidades')
 router.route('/:id/disponibilidades/:disponibilidadId')
 	.get((req, res, next) =>	medicoController.obtenerDisponibilidad(req, res, next))
 	.put((req, res, next ) => 	medicoController.modificarDisponibilidad(req, res, next))
+	.delete((req, res, next) => medicoController.eliminarDisponibilidad(req, res, next))
 
 router.route('/:id/servicios')
 	.post((req, res, next) => medicoController.agregarServicios(req, res, next))
-	.put((req, res, next) => medicoController.modificarServicios(req, res, next))
+	.put((req, res, next) => medicoController.modificarServicio(req, res, next))
 	.delete((req, res, next) => medicoController.eliminarServicios(req, res, next))	
-	
+
+router.route('/:id/sedes')
+	.post((req, res, next) => medicoController.agregarSedes(req, res, next))
+	.delete((req, res, next) => medicoController.quitarSedes(req, res, next))
 export default router
 

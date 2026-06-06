@@ -10,7 +10,6 @@ export class MedicoRepository{
             .populate("especialidades") 
             .populate("practicas")
             .populate("sedes")
-            .populate("disponibilidades")
             .populate("disponibilidades.sede")
             .populate("disponibilidades.especialidades")
             .populate("disponibilidades.practicas")

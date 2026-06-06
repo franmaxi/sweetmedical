@@ -100,6 +100,13 @@ export const serviciosBodySchema = z.object({
     path: ["especialidades", "practicas"]
 });
 
+export const sedesBodySchema = z.object({
+    sedesId: z.array(objectIdSchema, {
+        required_error: "sedesId es requerido.",
+        invalid_type_error: "sedesId debe ser una lista de IDs."
+    }).min(1, "Debe proveer al menos una sede.")
+});
+
 // MEDICO DOMAIN
 export const medicoDomainSchema = z.object({
     _id: z.any().optional(),
