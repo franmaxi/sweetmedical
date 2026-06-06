@@ -1,4 +1,4 @@
-import { Layout, Row, Col, Typography, Input, Button, Space, Divider } from "antd";
+import { Layout, Row, Col, Typography, Space, Divider } from "antd";
 
 const { Footer: AntFooter } = Layout;
 const { Title, Text, Paragraph } = Typography;

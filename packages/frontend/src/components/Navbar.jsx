@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, Link, useNavigate } from "react-router-dom";
 import { Layout, Menu, Space, Button, Drawer, Grid } from "antd";
 import {
   ScheduleOutlined,
@@ -17,6 +17,7 @@ const { useBreakpoint } = Grid;
 
 export default function Navbar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const screens = useBreakpoint();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -78,6 +79,12 @@ export default function Navbar() {
       <Space size="small" style={{ marginLeft: "auto" }}>
         <SelectorIdioma />
         <NotificacionesDropdown />
+        {!esMobile && (
+          <>
+            <Button onClick={() => navigate("/login")}>Ingresar</Button>
+            <Button type="primary" onClick={() => navigate("/registro")}>Registrarse</Button>
+          </>
+        )}
         {esMobile && (
           <Button type="text" icon={<MenuOutlined />} onClick={() => setDrawerOpen(true)} />
         )}
@@ -97,6 +104,14 @@ export default function Navbar() {
           onClick={() => setDrawerOpen(false)}
           style={{ borderInlineEnd: "none" }}
         />
+        <Space direction="vertical" style={{ width: "100%", marginTop: 16 }}>
+          <Button block onClick={() => { setDrawerOpen(false); navigate("/login"); }}>
+            Ingresar
+          </Button>
+          <Button block type="primary" onClick={() => { setDrawerOpen(false); navigate("/registro"); }}>
+            Registrarse
+          </Button>
+        </Space>
       </Drawer>
     </Header>
   );

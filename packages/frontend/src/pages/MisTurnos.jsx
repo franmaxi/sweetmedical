@@ -27,7 +27,7 @@ import {
 
 const { Title, Text } = Typography;
 
-// Sin login, simulamos que el paciente activo es Ana García (id 1).
+// Sin login simulo que el paciente activo es Ana García (id 1).
 const PACIENTE_ACTIVO = { pacienteId: 1, usuarioId: 201 };
 
 const COLOR_ESTADO = {
@@ -38,6 +38,7 @@ const COLOR_ESTADO = {
   [EstadoTurno.REALIZADO]: "purple",
 };
 
+// formato de fecha legible para mostrar en la UI
 const fmt = (iso) =>
   new Date(iso).toLocaleString("es-AR", {
     weekday: "short", day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit",

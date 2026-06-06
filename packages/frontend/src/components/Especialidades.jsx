@@ -5,7 +5,6 @@ import { getEspecialidadesGenericas, medicosMock, especialidadesMock } from "../
 
 const { Title, Text, Paragraph } = Typography;
 
-// Mapa visual: nombre de especialidad → icono.
 const ICONO_POR_ESPECIALIDAD = {
   "Cardiología": "♥️",
   "Ginecología": "🌸",
@@ -20,7 +19,7 @@ const ICONO_POR_ESPECIALIDAD = {
   "Obstetricia": "🤰",
   "Psiquiatría": "🧘",
   "Oncología": "🎗",
-  
+
 
 };
 const ICONO_DEFAULT = "+";

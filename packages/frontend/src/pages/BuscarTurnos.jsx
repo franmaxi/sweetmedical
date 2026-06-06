@@ -6,32 +6,28 @@ import {
   Row,
   Col,
   Card,
-  Form,
-  Select,
-  Input,
-  DatePicker,
   Button,
   Typography,
   List,
   Empty,
   Space,
-  Tag,
   Divider,
 } from "antd";
 import {
   EnvironmentOutlined,
-  CalendarOutlined,
   ClockCircleOutlined,
-  ClearOutlined,
 } from "@ant-design/icons";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import FiltrosTurnos from "../components/FiltrosTurnos";
+import ModalReservaTurno from "../components/ModalReservaTurno";
 import {
   getTurnosDisponibles,
   getEspecialidadesGenericas,
   getSedes,
   getMedicos,
   getEspecialidades,
+  getPracticas,
   reservarTurno,
 } from "../mocks";
 
@@ -42,12 +38,9 @@ const { Content } = Layout;
 const PACIENTE_ACTIVO = { pacienteId: 1, usuarioId: 201 };
 
 const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-const fmtFecha = (iso) => iso.slice(0, 10);
 const fmtHora = (iso) => iso.slice(11, 16);
 const mesAbrev = (iso) => MESES[Number(iso.slice(5, 7)) - 1] ?? "";
 const dia = (iso) => iso.slice(8, 10);
-const fmtMoneda = (n) =>
-  new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(n);
 
 export default function BuscarTurnos() {
   return (
@@ -59,22 +52,27 @@ export default function BuscarTurnos() {
 
 function BuscarTurnosInner() {
   const navigate = useNavigate();
-  const { message, modal } = AntApp.useApp();
-  const [reservando, setReservando] = useState(null);
+  const { message } = AntApp.useApp();
 
+  // Filtros.
   const [especialidadGenericaId, setEspecialidadGenericaId] = useState();
   const [sedeId, setSedeId] = useState();
   const [medicoQuery, setMedicoQuery] = useState("");
   const [fechaDesde, setFechaDesde] = useState();
 
+  // Catálogos.
   const [especialidadesGenericas, setEspecialidadesGenericas] = useState([]);
   const [sedes, setSedes] = useState([]);
   const [medicosById, setMedicosById] = useState(new Map());
   const [sedesById, setSedesById] = useState(new Map());
   const [espPersonalizadasById, setEspPersonalizadasById] = useState(new Map());
+  const [practicasById, setPracticasById] = useState(new Map());
 
+  // Resultados y modal de reserva.
   const [resultados, setResultados] = useState([]);
   const [cargando, setCargando] = useState(true);
+  const [turnoSeleccionado, setTurnoSeleccionado] = useState(null);
+  const [reservando, setReservando] = useState(false);
 
   // Carga inicial de catálogos.
   useEffect(() => {
@@ -83,16 +81,18 @@ function BuscarTurnosInner() {
       getSedes(),
       getMedicos(),
       getEspecialidades(),
-    ]).then(([genericas, listaSedes, listaMedicos, listaEspecialidades]) => {
+      getPracticas(),
+    ]).then(([genericas, listaSedes, listaMedicos, listaEsp, listaPrac]) => {
       setEspecialidadesGenericas(genericas);
       setSedes(listaSedes);
       setMedicosById(new Map(listaMedicos.map((m) => [m.id, m])));
       setSedesById(new Map(listaSedes.map((s) => [s.id, s])));
-      setEspPersonalizadasById(new Map(listaEspecialidades.map((e) => [e.id, e])));
+      setEspPersonalizadasById(new Map(listaEsp.map((e) => [e.id, e])));
+      setPracticasById(new Map(listaPrac.map((p) => [p.id, p])));
     });
   }, []);
 
-  // Cada cambio de filtro re-consulta los turnos disponibles.
+  // Cada cambio de filtro vuelve a consultar los turnos disponibles.
   useEffect(() => {
     setCargando(true);
     getTurnosDisponibles({
@@ -118,21 +118,23 @@ function BuscarTurnosInner() {
       .sort((a, b) => a.fechaHora.localeCompare(b.fechaHora));
   }, [resultados, medicoQuery, medicosById, sedesById, espPersonalizadasById]);
 
-  const onReservar = (turno) => {
-    modal.confirm({
-      title: "Confirmar reserva",
-      content: `${turno.medicoNombre} · ${turno.especialidadNombre} · ${fmtFecha(turno.fechaHora)} ${fmtHora(turno.fechaHora)} · ${turno.sedeNombre}`,
-      okText: "Reservar",
-      cancelText: "Volver",
-      onOk: async () => {
-        setReservando(turno.id);
-        await reservarTurno(turno.id, PACIENTE_ACTIVO);
-        message.success("¡Turno reservado!");
-        setResultados((r) => r.filter((t) => t.id !== turno.id));
-        setReservando(null);
-        navigate("/mis-turnos");
-      },
-    });
+  const medicoSeleccionado = turnoSeleccionado ? medicosById.get(turnoSeleccionado.medicoId) : null;
+  const espSeleccionada = medicoSeleccionado
+    ? espPersonalizadasById.get(medicoSeleccionado.especialidadId)
+    : null;
+
+  const confirmarReserva = async (motivo) => {
+    if (!motivo) {
+      message.warning("Elegí un motivo para la consulta");
+      return;
+    }
+    setReservando(true);
+    await reservarTurno(turnoSeleccionado.id, PACIENTE_ACTIVO);
+    setReservando(false);
+    message.success("¡Turno reservado!");
+    setResultados((r) => r.filter((t) => t.id !== turnoSeleccionado.id));
+    setTurnoSeleccionado(null);
+    navigate("/mis-turnos");
   };
 
   const limpiar = () => {
@@ -155,47 +157,19 @@ function BuscarTurnosInner() {
 
           <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
             <Col xs={24} lg={8}>
-              <Card
-                title="Filtros"
-                extra={<Button type="link" size="small" icon={<ClearOutlined />} onClick={limpiar}>Limpiar</Button>}
-              >
-                <Form layout="vertical">
-                  <Form.Item label="Especialidad">
-                    <Select
-                      placeholder="Todas"
-                      allowClear
-                      value={especialidadGenericaId}
-                      onChange={setEspecialidadGenericaId}
-                      options={especialidadesGenericas.map((e) => ({ value: e.id, label: e.nombre }))}
-                    />
-                  </Form.Item>
-                  <Form.Item label="Médico">
-                    <Input
-                      placeholder="Buscar por nombre"
-                      value={medicoQuery}
-                      onChange={(e) => setMedicoQuery(e.target.value)}
-                      allowClear
-                    />
-                  </Form.Item>
-                  <Form.Item label="Sede">
-                    <Select
-                      placeholder="Todas"
-                      allowClear
-                      value={sedeId}
-                      onChange={setSedeId}
-                      options={sedes.map((s) => ({ value: s.id, label: s.nombre }))}
-                    />
-                  </Form.Item>
-                  <Form.Item label="Fecha desde">
-                    <DatePicker
-                      style={{ width: "100%" }}
-                      value={fechaDesde}
-                      onChange={setFechaDesde}
-                      format="DD/MM/YYYY"
-                    />
-                  </Form.Item>
-                </Form>
-              </Card>
+              <FiltrosTurnos
+                especialidadesGenericas={especialidadesGenericas}
+                sedes={sedes}
+                especialidadGenericaId={especialidadGenericaId}
+                setEspecialidadGenericaId={setEspecialidadGenericaId}
+                sedeId={sedeId}
+                setSedeId={setSedeId}
+                medicoQuery={medicoQuery}
+                setMedicoQuery={setMedicoQuery}
+                fechaDesde={fechaDesde}
+                setFechaDesde={setFechaDesde}
+                onLimpiar={limpiar}
+              />
             </Col>
 
             <Col xs={24} lg={16}>
@@ -217,11 +191,7 @@ function BuscarTurnosInner() {
                       <List.Item
                         key={turno.id}
                         actions={[
-                          <Button
-                            type="primary"
-                            onClick={() => onReservar(turno)}
-                            loading={reservando === turno.id}
-                          >
+                          <Button type="primary" onClick={() => setTurnoSeleccionado(turno)}>
                             Reservar
                           </Button>,
                         ]}
@@ -246,7 +216,6 @@ function BuscarTurnosInner() {
                               <Text type="secondary">{turno.especialidadNombre}</Text>
                               <Text type="secondary"><EnvironmentOutlined /> {turno.sedeNombre}</Text>
                               <Text type="secondary"><ClockCircleOutlined /> {fmtHora(turno.fechaHora)}</Text>
-                              <Tag color="pink"><CalendarOutlined /> {fmtMoneda(turno.costo)}</Tag>
                             </Space>
                           }
                         />
@@ -260,6 +229,16 @@ function BuscarTurnosInner() {
         </div>
       </Content>
       <Footer />
+
+      <ModalReservaTurno
+        turno={turnoSeleccionado}
+        medico={medicoSeleccionado}
+        especialidadPersonalizada={espSeleccionada}
+        practicasById={practicasById}
+        onCancel={() => setTurnoSeleccionado(null)}
+        onReservar={confirmarReserva}
+        reservando={reservando}
+      />
     </Layout>
   );
 }

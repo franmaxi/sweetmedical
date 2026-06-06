@@ -8,10 +8,10 @@ import Footer from "../components/Footer";
 
 const { Content } = Layout;
 
-export default function Home() {
+export default function Home({ darkMode, setDarkMode }) {
   return (
     <Layout style={{ background: "#fff" }}>
-      <Navbar />
+      <Navbar darkMode={darkMode} setDarkMode={setDarkMode} />
       <Content>
         <Hero />
         <Especialidades />
