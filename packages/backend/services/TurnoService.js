@@ -690,8 +690,8 @@ export class TurnoService {
                 // calculamos el tiempo disponible luego de cancelar los turnos
                 //turno cancelado a las 18:00 / mcd = 30 / duracionMaxima = 2h = 120m / fechaMinima = 17:30 (arranco a contar desde el turno de las 18) -> fechaMaxima = 19:30 (cuento hasta el de las 20, sin incluirlo)
                 //cancelado a las 18:00 mcd 30 duracionMaxima 30 fechaMinima = 17:30 fechaMaxima= 18:00
-                const fechaMinima = new Date(t.fechaHora - this.duracionTurnos * 60 * 1000) // desde el primero que refrescamos sin considerarlo
-                const fechaMaxima = new Date(t.fechaHora + (duracionMaxima - this.duracionTurnos) * 60 * 1000) // hasta el ultimo posible que necesitemos para calcular el tiempo
+                const fechaMinima = new Date(t.fechaHora.getTime() - this.duracionTurnos * 60 * 1000) // desde el primero que refrescamos sin considerarlo
+                const fechaMaxima = new Date(t.fechaHora.getTime() + (duracionMaxima - this.duracionTurnos) * 60 * 1000) // hasta el ultimo posible que necesitemos para calcular el tiempo
                 const turnosSiguientes = await this.turnoRepository.obtenerSiguientesDisponibles(fechaMinima, fechaMaxima, t.medico._id)
                 
                 let tiempoRestante = this.duracionTurnos
