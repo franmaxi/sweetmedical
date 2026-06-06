@@ -285,7 +285,7 @@ export class TurnoService {
 
     async setearTurnoDisponible(turno, usuario, motivoCambio) {
         turno.actualizarEstado(EstadoTurno.DISPONIBLE, usuario, motivoCambio)
-         turno.paciente = null
+        turno.paciente = null
         turno.costo = null
         turno.refrescarAnteriores = true
 
@@ -466,7 +466,6 @@ export class TurnoService {
 
         const turnosCombinados = await this.turnoRepository.obtenerCombinados(turno)
         // tiene que volver ordenado por fecha hora
-        const turnoslongitud = turnosCombinados.length
         if (usuarioMedico == usuarioId){
             // Caso donde el usuario que cancela es el medico
             
@@ -479,13 +478,12 @@ export class TurnoService {
         }
         else{
             // Caso donde el usuario que cancela es el paciente
-       
+            
             if (turno.disponibilidad) { //disponibilidad si existe, osea no esta en null
                 const turnoCopia = this.copiarTurnoCancelado(turno) // especialidad y practica estan null
                 if( turnosCombinados.length >= 1) {
                     for(const t of turnosCombinados){
                         t.actualizarEstado(EstadoTurno.DISPONIBLE,usuario,motivo)
-                        t.paciente = null
                     }
                 }
                 // refrescamos turno y combinados
@@ -493,7 +491,7 @@ export class TurnoService {
                 
                 // guardar el turno nuevo y updateamos los combinados
                 await this.turnoRepository.save(respuesta.turno);
-                if (respuesta.turnosCombinados.length > 1) { 
+                if (respuesta.turnosCombinados.length >= 1) { 
                     for (const t of respuesta.turnosCombinados) { 
                         await this.turnoRepository.update(t._id, t)
                     }
@@ -761,10 +759,10 @@ export class TurnoService {
 
     copiarTurnoCancelado(turno){
         return new Turno({
-            medico: turno.medico,
+            medico: turno.medico._id,
             fechaHora: turno.fechaHora,
-            sede: turno.sede,
-            disponibilidad: turno.disponibilidad._id,
+            sede: turno.sede._id,
+            disponibilidad: turno.disponibilidad,
             practica: null,
             especialidad: null
         })
