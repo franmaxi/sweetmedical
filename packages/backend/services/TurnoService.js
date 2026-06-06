@@ -561,7 +561,7 @@ export class TurnoService {
         const ultimoTurno = turnosCombinados[turnosCombinados.length-1]
         const fechaMaxima = new Date(ultimoTurno.fechaHora.getTime() + duracionMaxima * 60 * 1000)
 
-        const turnosSiguientes = await this.turnoRepository.obtenerSiguientesDisponibles(ultimoTurno.fechaHora, fechaMaxima, turno.medico._id)
+        const turnosSiguientes = await this.turnoRepository.obtenerSiguientesDisponibles(ultimoTurno.fechaHora, fechaMaxima, this.getIdDocument(turno.medico))
         
         // borramos los turnos no contiguos
         for (let i = 0; i < turnosSiguientes.length; i++) {
