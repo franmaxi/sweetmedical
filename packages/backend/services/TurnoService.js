@@ -487,7 +487,7 @@ export class TurnoService {
                     }
                 }
                 // refrescamos turno y combinados
-                const respuesta = this.refrescarTurnoCancelado(turnoCopia, turnosCombinados)
+                const respuesta = await this.refrescarTurnoCancelado(turnoCopia, turnosCombinados)
                 
                 // guardar el turno nuevo y updateamos los combinados
                 await this.turnoRepository.save(respuesta.turno);
@@ -517,8 +517,8 @@ export class TurnoService {
     async refrescarTurnoSimple(turno){
         //para turno sin combinados
         const disponibilidad = await this.medicoRepository.obtenerDisponibilidadPorId(
-            turno.medico._id,
-            turno.disponibilidad
+            this.getIdDocument(turno.medico._id),
+            this.getIdDocument(turno.disponibilidad)
         )
         
         const duracionMaxima = Math.max(
@@ -549,8 +549,8 @@ export class TurnoService {
     async refrescarTurnoCompuesto(turno, turnosCombinados) {
         //para turno con combinados
         const disponibilidad = await this.medicoRepository.obtenerDisponibilidadPorId(
-            turno.medico._id,
-            turno.disponibilidad
+            this.getIdDocument(turno.medico),
+            this.getIdDocument(turno.disponibilidad)
         )
         
         const duracionMaxima = Math.max(
@@ -759,12 +759,12 @@ export class TurnoService {
 
     copiarTurnoCancelado(turno){
         return new Turno({
-            medico: turno.medico._id,
+            medico: this.getIdDocument( turno.medico._id ),
             fechaHora: turno.fechaHora,
-            sede: turno.sede._id,
-            disponibilidad: turno.disponibilidad,
+            sede: this.getIdDocument(turno.sede._id),
             practica: null,
-            especialidad: null
+            especialidad: null,
+            disponibilidad: this.getIdDocument(turno.disponibilidad)
         })
     }
 
@@ -826,6 +826,16 @@ export class TurnoService {
         const turnosSiguientes = await this.turnoRepository.obtenerSiguientesDisponibles(turno.fechaHora,fechaMaxima,turno.medico._id)
 
         return turnosSiguientes
+    }
+
+    getIdDocument(val) {
+        if (!val) return null;
+        if (typeof val === 'string') return val;
+        if (typeof val === 'object') {
+            if (val._id) return val._id.toString();
+            if (val.constructor && val.constructor.name === 'ObjectId') return val.toString();
+        }
+        return val;
     }
 
 }
