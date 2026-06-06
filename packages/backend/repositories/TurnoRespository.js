@@ -266,11 +266,11 @@ export class TurnoRepository {
     async obtenerCombinados(turno) {
         const duracion = turno.especialidad?.duracionTurnoEnMins ?? turno.practica?.duracionTurnoEnMins
         const fechaFin = new Date(turno.fechaHora.getTime() + duracion * 60 * 1000)
-
+        const id = turno.medico_id
         return await this.model.find({
             medico: turno.medico._id,
             estado: EstadoTurno.COMBINADO,
-            fechaHora: { $gt: turno.fechahora, $lt: fechaFin }
+            fechaHora: { $gt: turno.fechaHora, $lt: fechaFin }
         })
             .sort({ fechaHora: 1 })
             .populate('medico')

@@ -464,14 +464,12 @@ export class TurnoService {
             throw new UnprocessableEntityError('El usuario que busca cancelar no es el paciente o medico asignado al turno')
         }
 
-        const turnosCombinados = await this.turnoRepository.obtenerCombinados(turnoId)
+        const turnosCombinados = await this.turnoRepository.obtenerCombinados(turno)
         // tiene que volver ordenado por fecha hora
-
-        if (turno.medico._id == usuarioId){
+        const turnoslongitud = turnosCombinados.length
+        if (usuarioMedico == usuarioId){
             // Caso donde el usuario que cancela es el medico
             
-            turno.actualizarEstado(EstadoTurno.CANCELADO, usuario, motivo)
-            await this.turnoRepository.update(turno._id,turno)
             if( turnosCombinados.length >= 1) {
                 for(const t of turnosCombinados){
                     t.actualizarEstado(EstadoTurno.CANCELADO,usuario,motivo)
@@ -481,9 +479,7 @@ export class TurnoService {
         }
         else{
             // Caso donde el usuario que cancela es el paciente
-            turno.actualizarEstado(EstadoTurno.CANCELADO, usuario, motivo)
-            await this.turnoRepository.update(turno._id,turno)
-
+       
             if (turno.disponibilidad) { //disponibilidad si existe, osea no esta en null
                 const turnoCopia = this.copiarTurnoCancelado(turno) // especialidad y practica estan null
                 if( turnosCombinados.length >= 1) {
@@ -494,7 +490,7 @@ export class TurnoService {
                 }
                 // refrescamos turno y combinados
                 const respuesta = this.refrescarTurnoCancelado(turnoCopia, turnosCombinados)
-
+                
                 // guardar el turno nuevo y updateamos los combinados
                 await this.turnoRepository.save(respuesta.turno);
                 if (respuesta.turnosCombinados.length > 1) { 
@@ -505,8 +501,10 @@ export class TurnoService {
             }
         }
         
+        turno.actualizarEstado(EstadoTurno.CANCELADO, usuario, motivo)
         this.notificacionService.notificarCambioEstadoTurno(turno)
-        return turno
+        
+        return await this.turnoRepository.update(turno._id,turno)
     }
 
     async refrescarTurnoCancelado(turno, turnosCombinados){
@@ -763,14 +761,12 @@ export class TurnoService {
 
     copiarTurnoCancelado(turno){
         return new Turno({
-            
             medico: turno.medico,
             fechaHora: turno.fechaHora,
-            sede : turno.sede,
-            disponibilidad : turno.disponibilidad,
+            sede: turno.sede,
+            disponibilidad: turno.disponibilidad._id,
             practica: null,
             especialidad: null
-            
         })
     }
 
