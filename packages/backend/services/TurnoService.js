@@ -517,7 +517,7 @@ export class TurnoService {
     async refrescarTurnoSimple(turno){
         //para turno sin combinados
         const disponibilidad = await this.medicoRepository.obtenerDisponibilidadPorId(
-            this.getIdDocument(turno.medico._id),
+            this.getIdDocument(turno.medico),
             this.getIdDocument(turno.disponibilidad)
         )
         
@@ -574,7 +574,8 @@ export class TurnoService {
 
         // --- Refresco el turno inicial, el que esta como RESERVADO/CONFIRMADO --- //
         
-        let tiempoRestante = this.duracionTurnos * (1 + turnosCombinados.length) + this.duracionTurnos * ( turnosSiguientes ? turnosSiguientes.length : 0 )
+        //let tiempoRestante = this.duracionTurnos * (1 + turnosCombinados.length) + this.duracionTurnos * ( turnosSiguientes ? turnosSiguientes.length : 0 )
+        let tiempoRestante = turnosSiguientes ? this.duracionTurnos * (1 + turnosCombinados.length + turnosSiguientes.length) : this.duracionTurnos * (1 + turnosCombinados.length)
         turno.especialidad = disponibilidad.especialidades.filter(e => e.duracionTurnoEnMins <= tiempoRestante)
         turno.practica = disponibilidad.practicas.filter(p => p.duracionTurnoEnMins <= tiempoRestante)
         // actualizamos tiempo restante
@@ -759,9 +760,9 @@ export class TurnoService {
 
     copiarTurnoCancelado(turno){
         return new Turno({
-            medico: this.getIdDocument( turno.medico._id ),
+            medico: this.getIdDocument(turno.medico),
             fechaHora: turno.fechaHora,
-            sede: this.getIdDocument(turno.sede._id),
+            sede: this.getIdDocument(turno.sede),
             practica: null,
             especialidad: null,
             disponibilidad: this.getIdDocument(turno.disponibilidad)
