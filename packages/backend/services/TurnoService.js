@@ -252,7 +252,7 @@ export class TurnoService {
         this.verificarTurnoExistente(turno, EstadoTurno.RESERVADO, `El turno id ${turnoId} esta en estado ${turno.estado}, deberia ser ${EstadoTurno.RESERVADO}`)
 
         //El usuario debe ser el médico, sino dar error
-        if(turno.medico.usuario_id !== usuarioId){
+        if(turno.medico.usuario._id.toString() !== usuarioId){
             throw new BadRequestError(`El usuario con id ${usuarioId} no es el médico del turno ${turnoId}`)
         }
 
@@ -270,7 +270,7 @@ export class TurnoService {
         this.verificarTurnoExistente(turno, EstadoTurno.RESERVADO, `El turno id ${turnoId} esta en estado ${turno.estado}, deberia ser ${EstadoTurno.RESERVADO}`)
 
         //El usuario debe ser el médico, sino dar error
-        if(turno.medico.usuario._id.toString() !== usuarioId){
+        if(turno.medico.usuario_id.toString() !== usuarioId){
             throw new BadRequestError(`El usuario con id ${usuarioId} no es el médico del turno ${turnoId}`)
         }
 
@@ -285,7 +285,7 @@ export class TurnoService {
 
     async setearTurnoDisponible(turno, usuario, motivoCambio) {
         turno.actualizarEstado(EstadoTurno.DISPONIBLE, usuario, motivoCambio)
-        turno.paciente = null
+         turno.paciente = null
         turno.costo = null
         turno.refrescarAnteriores = true
 
@@ -301,7 +301,7 @@ export class TurnoService {
 
         await this.turnoRepository.update(turno._id, respuesta.turno)
 
-        if (respuesta.turnosCombinados && respuesta.turnosCombinados != null && respuesta.turnosCombinados.length >= 1) { 
+        if (respuesta.turnosCombinados && respuesta.turnosCombinados != null && respuesta.turnosCombinados.length >= 1) {             
             for (const t of respuesta.turnosCombinados) { 
                 await this.turnoRepository.update(t._id, t)
             }
@@ -380,7 +380,7 @@ export class TurnoService {
         //Poner el turno en estado por confirmación
         turno.actualizarEstado(EstadoTurno.RESERVADO,usuario,"El turno esta pendiente de confirmacion")
         //Generar una notificación al opuesto
-        await this.notificacionService.notificarCambioEstadoTurno(turno)
+        this.notificacionService.notificarCambioEstadoTurno(turno)
         return await this.turnoRepository.update(turnoId, turno)
     }
     
@@ -434,7 +434,7 @@ export class TurnoService {
         turno.actualizarEstado(EstadoTurno.RESERVADO,usuario,"Se rechazó la modificación de fecha, quedará la fecha actual.")
 
         //Generar una notificación al opuesto
-        await this.notificacionService.notificarCambioEstadoTurno(turno)
+        this.notificacionService.notificarCambioEstadoTurno(turno)
         return await this.turnoRepository.update(turnoId, turno)
     }
 
@@ -444,20 +444,23 @@ export class TurnoService {
     async cancelar(turnoId, usuarioId, motivo) {
         const horasMinimasParaCancelar = parseInt(process.env.HORAS_MINIMAS_CANCELAR)
         
-        const turno = await this.turnoRepository.findById(turnoId)
-        if (!turno) throw new NotFoundError('Turno no encontrado')
+        const turno = await this.obtenerPorId(turnoId)
+        this.verificarTurnoExistente(turno, EstadoTurno.CONFIRMADO, `El turno id ${turnoId} esta en estado ${turno.estado}, deberia ser ${EstadoTurno.CONFIRMADO}`)
         
-        if (turno.estado !== EstadoTurno.RESERVADO){
-            throw new UnprocessableEntityError("No se puede cancelar el turno porque no esta reservado")
-        } 
+        // if (turno.estado !== EstadoTurno.RESERVADO){
+        //     throw new UnprocessableEntityError("No se puede cancelar el turno porque no esta reservado")
+        // } 
 
         if (!turno.sePuedeCancelar(new Date(), horasMinimasParaCancelar)){
             throw new UnprocessableEntityError(`El turno debe cancelarse con al menos ${horasMinimasParaCancelar} hora/s de anticipación`)
         } 
 
         const usuario = await this.usuarioService.obtenerPorId(usuarioId)
+        const usuarioMedico = turno.medico.usuario._id.toString()
+        const usuarioPaciente = turno.paciente.usuario._id.toString()
 
-        if (usuarioId != turno.medico._id && usuarioId != turno.paciente._id) { // estaba con || en vez de &&
+
+        if (usuarioId.toString() != usuarioMedico && usuarioId.toString() != usuarioPaciente) {
             throw new UnprocessableEntityError('El usuario que busca cancelar no es el paciente o medico asignado al turno')
         }
 
@@ -502,7 +505,7 @@ export class TurnoService {
             }
         }
         
-        await this.notificacionService.notificarCambioEstadoTurno(turno)
+        this.notificacionService.notificarCambioEstadoTurno(turno)
         return turno
     }
 

@@ -14,7 +14,8 @@ export const practicaBodySchema = practicaGenericaBodySchema.extend({
     id: z.any().optional(),
     duracionTurnoEnMins: z.number({ required_error: "El campo duracionTurnoEnMins es requerido." })
         .int("La duración debe ser un número entero.")
-        .positive("La duración debe ser un número mayor a 0."),
+        .positive("La duración debe ser un número mayor a 0.")
+        .multipleOf(15, "La duración del turno debe ser múltiplo de 15 minutos"),
     costo: z.number({ required_error: "El campo costo es requerido." })
         .positive("El costo debe ser un número mayor a 0.")
 }).strict("No se permiten campos adicionales en la solicitud.");
@@ -42,7 +43,9 @@ export const practicaDomainSchema = practicaGenericaDomainSchema.extend({
     duracionTurnoEnMins: z.number({
         required_error: "duración del turno en minutos debe ser un número positivo",
         invalid_type_error: "duración del turno en minutos debe ser un número positivo"
-    }).positive("duración del turno en minutos debe ser un número positivo"),
+    })
+    .positive("duración del turno en minutos debe ser un número positivo")
+    .multipleOf(15, "La duración del turno debe ser múltiplo de 15 minutos"),
     costo: z.number({
         required_error: "costo de la práctica debe ser un número positivo",
         invalid_type_error: "costo de la práctica debe ser un número positivo"

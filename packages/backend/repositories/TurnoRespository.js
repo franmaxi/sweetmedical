@@ -4,8 +4,8 @@ import { PracticaModel } from "../schemas/practicaSchema.js"
 import { EstadoTurno } from "../domain/Enumerados/EstadoTurno.js"
 
 
-export class TurnoRepository{
-    constructor(){
+export class TurnoRepository {
+    constructor() {
         this.model = TurnoModel;
     }
 
@@ -25,36 +25,36 @@ export class TurnoRepository{
             .populate("sede")
             .populate('disponibilidad')
             .populate('especialidad')
-            .populate('practica'); 
+            .populate('practica');
     }
-    
+
     async findAllDispoPopulado(filtros = {}) {
         return await this.model.find(filtros)
-        .populate("disponibilidad")
-        .populate("disponibilidad.practicas")
-        .populate("disponibilidad.especialidades") 
+            .populate("disponibilidad")
+            .populate("disponibilidad.practicas")
+            .populate("disponibilidad.especialidades")
     }
 
 
-    async obtenerSiguientesDisponibles(fechaTurno,fechaMaximo,medicoId){
+    async obtenerSiguientesDisponibles(fechaTurno, fechaMaximo, medicoId) {
 
         // devuelve los turnos entre las fechas dadas, que esten disponibles, sean para el medico pasado por parametro
         // se devuelve ordenado por fechaHora de menor a mayor
         return await this.model.find({
             medico: medicoId, // estaba como medico id, pero el turno tiene atributo medico
             estado: EstadoTurno.DISPONIBLE,
-            fechaHora:{
+            fechaHora: {
                 $gt: fechaTurno,
                 $lt: fechaMaximo
             }
-        }).sort({fechaHora : 1})
+        }).sort({ fechaHora: 1 })
     }
-    
+
     _toPersistence(turno) {
         // se llama justo antes de persistir el turno
         // esta funcion se asegura que el dato que pasemos este en formato ObjectID si asi debe serlo
         if (!turno) return null;
-        
+
         const getId = (val) => {
             if (!val) return null;
             if (typeof val === 'string') return val;
@@ -103,11 +103,11 @@ export class TurnoRepository{
 
     async updateMany(ids, datosAActualizar) {
         return await this.model.updateMany(
-            { _id: { $in: ids } }, 
+            { _id: { $in: ids } },
             { $set: datosAActualizar }
         );
     }
-    
+
     async delete(id) {
         return await this.model.findByIdAndDelete(id);
     }
@@ -205,7 +205,7 @@ export class TurnoRepository{
 
             {
                 $facet: {
-                    ids:   [{ $skip: skip }, { $limit: limitePorPagina }, { $project: { _id: 1 } }],
+                    ids: [{ $skip: skip }, { $limit: limitePorPagina }, { $project: { _id: 1 } }],
                     total: [{ $count: 'count' }]
                 }
             }
@@ -236,9 +236,9 @@ export class TurnoRepository{
     async construirMatch(filtros) {
         const match = {};
 
-        if (filtros.estado)   match.estado = filtros.estado;
+        if (filtros.estado) match.estado = filtros.estado;
         if (filtros.medicoId) match.medico = filtros.medicoId;
-        if (filtros.sedeId)   match.sede   = filtros.sedeId;
+        if (filtros.sedeId) match.sede = filtros.sedeId;
 
         if (filtros.especialidadId) {
             const ids = await EspecialidadModel
@@ -262,7 +262,7 @@ export class TurnoRepository{
             if (filtros.hasta) match.fechaHora.$lte = filtros.hasta;
         }
         return match;
-}
+    }
     async obtenerCombinados(turno) {
         const duracion = turno.especialidad?.duracionTurnoEnMins ?? turno.practica?.duracionTurnoEnMins
         const fechaFin = new Date(turno.fechaHora.getTime() + duracion * 60 * 1000)
@@ -272,9 +272,9 @@ export class TurnoRepository{
             estado: EstadoTurno.COMBINADO,
             fechaHora: { $gt: turno.fechahora, $lt: fechaFin }
         })
-        .sort({ fechaHora: 1 })
-        .populate('medico')
-        .populate('paciente')
+            .sort({ fechaHora: 1 })
+            .populate('medico')
+            .populate('paciente')
     }
 
     async saveAllBatch(turnos) {

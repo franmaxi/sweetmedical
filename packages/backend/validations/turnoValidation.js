@@ -36,7 +36,7 @@ export const estadosBodySchema = z.object({
     medicoId: objectId.optional().nullable().default(null),
     especialidadId: objectId.optional().nullable().default(null),
     practicaId: objectId.optional().nullable().default(null),
-    usuario: objectId.optional().nullable().default(null),
+    usuarioId: objectId.optional().nullable().default(null),
     motivo: z.string().trim().nullable().default(null),
 }).strict("No se permiten campos adicionales en la solicitud.");
 

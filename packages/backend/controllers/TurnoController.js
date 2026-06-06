@@ -154,9 +154,9 @@ export class TurnoController {
     cancelar = async(req, res, next) => {
         try {
             const { id: turnoId } = paramsIdSchema.parse(req.params);
-            const { usuario, motivo } = estadosBodySchema.parse(req.body);
+            const { usuarioId, motivo } = estadosBodySchema.parse(req.body);
 
-            const turno = await this.turnoService.cancelar( turnoId, usuario, motivo )
+            const turno = await this.turnoService.cancelar( turnoId, usuarioId, motivo )
 
             return res.status(200).json({
                 status: "success",

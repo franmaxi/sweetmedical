@@ -14,7 +14,9 @@ export const especialidadBodySchema = especialidadGenericaBodySchema.extend({
     duracionTurnoEnMins: z.number({
         required_error: "El campo duracionTurnoEnMins es requerido.",
         invalid_type_error: "El campo duracionTurnoEnMins debe ser un número."
-    }).int("La duración debe ser un número entero.").positive("La duración debe ser un número mayor a 0."),
+    }) .int("La duración debe ser un número entero.")
+        .positive("La duración debe ser un número mayor a 0.")
+        .multipleOf(15, "La duración del turno debe ser múltiplo de 15 minutos"),
     costo: z.number({
         required_error: "El campo costo es requerido.",
         invalid_type_error: "El campo costo debe ser un número."
@@ -42,7 +44,8 @@ export const especialidadDomainSchema = especialidadGenericaDomainSchema.extend(
     duracionTurnoEnMins: z.number({
         required_error: "La duración del turno en minutos debe ser un número positivo",
         invalid_type_error: "La duración del turno en minutos debe ser un número positivo"
-    }).positive("La duración del turno en minutos debe ser un número positivo"),
+    }).positive("La duración del turno en minutos debe ser un número positivo")
+    .multipleOf(15, "La duración del turno debe ser múltiplo de 15 minutos"),
 
     costo: z.number({
         required_error: "El costo de la consulta debe ser un número no negativo",
