@@ -1,9 +1,5 @@
-<<<<<<< HEAD
 import { useTranslation } from "react-i18next";
 import { Layout, Row, Col, Typography, Input, Button, Space, Divider } from "antd";
-=======
-import { Layout, Row, Col, Typography, Space, Divider } from "antd";
->>>>>>> 599d3f314c801ee8364d29a73f6eaae853455a7b
 
 const { Footer: AntFooter } = Layout;
 const { Title, Text, Paragraph } = Typography;

@@ -1,9 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-<<<<<<< HEAD
 import './i18n';
-=======
->>>>>>> 599d3f314c801ee8364d29a73f6eaae853455a7b
 import App from './App';
 import "@fontsource/inter";
 import reportWebVitals from './reportWebVitals';
