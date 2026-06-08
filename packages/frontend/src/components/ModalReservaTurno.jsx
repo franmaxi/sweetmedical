@@ -1,5 +1,8 @@
 import { useMemo, useState, useEffect } from "react";
+<<<<<<< HEAD
 import { useTranslation } from "react-i18next";
+=======
+>>>>>>> 599d3f314c801ee8364d29a73f6eaae853455a7b
 import { Modal, Space, Typography, Radio, Divider } from "antd";
 import { CalendarOutlined, ClockCircleOutlined, EnvironmentOutlined } from "@ant-design/icons";
 
@@ -52,6 +55,7 @@ export default function ModalReservaTurno({
     return arr;
   }, [medico, especialidadPersonalizada, practicasById]);
 
+<<<<<<< HEAD
   const { t } = useTranslation();
 
   return (
@@ -62,6 +66,16 @@ export default function ModalReservaTurno({
       onOk={() => onReservar(motivoElegido)}
       okText={t("buscarTurnos.confirm.ok")}
       cancelText={t("buscarTurnos.confirm.cancel")}
+=======
+  return (
+    <Modal
+      title="Reservar turno"
+      open={!!turno}
+      onCancel={onCancel}
+      onOk={() => onReservar(motivoElegido)}
+      okText="Confirmar reserva"
+      cancelText="Cancelar"
+>>>>>>> 599d3f314c801ee8364d29a73f6eaae853455a7b
       confirmLoading={reservando}
       okButtonProps={{ disabled: !motivoElegido }}
     >
@@ -79,9 +93,15 @@ export default function ModalReservaTurno({
           <Divider style={{ margin: 0 }} />
 
           <div>
+<<<<<<< HEAD
             <Text strong>{t("buscarTurnos.modalMotivoLabel")}</Text>
             <Paragraph type="secondary" style={{ fontSize: 12, margin: "4px 0 8px" }}>
               {t("buscarTurnos.modalPriceInfo")}
+=======
+            <Text strong>Motivo de la consulta</Text>
+            <Paragraph type="secondary" style={{ fontSize: 12, margin: "4px 0 8px" }}>
+              El precio depende de la especialidad o práctica seleccionada.
+>>>>>>> 599d3f314c801ee8364d29a73f6eaae853455a7b
             </Paragraph>
             <Radio.Group
             // el value del radio group concatena el tipo y el id para poder identificar la opción elegida, 
@@ -113,7 +133,11 @@ export default function ModalReservaTurno({
             <>
               <Divider style={{ margin: 0 }} />
               <Space style={{ width: "100%", justifyContent: "space-between" }}>
+<<<<<<< HEAD
                 <Text strong>{t("buscarTurnos.total")}</Text>
+=======
+                <Text strong>Total</Text>
+>>>>>>> 599d3f314c801ee8364d29a73f6eaae853455a7b
                 <Title level={4} color="#be123c" style={{ margin: 0, color: "#be123c" }}>
                   {fmtMoneda(motivoElegido.precio)}
                 </Title>

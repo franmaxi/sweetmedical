@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
+<<<<<<< HEAD
 import { useTranslation } from "react-i18next";
+=======
+>>>>>>> 599d3f314c801ee8364d29a73f6eaae853455a7b
 import { Layout, Menu, Space, Button, Drawer, Grid } from "antd";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -162,10 +165,22 @@ const items = allItems.filter(({ roles }) =>
       <Space size="small" style={{ marginLeft: "auto" }}>
         <SelectorIdioma />
         <NotificacionesDropdown />
+<<<<<<< HEAD
         {esMobile
           ? <Button type="text" icon={<MenuOutlined />} onClick={() => setDrawerOpen(true)} />
           : <AuthButtons user={user} onLogout={handleLogout} />
         }
+=======
+        {!esMobile && (
+          <>
+            <Button onClick={() => navigate("/login")}>Ingresar</Button>
+            <Button type="primary" onClick={() => navigate("/registro")}>Registrarse</Button>
+          </>
+        )}
+        {esMobile && (
+          <Button type="text" icon={<MenuOutlined />} onClick={() => setDrawerOpen(true)} />
+        )}
+>>>>>>> 599d3f314c801ee8364d29a73f6eaae853455a7b
       </Space>
 
       <Drawer
@@ -183,11 +198,20 @@ const items = allItems.filter(({ roles }) =>
           style={{ borderInlineEnd: "none" }}
         />
         <Space direction="vertical" style={{ width: "100%", marginTop: 16 }}>
+<<<<<<< HEAD
           <DrawerAuth
             user={user}
             onLogout={handleLogoutDesdeDrawer}
             onClose={() => setDrawerOpen(false)}
           />
+=======
+          <Button block onClick={() => { setDrawerOpen(false); navigate("/login"); }}>
+            Ingresar
+          </Button>
+          <Button block type="primary" onClick={() => { setDrawerOpen(false); navigate("/registro"); }}>
+            Registrarse
+          </Button>
+>>>>>>> 599d3f314c801ee8364d29a73f6eaae853455a7b
         </Space>
       </Drawer>
     </Header>

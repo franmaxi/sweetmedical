@@ -1,5 +1,9 @@
 import { useState } from "react";
+<<<<<<< HEAD
 import { useNavigate, Link, useLocation } from "react-router-dom";
+=======
+import { useNavigate, Link } from "react-router-dom";
+>>>>>>> 599d3f314c801ee8364d29a73f6eaae853455a7b
 import {
   App as AntApp,
   Layout,
@@ -9,11 +13,16 @@ import {
   Button,
   Typography,
   Space,
+<<<<<<< HEAD
   Select,
 } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
+=======
+} from "antd";
+import { UserOutlined, LockOutlined } from "@ant-design/icons";
+>>>>>>> 599d3f314c801ee8364d29a73f6eaae853455a7b
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
@@ -28,6 +37,7 @@ export default function Login() {
 }
 
 function LoginInner() {
+<<<<<<< HEAD
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
@@ -44,6 +54,19 @@ function LoginInner() {
       setCargando(false);
       message.success(t("login.success"));
       navigate(from, { replace: true });
+=======
+  const navigate = useNavigate();
+  const { message } = AntApp.useApp();
+  const [cargando, setCargando] = useState(false);
+
+  // Mock: solo simula el flujo, no valida contra ningún backend.
+  const onFinish = () => {
+    setCargando(true);
+    setTimeout(() => {
+      setCargando(false);
+      message.success("Sesión iniciada (mock)");
+      navigate("/");
+>>>>>>> 599d3f314c801ee8364d29a73f6eaae853455a7b
     }, 400);
   };
 
@@ -61,13 +84,19 @@ function LoginInner() {
       >
         <Card style={{ width: "100%", maxWidth: 420 }} bordered>
           <Space direction="vertical" size={4} style={{ marginBottom: 16 }}>
+<<<<<<< HEAD
             <Title level={3} style={{ margin: 0 }}>{t("login.titulo")}</Title>
             <Text type="secondary">{t("login.subtitulo")}</Text>
+=======
+            <Title level={3} style={{ margin: 0 }}>Iniciar sesión</Title>
+            <Text type="secondary">Ingresá con tu usuario para gestionar tus turnos.</Text>
+>>>>>>> 599d3f314c801ee8364d29a73f6eaae853455a7b
           </Space>
 
           <Form layout="vertical" onFinish={onFinish}>
             <Form.Item
               name="nombreUsuario"
+<<<<<<< HEAD
               label={t("login.labelUsuario")}
               rules={[{ required: true, message: t("login.errorUsuario") }]}
             >
@@ -95,12 +124,33 @@ function LoginInner() {
             </Form.Item>
             <Button type="primary" htmlType="submit" block loading={cargando}>
               {t("login.botonIngresar")}
+=======
+              label="Usuario"
+              rules={[{ required: true, message: "Ingresá tu usuario" }]}
+            >
+              <Input prefix={<UserOutlined />} placeholder="ej. ana.garcia" autoComplete="username" />
+            </Form.Item>
+            <Form.Item
+              name="password"
+              label="Contraseña"
+              rules={[{ required: true, message: "Ingresá tu contraseña" }]}
+            >
+              <Input.Password prefix={<LockOutlined />} placeholder="••••" autoComplete="current-password" />
+            </Form.Item>
+            <Button type="primary" htmlType="submit" block loading={cargando}>
+              Ingresar
+>>>>>>> 599d3f314c801ee8364d29a73f6eaae853455a7b
             </Button>
           </Form>
 
           <div style={{ marginTop: 16, textAlign: "center" }}>
+<<<<<<< HEAD
             <Text type="secondary">{t("login.noCuenta")} </Text>
             <Link to="/registro">{t("login.registrate")}</Link>
+=======
+            <Text type="secondary">¿No tenés cuenta? </Text>
+            <Link to="/registro">Registrate</Link>
+>>>>>>> 599d3f314c801ee8364d29a73f6eaae853455a7b
           </div>
         </Card>
       </Layout.Content>

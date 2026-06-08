@@ -18,10 +18,17 @@ import {
   EnvironmentOutlined,
   ClockCircleOutlined,
 } from "@ant-design/icons";
+<<<<<<< HEAD:packages/frontend/src/pages/Usuario/BuscarTurnos.jsx
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import FiltrosTurnos from "../../components/FiltrosTurnos";
 import ModalReservaTurno from "../../components/ModalReservaTurno";
+=======
+import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
+import FiltrosTurnos from "../components/FiltrosTurnos";
+import ModalReservaTurno from "../components/ModalReservaTurno";
+>>>>>>> 599d3f314c801ee8364d29a73f6eaae853455a7b:packages/frontend/src/pages/BuscarTurnos.jsx
 import {
   getTurnosDisponibles,
   getEspecialidadesGenericas,
@@ -53,7 +60,10 @@ export default function BuscarTurnos() {
 
 function BuscarTurnosInner() {
   const navigate = useNavigate();
+<<<<<<< HEAD:packages/frontend/src/pages/Usuario/BuscarTurnos.jsx
   const { t } = useTranslation();
+=======
+>>>>>>> 599d3f314c801ee8364d29a73f6eaae853455a7b:packages/frontend/src/pages/BuscarTurnos.jsx
   const { message } = AntApp.useApp();
 
   // Filtros.
@@ -127,13 +137,21 @@ function BuscarTurnosInner() {
 
   const confirmarReserva = async (motivo) => {
     if (!motivo) {
+<<<<<<< HEAD:packages/frontend/src/pages/Usuario/BuscarTurnos.jsx
       message.warning(t("buscarTurnos.warningMotivo"));
+=======
+      message.warning("Elegí un motivo para la consulta");
+>>>>>>> 599d3f314c801ee8364d29a73f6eaae853455a7b:packages/frontend/src/pages/BuscarTurnos.jsx
       return;
     }
     setReservando(true);
     await reservarTurno(turnoSeleccionado.id, PACIENTE_ACTIVO);
     setReservando(false);
+<<<<<<< HEAD:packages/frontend/src/pages/Usuario/BuscarTurnos.jsx
     message.success(t("buscarTurnos.successReservado"));
+=======
+    message.success("¡Turno reservado!");
+>>>>>>> 599d3f314c801ee8364d29a73f6eaae853455a7b:packages/frontend/src/pages/BuscarTurnos.jsx
     setResultados((r) => r.filter((t) => t.id !== turnoSeleccionado.id));
     setTurnoSeleccionado(null);
     navigate("/mis-turnos");
@@ -196,7 +214,11 @@ function BuscarTurnosInner() {
                         key={turno.id}
                         actions={[
                           <Button type="primary" onClick={() => setTurnoSeleccionado(turno)}>
+<<<<<<< HEAD:packages/frontend/src/pages/Usuario/BuscarTurnos.jsx
                             {t("buscarTurnos.reservar")}
+=======
+                            Reservar
+>>>>>>> 599d3f314c801ee8364d29a73f6eaae853455a7b:packages/frontend/src/pages/BuscarTurnos.jsx
                           </Button>,
                         ]}
                       >
