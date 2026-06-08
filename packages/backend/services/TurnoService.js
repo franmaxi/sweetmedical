@@ -189,8 +189,8 @@ export class TurnoService {
 
         // 1.4 - verificamos que la disponibilidad exista y tenga ese servicio
         const disponibilidad = await this.medicoRepository.obtenerDisponibilidadPorId(
-            turno.medico._id,
-            turno.disponibilidad
+            this.getIdDocument(turno.medico),
+            this.getIdDocument(turno.disponibilidad)
         )
         if (!disponibilidad || disponibilidad == null) {
             throw new NotFoundError("La disponibilidad horaria configurada para este turno ya no existe");
@@ -446,10 +446,6 @@ export class TurnoService {
         
         const turno = await this.obtenerPorId(turnoId)
         this.verificarTurnoExistente(turno, EstadoTurno.CONFIRMADO, `El turno id ${turnoId} esta en estado ${turno.estado}, deberia ser ${EstadoTurno.CONFIRMADO}`)
-        
-        // if (turno.estado !== EstadoTurno.RESERVADO){
-        //     throw new UnprocessableEntityError("No se puede cancelar el turno porque no esta reservado")
-        // } 
 
         if (!turno.sePuedeCancelar(new Date(), horasMinimasParaCancelar)){
             throw new UnprocessableEntityError(`El turno debe cancelarse con al menos ${horasMinimasParaCancelar} hora/s de anticipación`)
@@ -500,7 +496,7 @@ export class TurnoService {
         }
         
         turno.actualizarEstado(EstadoTurno.CANCELADO, usuario, motivo)
-        this.notificacionService.notificarCambioEstadoTurno(turno)
+        this.notificacionService.notificarCambioEstadoTurno(turno) // no hacemos await para que se gestione aparte
         
         return await this.turnoRepository.update(turno._id,turno)
     }
@@ -625,7 +621,7 @@ export class TurnoService {
         for (const m of medicos) { 
             console.log("[Batch] Accediendo al medico")
             const turnosMedico = agenda.generarTurnos(m, fechaInicio, fechaFin, this.duracionTurnos)
-            console.log(turnosMedico)
+            //console.log(turnosMedico)
             turnosAGuardar.push(...turnosMedico)
         }
 
@@ -688,8 +684,6 @@ export class TurnoService {
             }
             else if(t.estado == EstadoTurno.CANCELADO){
                 // calculamos el tiempo disponible luego de cancelar los turnos
-                //turno cancelado a las 18:00 / mcd = 30 / duracionMaxima = 2h = 120m / fechaMinima = 17:30 (arranco a contar desde el turno de las 18) -> fechaMaxima = 19:30 (cuento hasta el de las 20, sin incluirlo)
-                //cancelado a las 18:00 mcd 30 duracionMaxima 30 fechaMinima = 17:30 fechaMaxima= 18:00
                 const fechaMinima = new Date(t.fechaHora.getTime() - this.duracionTurnos * 60 * 1000) // desde el primero que refrescamos sin considerarlo
                 const fechaMaxima = new Date(t.fechaHora.getTime() + (duracionMaxima - this.duracionTurnos) * 60 * 1000) // hasta el ultimo posible que necesitemos para calcular el tiempo
                 const turnosSiguientes = await this.turnoRepository.obtenerSiguientesDisponibles(fechaMinima, fechaMaxima, t.medico._id)
@@ -697,7 +691,7 @@ export class TurnoService {
                 let tiempoRestante = this.duracionTurnos
                 // borramos los turnos no contiguos
                 for (let i = 0; i < turnosSiguientes.length; i++) {
-                    let horaSupuesta = new Date(fechaMinima + ( (i + 1) * this.duracionTurnos) * 60 * 1000)
+                    let horaSupuesta = new Date(fechaMinima.getTime() + ( (i + 1) * this.duracionTurnos) * 60 * 1000)
                     tiempoRestante = tiempoRestante + this.duracionTurnos
                     if (turnosSiguientes[i].fechaHora.getTime() !== horaSupuesta.getTime()) {
                         break
@@ -712,16 +706,16 @@ export class TurnoService {
         const turnosAModificar = []
 
         //encontrar los anteriores diponibles
-        const fechaMinima = new Date(t.fechaHora - duracionMaxima * 60 * 1000) 
+        const fechaMinima = new Date(t.fechaHora.getTime() - duracionMaxima * 60 * 1000) 
         // si mi turno tiene duracion max de 1 hora, y su fecha es 19:00, la fechaMinima es 18:00
 
         // obtengo los turnos anteriores en orden inverso (osea 17:30 - 17:00 - 16:30 - 16:00)
-        const turnosAnteriores = await this.turnoRepository.obtenerSiguientesDisponibles(fechaMinima, t.fechaHora, t.medico._id)
+        const turnosAnteriores = await this.turnoRepository.obtenerSiguientesDisponibles(fechaMinima, t.fechaHora, this.getIdDocument(t.medico))
         turnosAnteriores.reverse()
         
         // borramos los turnos no contiguos
         for (let i = 0; i < turnosAnteriores.length; i++) {
-            let horaSupuesta = new Date(t.fechaHora - (i+1) * this.duracionTurnos * 60 * 1000) 
+            let horaSupuesta = new Date(t.fechaHora.getTime() - (i+1) * this.duracionTurnos * 60 * 1000) 
             // si el turno fue a las 18:00, la hora del anterior deberia ser 17:30
             
             if (turnosAnteriores[i].fechaHora.getTime() !== horaSupuesta.getTime()) {
@@ -745,7 +739,13 @@ export class TurnoService {
     }
 
     async modificarTurnosPorDisponibilidadModificada(disponibilidad, session = null){
-        // turnos existentes reservados/cancelados/combinados/confirmados no hacemos nada
+        //TODO ya la llamamos en medicoService.modificarServicios()
+        
+    }
+
+    // --- Funciones de modificacion/eliminacion de disponibilidades --- //
+
+    // turnos existentes reservados/cancelados/combinados/confirmados no hacemos nada
 
         // solamente para los disponibles, a partir de de la fecha de ahora modificamos los datos
 
@@ -753,8 +753,15 @@ export class TurnoService {
         // de 15 minutos, me va a ocupar toda la hora con esos 15 minutos, no divide el tiempo de forma dinamica 
         // si agregamos una de 45 minutos a turnos de a 
 
+    async modificarTurnosDisponibilidad(dispo, dispoAnterior){
+        
     }
 
+    async eliminarTurnosDisponibilidad(dispo){
+        const fechaActual = new Date()
+        // eliminar todos los turnos en disponible posteriores a esta fecha donde turno.disponibilidad = dispo._id
+        // actualizar todos los turnos actuales para que turno.disponibilidad = null 
+    }
 
     // --- Funciones auxiliares --- //
 

@@ -9,7 +9,7 @@
                 "<node_internals>/**"
             ],
             "program": "${workspaceFolder}/packages/backend/index.js",
-            "cwd": "${workspaceFolder}/packages/backend" // <--- Agrega esto si falla al leer rutas relativas o archivos .env
+            "cwd": "${workspaceFolder}/packages/backend"
         }
     ]
 }

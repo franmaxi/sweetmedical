@@ -104,14 +104,14 @@ export class MedicoRepository{
     }
 
     async removeDisponibilidad(medicoId, dispoId, session = null) {
-    return await this.#populate(
-        this.model.findByIdAndUpdate(
-            medicoId,
-            { $pull: { disponibilidades: { _id: dispoId } } },
-            { new: true, session }
-        )
-    );
-}
+        return await this.#populate(
+            this.model.findByIdAndUpdate(
+                medicoId,
+                { $pull: { disponibilidades: { _id: dispoId } } },
+                { new: true, session }
+            )
+        );
+    }
 
     async getDisponibilidades(medicoId) {
         const medico = await this.#populate(this.model.findById(medicoId).select("disponibilidades"));

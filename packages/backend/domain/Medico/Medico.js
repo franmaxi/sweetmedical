@@ -46,21 +46,6 @@ export class Medico {
         }
     }
 
-    eliminarSedeYDisponibilidades(sedeId) {
-        const stringSedeId = String(sedeId);
-
-        this.disponibilidades = this.disponibilidades.filter(
-            dispo => String(dispo.sede._id || dispo.sede) !== stringSedeId
-        );
-
-        const indiceSede = this.sedes.findIndex(s => String(s._id || s) === stringSedeId);
-        if (indiceSede !== -1) {
-            this.sedes.splice(indiceSede, 1);
-        } else {
-            throw new BadRequestError("El médico no estaba asignado a la sede con ID: " + sedeId);
-        }
-    }
-
     agregarEspecialidad(especialidad){
         this.especialidades.push(especialidad);
     }
@@ -73,15 +58,21 @@ export class Medico {
         this.sedes.push(sede)
     }
 
-    eliminarSede(sedeId){
-        const indice = this.sedes.findIndex(n => n._id == sedeId);
+    eliminarSede(...sedesIds){
+        const sedesFaltantes = sedesIds.filter(idBuscado => 
+            !this.sedes.some(sede => sede._id.toString() === idBuscado.toString())
+        );
 
-        if (indice !== -1) {
-            this.sedes.splice(indice, 1);
-        } else{
-            throw new BadRequestError("El médico no posee la sede con ID" + sedeId)
+        if (sedesFaltantes.length > 0) {
+            throw new BadRequestError("El médico no posee las siguientes sedes: " + sedesFaltantes.join(', '));
         }
+
+        this.sedes = this.sedes.filter(sede => 
+            !sedesIds.some(id => id.toString() === sede._id.toString())
+        );
     }
+
+
 
     practicaGenericaPertenece(idPadre) {
         return this.practicas.some(p => {
