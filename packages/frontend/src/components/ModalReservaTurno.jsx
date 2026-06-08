@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Modal, Space, Typography, Radio, Divider } from "antd";
 import { CalendarOutlined, ClockCircleOutlined, EnvironmentOutlined } from "@ant-design/icons";
 
@@ -51,14 +52,16 @@ export default function ModalReservaTurno({
     return arr;
   }, [medico, especialidadPersonalizada, practicasById]);
 
+  const { t } = useTranslation();
+
   return (
     <Modal
-      title="Reservar turno"
+      title={t("buscarTurnos.confirm.title")}
       open={!!turno}
       onCancel={onCancel}
       onOk={() => onReservar(motivoElegido)}
-      okText="Confirmar reserva"
-      cancelText="Cancelar"
+      okText={t("buscarTurnos.confirm.ok")}
+      cancelText={t("buscarTurnos.confirm.cancel")}
       confirmLoading={reservando}
       okButtonProps={{ disabled: !motivoElegido }}
     >
@@ -76,9 +79,9 @@ export default function ModalReservaTurno({
           <Divider style={{ margin: 0 }} />
 
           <div>
-            <Text strong>Motivo de la consulta</Text>
+            <Text strong>{t("buscarTurnos.modalMotivoLabel")}</Text>
             <Paragraph type="secondary" style={{ fontSize: 12, margin: "4px 0 8px" }}>
-              El precio depende de la especialidad o práctica seleccionada.
+              {t("buscarTurnos.modalPriceInfo")}
             </Paragraph>
             <Radio.Group
             // el value del radio group concatena el tipo y el id para poder identificar la opción elegida, 
@@ -110,7 +113,7 @@ export default function ModalReservaTurno({
             <>
               <Divider style={{ margin: 0 }} />
               <Space style={{ width: "100%", justifyContent: "space-between" }}>
-                <Text strong>Total</Text>
+                <Text strong>{t("buscarTurnos.total")}</Text>
                 <Title level={4} color="#be123c" style={{ margin: 0, color: "#be123c" }}>
                   {fmtMoneda(motivoElegido.precio)}
                 </Title>

@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Card, Form, Select, Input, DatePicker, Button } from "antd";
 import { ClearOutlined } from "@ant-design/icons";
 
@@ -15,43 +16,45 @@ export default function FiltrosTurnos({
   setFechaDesde,
   onLimpiar,
 }) {
+  const { t } = useTranslation();
+
   return (
     <Card
-      title="Filtros"
+      title={t("buscarTurnos.filtrosTitulo")}
       extra={
         <Button type="link" size="small" icon={<ClearOutlined />} onClick={onLimpiar}>
-          Limpiar
+          {t("buscarTurnos.limpiar")}
         </Button>
       }
     >
       <Form layout="vertical">
-        <Form.Item label="Especialidad">
+        <Form.Item label={t("buscarTurnos.labelEspecialidad")}>
           <Select
-            placeholder="Todas"
+            placeholder={t("buscarTurnos.placeholderTodas")}
             allowClear
             value={especialidadGenericaId}
             onChange={setEspecialidadGenericaId}
             options={especialidadesGenericas.map((e) => ({ value: e.id, label: e.nombre }))}
           />
         </Form.Item>
-        <Form.Item label="Médico">
+        <Form.Item label={t("buscarTurnos.labelMedico")}>
           <Input
-            placeholder="Buscar por nombre"
+            placeholder={t("buscarTurnos.placeholderMedico")}
             value={medicoQuery}
             onChange={(e) => setMedicoQuery(e.target.value)}
             allowClear
           />
         </Form.Item>
-        <Form.Item label="Sede">
+        <Form.Item label={t("buscarTurnos.labelSede")}>
           <Select
-            placeholder="Todas"
+            placeholder={t("buscarTurnos.placeholderTodas")}
             allowClear
             value={sedeId}
             onChange={setSedeId}
             options={sedes.map((s) => ({ value: s.id, label: s.nombre }))}
           />
         </Form.Item>
-        <Form.Item label="Fecha desde">
+        <Form.Item label={t("buscarTurnos.labelFechaDesde")}>
           <DatePicker
             style={{ width: "100%" }}
             value={fechaDesde}

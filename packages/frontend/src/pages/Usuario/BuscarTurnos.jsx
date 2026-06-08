@@ -18,10 +18,10 @@ import {
   EnvironmentOutlined,
   ClockCircleOutlined,
 } from "@ant-design/icons";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
-import FiltrosTurnos from "../components/FiltrosTurnos";
-import ModalReservaTurno from "../components/ModalReservaTurno";
+import Navbar from "../../components/Navbar";
+import Footer from "../../components/Footer";
+import FiltrosTurnos from "../../components/FiltrosTurnos";
+import ModalReservaTurno from "../../components/ModalReservaTurno";
 import {
   getTurnosDisponibles,
   getEspecialidadesGenericas,
@@ -30,7 +30,7 @@ import {
   getEspecialidades,
   getPracticas,
   reservarTurno,
-} from "../mocks";
+} from "../../mocks";
 
 const { Title, Text, Paragraph } = Typography;
 const { Content } = Layout;
@@ -127,13 +127,13 @@ function BuscarTurnosInner() {
 
   const confirmarReserva = async (motivo) => {
     if (!motivo) {
-      message.warning("Elegí un motivo para la consulta");
+      message.warning(t("buscarTurnos.warningMotivo"));
       return;
     }
     setReservando(true);
     await reservarTurno(turnoSeleccionado.id, PACIENTE_ACTIVO);
     setReservando(false);
-    message.success("¡Turno reservado!");
+    message.success(t("buscarTurnos.successReservado"));
     setResultados((r) => r.filter((t) => t.id !== turnoSeleccionado.id));
     setTurnoSeleccionado(null);
     navigate("/mis-turnos");
@@ -196,7 +196,7 @@ function BuscarTurnosInner() {
                         key={turno.id}
                         actions={[
                           <Button type="primary" onClick={() => setTurnoSeleccionado(turno)}>
-                            Reservar
+                            {t("buscarTurnos.reservar")}
                           </Button>,
                         ]}
                       >

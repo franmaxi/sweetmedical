@@ -14,15 +14,15 @@ import {
 } from "antd";
 import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
 import {
   getDisponibilidadesDeMedico,
   agregarDisponibilidad,
   eliminarDisponibilidad,
   DiaSemana,
   nombreDia,
-} from "../mocks";
+} from "../../mocks";
+import Navbar from "../../components/Navbar";
+import Footer from "../../components/Footer";
 
 const { Title, Text } = Typography;
 

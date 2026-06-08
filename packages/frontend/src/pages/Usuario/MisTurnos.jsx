@@ -13,8 +13,8 @@ import {
   Typography,
 } from "antd";
 import { CalendarOutlined, ClockCircleOutlined, EnvironmentOutlined, MedicineBoxOutlined } from "@ant-design/icons";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+import Navbar from "../../components/Navbar";
+import Footer from "../../components/Footer";
 import { useTranslation } from "react-i18next";
 import {
   getTurnos,
@@ -24,7 +24,7 @@ import {
   getEspecialidades,
   EstadoTurno,
   nombreEstado,
-} from "../mocks";
+} from "../../mocks";
 
 const { Title, Text } = Typography;
 
@@ -135,22 +135,22 @@ function MisTurnosInner() {
     });
   };
 
-  const renderTurno = (t) => (
-    <Card key={t.id} style={{ marginBottom: 12 }} bodyStyle={{ padding: 16 }}>
+  const renderTurno = (turno) => (
+    <Card key={turno.id} style={{ marginBottom: 12 }} bodyStyle={{ padding: 16 }}>
       <Space direction="vertical" size={4} style={{ width: "100%" }}>
         <Space style={{ width: "100%", justifyContent: "space-between" }}>
-          <Title level={5} style={{ margin: 0 }}>{t.medicoNombre}</Title>
-          <Tag color={COLOR_ESTADO[t.estado]}>{estadoLabel(t.estado)}</Tag>
+          <Title level={5} style={{ margin: 0 }}>{turno.medicoNombre}</Title>
+          <Tag color={COLOR_ESTADO[turno.estado]}>{estadoLabel(turno.estado)}</Tag>
         </Space>
         <Space wrap size="large">
-          <Text type="secondary"><MedicineBoxOutlined /> {t.especialidadNombre}</Text>
-          <Text type="secondary"><EnvironmentOutlined /> {t.sedeNombre}</Text>
-          <Text type="secondary"><CalendarOutlined /> {fmt(t.fechaHora)}</Text>
-          <Text type="secondary"><ClockCircleOutlined /> {fmtMoneda(t.costo)}</Text>
+          <Text type="secondary"><MedicineBoxOutlined /> {turno.especialidadNombre}</Text>
+          <Text type="secondary"><EnvironmentOutlined /> {turno.sedeNombre}</Text>
+          <Text type="secondary"><CalendarOutlined /> {fmt(turno.fechaHora)}</Text>
+          <Text type="secondary"><ClockCircleOutlined /> {fmtMoneda(turno.costo)}</Text>
         </Space>
-        {(t.estado === EstadoTurno.RESERVADO || t.estado === EstadoTurno.CONFIRMADO) && esFuturo(t.fechaHora) && (
+        {(turno.estado === EstadoTurno.RESERVADO || turno.estado === EstadoTurno.CONFIRMADO) && esFuturo(turno.fechaHora) && (
           <Space style={{ marginTop: 8 }}>
-            <Button danger onClick={() => onCancelar(t)}>{t("misTurnos.cancelarOk")}</Button>
+            <Button danger onClick={() => onCancelar(turno)}>{t("misTurnos.cancelarOk")}</Button>
           </Space>
         )}
       </Space>

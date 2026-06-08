@@ -13,8 +13,6 @@ import {
   Typography,
 } from "antd";
 import { useTranslation } from "react-i18next";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
 import {
   getTurnos,
   confirmarTurno,
@@ -25,7 +23,9 @@ import {
   getEspecialidades,
   EstadoTurno,
   nombreEstado,
-} from "../mocks";
+} from "../../mocks";
+import Navbar from "../../components/Navbar";
+import Footer from "../../components/Footer";
 
 const { Title, Text } = Typography;
 
