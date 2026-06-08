@@ -13,27 +13,62 @@ import { EstadoTurno } from "./enumerados.js";
 import { especialidadesMock } from "./especialidades.js";
 
 export const turnosMock = [
-  // Disponibles (sin paciente todavía)
-  { id: 1,  medicoId: 5,  pacienteId: null, fechaHora: "2026-06-01T09:00:00", sedeId: 1, practicaId: null, especialidadId: 105, estado: EstadoTurno.DISPONIBLE, costo: 11500, historialEstados: [] },
-  { id: 2,  medicoId: 5,  pacienteId: null, fechaHora: "2026-06-01T09:30:00", sedeId: 1, practicaId: null, especialidadId: 105, estado: EstadoTurno.DISPONIBLE, costo: 11500, historialEstados: [] },
-  { id: 3,  medicoId: 9,  pacienteId: null, fechaHora: "2026-06-02T08:00:00", sedeId: 1, practicaId: null, especialidadId: 109, estado: EstadoTurno.DISPONIBLE, costo: 12000, historialEstados: [] },
-  { id: 4,  medicoId: 9,  pacienteId: null, fechaHora: "2026-06-02T08:30:00", sedeId: 1, practicaId: 1,    especialidadId: 109, estado: EstadoTurno.DISPONIBLE, costo:  9500, historialEstados: [] },
-  { id: 5,  medicoId: 10, pacienteId: null, fechaHora: "2026-06-02T09:00:00", sedeId: 4, practicaId: null, especialidadId: 110, estado: EstadoTurno.DISPONIBLE, costo:  9800, historialEstados: [] },
+  // Disponibles (sin paciente todavía). Fechas futuras respecto a 2026-06-05.
+  // Incluyo médicos con prácticas variadas para que el modal de reserva
+  // muestre varias opciones de precio (Consulta + Práctica).
 
-  // Reservados / confirmados
-  { id: 6,  medicoId: 1,  pacienteId: 1, fechaHora: "2026-06-03T09:00:00", sedeId: 1, practicaId: null, especialidadId: 101, estado: EstadoTurno.RESERVADO,  costo: 12000, historialEstados: [
+  // Dra. Rebecca Rose (5) — Ginecología + Papanicolaou
+  { id: 1, medicoId: 5, pacienteId: null, fechaHora: "2026-06-08T09:00:00", sedeId: 1, practicaId: null, especialidadId: 105, estado: EstadoTurno.DISPONIBLE, costo: 11500, historialEstados: [] },
+  { id: 2, medicoId: 5, pacienteId: null, fechaHora: "2026-06-08T09:30:00", sedeId: 1, practicaId: null, especialidadId: 105, estado: EstadoTurno.DISPONIBLE, costo: 11500, historialEstados: [] },
+
+  // Dr. Martín Ríos (9) — Cardiología + ECG
+  { id: 3, medicoId: 9, pacienteId: null, fechaHora: "2026-06-09T08:00:00", sedeId: 1, practicaId: null, especialidadId: 109, estado: EstadoTurno.DISPONIBLE, costo: 12000, historialEstados: [] },
+  { id: 4, medicoId: 9, pacienteId: null, fechaHora: "2026-06-09T08:30:00", sedeId: 1, practicaId: null, especialidadId: 109, estado: EstadoTurno.DISPONIBLE, costo: 12000, historialEstados: [] },
+
+  // Dra. Carolina Méndez (10) — Pediatría (sin prácticas)
+  { id: 5, medicoId: 10, pacienteId: null, fechaHora: "2026-06-09T09:00:00", sedeId: 4, practicaId: null, especialidadId: 110, estado: EstadoTurno.DISPONIBLE, costo: 9800, historialEstados: [] },
+
+  // Dra. Alexandra Pérez (2) — Gastroenterología + Ecografía + Endoscopía
+  { id: 12, medicoId: 2, pacienteId: null, fechaHora: "2026-06-10T08:00:00", sedeId: 2, practicaId: null, especialidadId: 102, estado: EstadoTurno.DISPONIBLE, costo: 13000, historialEstados: [] },
+  { id: 13, medicoId: 2, pacienteId: null, fechaHora: "2026-06-10T08:30:00", sedeId: 2, practicaId: null, especialidadId: 102, estado: EstadoTurno.DISPONIBLE, costo: 13000, historialEstados: [] },
+
+  // Dr. Tomás Carol (4) — Obstetricia + Radiografía
+  { id: 14, medicoId: 4, pacienteId: null, fechaHora: "2026-06-10T09:00:00", sedeId: 1, practicaId: null, especialidadId: 104, estado: EstadoTurno.DISPONIBLE, costo: 12500, historialEstados: [] },
+
+  // Dra. Penélope Cruz (7) — Fisioterapia + Sesión de kinesiología
+  { id: 15, medicoId: 7, pacienteId: null, fechaHora: "2026-06-11T14:00:00", sedeId: 3, practicaId: null, especialidadId: 107, estado: EstadoTurno.DISPONIBLE, costo: 8000, historialEstados: [] },
+  { id: 16, medicoId: 7, pacienteId: null, fechaHora: "2026-06-11T15:00:00", sedeId: 3, practicaId: null, especialidadId: 107, estado: EstadoTurno.DISPONIBLE, costo: 8000, historialEstados: [] },
+
+  // Dra. Jessica Joan (1) — Nefrología + Análisis de laboratorio
+  { id: 17, medicoId: 1, pacienteId: null, fechaHora: "2026-06-12T09:00:00", sedeId: 1, practicaId: null, especialidadId: 101, estado: EstadoTurno.DISPONIBLE, costo: 12000, historialEstados: [] },
+
+  // Dra. Stephanie Sue (6) — Hematología + Lab
+  { id: 18, medicoId: 6, pacienteId: null, fechaHora: "2026-06-12T13:00:00", sedeId: 2, practicaId: null, especialidadId: 106, estado: EstadoTurno.DISPONIBLE, costo: 13500, historialEstados: [] },
+
+  // Reservados / confirmados (turnos futuros con paciente)
+  { id: 6,  medicoId: 1, pacienteId: 1, fechaHora: "2026-06-15T09:00:00", sedeId: 1, practicaId: null, especialidadId: 101, estado: EstadoTurno.RESERVADO,  costo: 12000, historialEstados: [
       { estadoAnterior: EstadoTurno.DISPONIBLE, fechaHora: "2026-05-30T12:00:00", usuarioId: 201, motivo: "Reserva online" },
     ] },
-  { id: 7,  medicoId: 2,  pacienteId: 2, fechaHora: "2026-06-04T08:30:00", sedeId: 2, practicaId: 2,    especialidadId: 102, estado: EstadoTurno.CONFIRMADO, costo: 14000, historialEstados: [
+  { id: 7,  medicoId: 2, pacienteId: 2, fechaHora: "2026-06-16T08:30:00", sedeId: 2, practicaId: 2,    especialidadId: 102, estado: EstadoTurno.CONFIRMADO, costo: 14000, historialEstados: [
       { estadoAnterior: EstadoTurno.DISPONIBLE, fechaHora: "2026-05-28T18:10:00", usuarioId: 202, motivo: "Reserva online" },
       { estadoAnterior: EstadoTurno.RESERVADO,  fechaHora: "2026-05-30T10:00:00", usuarioId: 102, motivo: "Confirmado por el médico" },
     ] },
-  { id: 8,  medicoId: 3,  pacienteId: 3, fechaHora: "2026-06-05T11:00:00", sedeId: 3, practicaId: null, especialidadId: 103, estado: EstadoTurno.RESERVADO,  costo: 15000, historialEstados: [
+  { id: 8,  medicoId: 3, pacienteId: 3, fechaHora: "2026-06-17T11:00:00", sedeId: 3, practicaId: null, especialidadId: 103, estado: EstadoTurno.RESERVADO,  costo: 15000, historialEstados: [
       { estadoAnterior: EstadoTurno.DISPONIBLE, fechaHora: "2026-05-29T15:30:00", usuarioId: 203, motivo: "Reserva online" },
     ] },
-  { id: 9,  medicoId: 4,  pacienteId: 4, fechaHora: "2026-06-06T09:30:00", sedeId: 1, practicaId: null, especialidadId: 104, estado: EstadoTurno.CONFIRMADO, costo: 12500, historialEstados: [
+  { id: 9,  medicoId: 4, pacienteId: 4, fechaHora: "2026-06-18T09:30:00", sedeId: 1, practicaId: null, especialidadId: 104, estado: EstadoTurno.CONFIRMADO, costo: 12500, historialEstados: [
       { estadoAnterior: EstadoTurno.DISPONIBLE, fechaHora: "2026-05-27T09:00:00", usuarioId: 204, motivo: "Reserva online" },
       { estadoAnterior: EstadoTurno.RESERVADO,  fechaHora: "2026-05-28T16:00:00", usuarioId: 104, motivo: "Confirmado" },
+    ] },
+
+  // Turnos del médico activo de la demo (Rebecca Rose, id 5) para que su
+  // agenda médica tenga turnos por confirmar / por realizar.
+  { id: 19, medicoId: 5, pacienteId: 1, fechaHora: "2026-06-19T08:00:00", sedeId: 1, practicaId: null, especialidadId: 105, estado: EstadoTurno.RESERVADO,  costo: 11500, historialEstados: [
+      { estadoAnterior: EstadoTurno.DISPONIBLE, fechaHora: "2026-06-01T10:00:00", usuarioId: 201, motivo: "Reserva online" },
+    ] },
+  { id: 20, medicoId: 5, pacienteId: 4, fechaHora: "2026-06-20T08:30:00", sedeId: 1, practicaId: null, especialidadId: 105, estado: EstadoTurno.CONFIRMADO, costo: 11500, historialEstados: [
+      { estadoAnterior: EstadoTurno.DISPONIBLE, fechaHora: "2026-05-25T11:00:00", usuarioId: 204, motivo: "Reserva online" },
+      { estadoAnterior: EstadoTurno.RESERVADO,  fechaHora: "2026-05-26T09:00:00", usuarioId: 105, motivo: "Confirmado" },
     ] },
 
   // Cancelado y realizado

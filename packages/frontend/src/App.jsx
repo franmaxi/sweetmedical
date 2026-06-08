@@ -8,6 +8,8 @@ import BuscarTurnos from "./pages/BuscarTurnos";
 import MisTurnos from "./pages/MisTurnos";
 import AgendaMedico from "./pages/AgendaMedico";
 import Disponibilidades from "./pages/Disponibilidades";
+import Login from "./pages/Login";
+import Registro from "./pages/Registro";
 
 const theme = {
   token: {
@@ -38,6 +40,8 @@ function App() {
             <Route path="/mis-turnos" element={<MisTurnos />} />
             <Route path="/agenda" element={<AgendaMedico />} />
             <Route path="/disponibilidades" element={<Disponibilidades />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/registro" element={<Registro />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </BrowserRouter>

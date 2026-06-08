@@ -19,6 +19,7 @@ const { useBreakpoint } = Grid;
 export default function Navbar() {
   const { t } = useTranslation();
   const location = useLocation();
+  const navigate = useNavigate();
   const screens = useBreakpoint();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
@@ -80,6 +81,12 @@ export default function Navbar() {
       <Space size="small" style={{ marginLeft: "auto" }}>
         <SelectorIdioma />
         <NotificacionesDropdown />
+        {!esMobile && (
+          <>
+            <Button onClick={() => navigate("/login")}>Ingresar</Button>
+            <Button type="primary" onClick={() => navigate("/registro")}>Registrarse</Button>
+          </>
+        )}
         {esMobile && (
           <Button type="text" icon={<MenuOutlined />} onClick={() => setDrawerOpen(true)} />
         )}
@@ -99,6 +106,14 @@ export default function Navbar() {
           onClick={() => setDrawerOpen(false)}
           style={{ borderInlineEnd: "none" }}
         />
+        <Space direction="vertical" style={{ width: "100%", marginTop: 16 }}>
+          <Button block onClick={() => { setDrawerOpen(false); navigate("/login"); }}>
+            Ingresar
+          </Button>
+          <Button block type="primary" onClick={() => { setDrawerOpen(false); navigate("/registro"); }}>
+            Registrarse
+          </Button>
+        </Space>
       </Drawer>
     </Header>
   );
