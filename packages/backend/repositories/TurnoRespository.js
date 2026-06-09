@@ -112,6 +112,21 @@ export class TurnoRepository {
         return await this.model.findByIdAndDelete(id);
     }
 
+    async eliminarTurnosDisponibles(disponibilidadId, fecha) {
+        return await this.model.deleteMany({
+            disponibilidad: disponibilidadId,
+            estado: EstadoTurno.DISPONIBLE,
+            fechaHora: { $gt: fecha }
+        });
+    }
+
+    async desvincularDisponibilidad(disponibilidadId) {
+        return await this.model.updateMany(
+            { disponibilidad: disponibilidadId },
+            { $set: { disponibilidad: null } }
+        );
+    }
+
     async obtenerPaginados(numeroPagina, limitePorPagina, filtros = {}, ordenamiento = [], coberturaOrden = null) {
 
         const match = await this.construirMatch(filtros);
