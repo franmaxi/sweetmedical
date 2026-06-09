@@ -176,13 +176,12 @@ export class MedicoController {
         }
     }
 
-    // PUT /medicos/:id/servicios/:servicioId
+    // PUT /medicos/:id/servicios
     modificarServicio = async (req, res, next) => {
         try {
             const { id: medicoId } = paramsIdSchema.parse(req.params);
-            const servicioId = objectIdSchema.parse(req.params.servicioId);
-            const servicio = modificarServicioBodySchema.parse(req.body);
-            const medicoActualizado = await this.medicoService.modificarServicio(medicoId, servicioId, servicio);
+            const { especialidadId, practicaId, ...datosServicio } = modificarServicioBodySchema.parse(req.body);
+            const medicoActualizado = await this.medicoService.modificarServicio(medicoId, especialidadId, practicaId, datosServicio);
             return res.status(200).json({
                 status: "success",
                 data: medicoActualizado
@@ -192,13 +191,12 @@ export class MedicoController {
         }
     }
 
-    // DELETE /medicos/:id/servicios/:servicioId
+    // DELETE /medicos/:id/servicios
     eliminarServicio = async (req, res, next) => {
         try {
             const { id: medicoId } = paramsIdSchema.parse(req.params);
-            const servicioId = objectIdSchema.parse(req.params.servicioId);
-            const { tipo } = eliminarServicioBodySchema.parse(req.body);
-            const medicoActualizado = await this.medicoService.eliminarServicio(medicoId, servicioId, tipo);
+            const { especialidadId, practicaId } = eliminarServicioBodySchema.parse(req.body);
+            const medicoActualizado = await this.medicoService.eliminarServicio(medicoId, especialidadId, practicaId);
             return res.status(200).json({
                 status: "success",
                 data: medicoActualizado

@@ -90,27 +90,30 @@ export const serviciosBodySchema = z.object({
     path: ["especialidades", "practicas"]
 });
 
-// Schema para MODIFICAR un servicio (un único objeto con su _id)
-export const modificarServicioBodySchema = z.union([
-    especialidadBodySchema.extend({
-        _id: objectIdSchema
-    }),
-    practicaBodySchema.extend({
-        _id: objectIdSchema
-    })
-], {
-    errorMap: () => ({ message: "Debe ser un objeto de especialidad o práctica válido con _id." })
-});
+// Schema para MODIFICAR un servicio — exactamente uno de los dos IDs debe ser no-null
+export const modificarServicioBodySchema = z.object({
+    especialidadId: objectIdSchema.nullable().default(null),
+    practicaId:     objectIdSchema.nullable().default(null),
+    // Campos comunes modificables
+    nombre: z.string({ invalid_type_error: "nombre debe ser un texto." }).trim().min(1).optional(),
+    duracionTurnoEnMins: z.number({ invalid_type_error: "duracionTurnoEnMins debe ser un número." })
+        .int().positive().multipleOf(15).optional(),
+    costo: z.number({ invalid_type_error: "costo debe ser un número." }).nonnegative().optional(),
+    // Campo exclusivo de práctica
+    codigo: z.string({ invalid_type_error: "codigo debe ser un texto." }).trim().min(1).optional()
+}).refine(
+    data => (data.especialidadId !== null) !== (data.practicaId !== null),
+    { message: "Debe proporcionar exactamente uno de 'especialidadId' o 'practicaId', no ambos ni ninguno." }
+);
 
-// Schema para ELIMINAR un servicio (tipo + id)
+// Schema para ELIMINAR un servicio — exactamente uno de los dos IDs debe ser no-null
 export const eliminarServicioBodySchema = z.object({
-    tipo: z.enum(["especialidad", "practica"], {
-        required_error: "El tipo es requerido.",
-        invalid_type_error: "El tipo debe ser 'especialidad' o 'practica'."
-    }),
-    id: objectIdSchema
-});
-
+    especialidadId: objectIdSchema.nullable().default(null),
+    practicaId:     objectIdSchema.nullable().default(null)
+}).refine(
+    data => (data.especialidadId !== null) !== (data.practicaId !== null),
+    { message: "Debe proporcionar exactamente uno de 'especialidadId' o 'practicaId', no ambos ni ninguno." }
+);
 
 export const sedesBodySchema = z.object({
     sedesId: z.array(objectIdSchema, {

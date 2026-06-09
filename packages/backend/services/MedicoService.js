@@ -171,28 +171,32 @@ export class MedicoService {
         }
     }
 
-    async modificarServicio(medicoId, servicioId, servicio) {
+    async modificarServicio(medicoId, especialidadId, practicaId, datosServicio) {
         const validMedicoId = objectIdSchema.parse(String(medicoId));
-        const validServicioId = objectIdSchema.parse(String(servicioId));
         const medico = await this.obtenerPorId(validMedicoId);
 
-        // Detectar si es especialidad o practica por el campo que tiene el objeto
-        const esEspecialidad = medico.especialidades.some(e => String(e._id || e) === String(validServicioId));
-        const esPractica = medico.practicas.some(p => String(p._id || p) === String(validServicioId));
+        let disponibilidadesAfectadas = [];
 
-        if (!esEspecialidad && !esPractica) {
-            throw new BadRequestError(`El servicio con ID ${validServicioId} no pertenece a este médico.`);
-        }
-
-        const disponibilidadesAfectadas = medico.disponibilidades.filter(dispo =>
-            dispo.especialidades.some(e => String(e._id || e) === String(validServicioId)) ||
-            dispo.practicas.some(p => String(p._id || p) === String(validServicioId))
-        );
-
-        if (esEspecialidad) {
-            await this.especialidadService.actualizar(validServicioId, servicio);
+        if (especialidadId) {
+            const validEspId = objectIdSchema.parse(String(especialidadId));
+            const pertenece = medico.especialidades.some(e => String(e._id || e) === String(validEspId));
+            if (!pertenece) {
+                throw new BadRequestError(`La especialidad con ID ${validEspId} no pertenece a este médico.`);
+            }
+            await this.especialidadService.actualizar(validEspId, datosServicio);
+            disponibilidadesAfectadas = medico.disponibilidades.filter(dispo =>
+                dispo.especialidades.some(e => String(e._id || e) === String(validEspId))
+            );
         } else {
-            await this.practicaService.actualizar(validServicioId, servicio);
+            const validPracId = objectIdSchema.parse(String(practicaId));
+            const pertenece = medico.practicas.some(p => String(p._id || p) === String(validPracId));
+            if (!pertenece) {
+                throw new BadRequestError(`La práctica con ID ${validPracId} no pertenece a este médico.`);
+            }
+            await this.practicaService.actualizar(validPracId, datosServicio);
+            disponibilidadesAfectadas = medico.disponibilidades.filter(dispo =>
+                dispo.practicas.some(p => String(p._id || p) === String(validPracId))
+            );
         }
 
         for (const dispo of disponibilidadesAfectadas) {
@@ -202,34 +206,38 @@ export class MedicoService {
         return await this.medicoRepository.findById(validMedicoId);
     }
 
-    async eliminarServicio(medicoId, servicioId, tipo) {
+    async eliminarServicio(medicoId, especialidadId, practicaId) {
         const validMedicoId = objectIdSchema.parse(String(medicoId));
-        const validServicioId = objectIdSchema.parse(String(servicioId));
         const medico = await this.obtenerPorId(validMedicoId);
 
-        if (tipo === "especialidad") {
-            const pertenece = medico.especialidades.some(e => String(e._id || e) === String(validServicioId));
+        let espIds = [];
+        let pracIds = [];
+
+        if (especialidadId) {
+            const validEspId = objectIdSchema.parse(String(especialidadId));
+            const pertenece = medico.especialidades.some(e => String(e._id || e) === String(validEspId));
             if (!pertenece) {
-                throw new BadRequestError(`La especialidad con ID ${validServicioId} no pertenece a este médico.`);
+                throw new BadRequestError(`La especialidad con ID ${validEspId} no pertenece a este médico.`);
             }
-            medico.eliminarEspecialidad(validServicioId);
-            await this.especialidadService.eliminar([validServicioId]);
-        } else if (tipo === "practica") {
-            const pertenece = medico.practicas.some(p => String(p._id || p) === String(validServicioId));
-            if (!pertenece) {
-                throw new BadRequestError(`La práctica con ID ${validServicioId} no pertenece a este médico.`);
-            }
-            medico.eliminarPractica(validServicioId);
-            await this.practicaService.eliminar([validServicioId]);
+            medico.eliminarEspecialidad(validEspId);
+            await this.especialidadService.eliminar([validEspId]);
+            espIds = [validEspId];
         } else {
-            throw new BadRequestError("El tipo debe ser 'especialidad' o 'practica'.");
+            const validPracId = objectIdSchema.parse(String(practicaId));
+            const pertenece = medico.practicas.some(p => String(p._id || p) === String(validPracId));
+            if (!pertenece) {
+                throw new BadRequestError(`La práctica con ID ${validPracId} no pertenece a este médico.`);
+            }
+            medico.eliminarPractica(validPracId);
+            await this.practicaService.eliminar([validPracId]);
+            pracIds = [validPracId];
         }
 
         const disposActualizadas = await this.limpiarServiciosDeDisponibilidades(
             validMedicoId,
             medico.disponibilidades,
-            tipo === "especialidad" ? [validServicioId] : [],
-            tipo === "practica" ? [validServicioId] : []
+            espIds,
+            pracIds
         );
         medico.disponibilidades = disposActualizadas;
 
