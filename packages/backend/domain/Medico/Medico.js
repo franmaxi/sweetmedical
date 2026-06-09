@@ -4,6 +4,7 @@ import {
     NotFoundError
 } from "../../errors/AppErrors.js";
 import { medicoDomainSchema } from "../../validations/medicoValidation.js";
+import { DisponibilidadHoraria } from "./DisponibilidadHoraria.js";
 
 export class Medico {
     constructor( { usuarioId, usuario, matricula, nombre } ){
@@ -21,15 +22,21 @@ export class Medico {
         this.eliminado = false;
     }
 
-    definirDisponibilidad(...disponibilidadesNuevas){
+    definirDisponibilidad(...disponibilidadesNuevas) {
         disponibilidadesNuevas.forEach(n => {
-            // verificamos si esta en una sede que pertenezca al medico - Ya verifico por id
+            // Verificamos si esta en una sede que pertenezca al medico
             this.validarDisponibilidad(n);
             
-            // validamos que no se pisen
-            const hayConflicto = this.disponibilidades.some(m => m.estaSolapada(n));
-            if(hayConflicto){
-                throw new ConflictError('Se solapa la disponibilidad: Dia '+ n.diaSemana + ' Hora inicio: ' + n.horaDesde + ' Hora Final: ' + n.horaHasta);
+            // Validamos que no se pisen
+            const hayConflicto = this.disponibilidades.some(m => {
+                //Si es de tipo mongoose se va a crear una nueva dispo para hacer la comparación
+                const dispoExistente = typeof m.estaSolapada === 'function' ? m : new DisponibilidadHoraria(m);
+                
+                return dispoExistente.estaSolapada(n);
+            });
+
+            if (hayConflicto) {
+                throw new ConflictError(`Se solapa la disponibilidad: Día ${n.diaSemana} - Inicio: ${n.horaDesde} - Fin: ${n.horaHasta}` );
             }
 
             this.disponibilidades.push(n);
@@ -127,10 +134,10 @@ export class Medico {
    
     validarDisponibilidad(disponibilidad){
         // Validamos la sede
-        const sedesId = this.sedes.map(s => s._id);
-        const perteneceASede = sedesId.includes(disponibilidad.sede._id);
+        const sedesId = this.sedes.map(s => s._id.toString());
+        const perteneceASede = sedesId.includes(disponibilidad.sede.toString());
         if (!perteneceASede) {
-            throw new BadRequestError('La disponiblidad esta establecida en una sede que no pertenece al medico, Sede: ' + disponibilidad.sede.nombre);
+            throw new BadRequestError('La disponiblidad esta establecida en una sede que no pertenece al medico, Sede: ' + disponibilidad.sede);
         }
 
         // validamos las especialidades
@@ -145,8 +152,8 @@ export class Medico {
             throw new BadRequestError('Las especialidades de la disponibilidad no coinciden con las del médico');
         }
         
-        const especialidadesId = this.especialidades.map(e => e._id);
-        const especialidadesIdDispo = especialidades.map(ed => ed._id);
+        const especialidadesId = this.especialidades.map(e => e._id.toString());
+        const especialidadesIdDispo = especialidades.map(ed => ed.toString());
         
         const especialidadesConflicto = especialidadesIdDispo.every(id => especialidadesId.includes(id));
         
@@ -160,8 +167,8 @@ export class Medico {
             throw new BadRequestError('Las practicas de la disponibilidad no coinciden con las del médico');
         }
         
-        const practicasId = this.practicas.map(p => p._id);
-        const practicasIdDIspo = practicas.map(pd => pd._id);
+        const practicasId = this.practicas.map(p => p._id.toString());
+        const practicasIdDIspo = practicas.map(pd => pd.toString());
             
         const practicasConflicto = practicasIdDIspo.every(id => practicasId.includes(id));
         if (!practicasConflicto) {

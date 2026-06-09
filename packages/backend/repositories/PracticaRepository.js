@@ -52,6 +52,11 @@ export class PracticaRepository {
         return await this.model.findByIdAndUpdate(id, practica, { new: true , session}).populate('practicaGenerica') ;
     }
 
+    async countDocuments(filtros = {}) {
+        const filtrosAplicados = { eliminado: false, ...filtros };
+        return await this.model.countDocuments(filtrosAplicados);
+    }
+
     //Datos a actualizar tendrá unicamente los datos q se modificaran, por ej nombre y codigo.
     async updateMany(ids, datosAActualizar) {
         return await this.model.updateMany(

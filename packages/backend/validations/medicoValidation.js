@@ -64,9 +64,7 @@ export const disponibilidadBodySchema = z.object({
         required_error: "La horaHasta es requerida.",
         invalid_type_error: "La horaHasta debe ser un texto."
     }).regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "La horaHasta debe tener el formato HH:mm (ej: 17:00)"),
-    sede: z.any({
-        required_error: "La sede es requerida."
-    }),
+    sede: objectIdSchema,
     especialidades: z.array(objectIdSchema).optional().default([]),
     practicas: z.array(objectIdSchema).optional().default([])
 }).refine(data => {
@@ -77,6 +75,14 @@ export const disponibilidadBodySchema = z.object({
     message: "La hora de inicio debe ser menor que la hora de fin",
     path: ["horaHasta"]
 })
+
+
+export const updateDisponibilidadBodySchema = z.object({
+    sede: objectIdSchema.optional(),
+    especialidades: z.array(objectIdSchema).optional(),
+    practicas: z.array(objectIdSchema).optional()
+})
+
 // Schema para AGREGAR servicios (arrays, usado en POST)
 export const serviciosBodySchema = z.object({
     especialidades: z.array(especialidadBodySchema, {

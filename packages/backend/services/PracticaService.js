@@ -107,23 +107,20 @@ export class PracticaService {
         return await this.practicaRepository.update(validId, practicaExistente, session);
     }
 
-    async eliminar(ids, session = null) {
-        const listaIds = [ids].flat();
 
-        const idsValidados = listaIds.map(id => objectIdSchema.parse(id));
-
-        if (idsValidados.length === 0) return null;
-
+    async eliminar(id, session = null) {
+        const idValidado = objectIdSchema.parse(String(id));
+    
         const cantidadExistente = await this.practicaRepository.countDocuments({
-            _id: { $in: idsValidados },
+            _id: idValidado,
             eliminado: false
         });
-        
-        if (cantidadExistente !== idsValidados.length) {
-            throw new NotFoundError("Una o más practicas no fueron encontradas o ya fueron eliminadas.");
+    
+        if (cantidadExistente === 0) {
+            throw new NotFoundError("La practica no fue encontrada o ya fue eliminada.");
         }
-
-        return await this.practicaRepository.deleteMany(idsValidados, session);
+            
+        return await this.practicaRepository.delete(idValidado, session);
     }
 
     // ---------- PRACTICAS GENERICAS

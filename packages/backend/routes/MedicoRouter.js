@@ -20,7 +20,7 @@ router.route('/:id/disponibilidades')
 
 router.route('/:id/disponibilidades/:disponibilidadId')
 	.get((req, res, next) =>	medicoController.obtenerDisponibilidad(req, res, next))
-	.put((req, res, next ) => 	medicoController.modificarDisponibilidad(req, res, next))
+	.patch((req, res, next ) => medicoController.modificarDisponibilidad(req, res, next))
 	.delete((req, res, next) => medicoController.eliminarDisponibilidad(req, res, next))
 
 router.route('/:id/servicios')

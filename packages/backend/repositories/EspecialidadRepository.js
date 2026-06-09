@@ -46,6 +46,11 @@ export class EspecialidadRepository{
         return await nuevaEspecialidad.save({ session });
     }
 
+    async countDocuments(filtros = {}) {
+        const filtrosAplicados = { eliminado: false, ...filtros };
+        return await this.model.countDocuments(filtrosAplicados);
+    }
+
     async update(id, especialidad, session = null) {
         return await this.model.findByIdAndUpdate(id, especialidad, { new: true , session}).populate('especialidadGenerica');
     }

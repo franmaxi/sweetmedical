@@ -220,7 +220,7 @@ export class MedicoService {
                 throw new BadRequestError(`La especialidad con ID ${validEspId} no pertenece a este médico.`);
             }
             medico.eliminarEspecialidad(validEspId);
-            await this.especialidadService.eliminar([validEspId]);
+            await this.especialidadService.eliminar(validEspId);
             espIds = [validEspId];
         } else {
             const validPracId = objectIdSchema.parse(String(practicaId));
@@ -229,7 +229,7 @@ export class MedicoService {
                 throw new BadRequestError(`La práctica con ID ${validPracId} no pertenece a este médico.`);
             }
             medico.eliminarPractica(validPracId);
-            await this.practicaService.eliminar([validPracId]);
+            await this.practicaService.eliminar(validPracId);
             pracIds = [validPracId];
         }
 
@@ -252,36 +252,39 @@ export class MedicoService {
 
         for (const disponibilidad of disponibilidades) {
             let sufrioCambios = false;
-            const dispoCopia = this.crearDispoCopia(disponibilidad)
+            const dispoCopia = this.obtenerDispoCopia(disponibilidad)
 
             const tieneEsp = disponibilidad.especialidades.some(e => espIds.includes(String(e._id || e)));
             if (tieneEsp) {
-                espIds.forEach(id => disponibilidad.eliminarEspecialidad(id));
+                disponibilidad.especialidades = disponibilidad.especialidades.filter(
+                    e => !espIds.includes(String(e._id || e))
+                );
                 sufrioCambios = true;
             }
 
             const tienePrac = disponibilidad.practicas.some(p => pracIds.includes(String(p._id || p)));
             if (tienePrac) {
-                pracIds.forEach(id => disponibilidad.eliminarPractica(id));
+                disponibilidad.practicas = disponibilidad.practicas.filter(
+                    p => !pracIds.includes(String(p._id || p))
+                );
                 sufrioCambios = true;
             }
-
-            // Siempre conservamos la disponibilidad (con o sin cambios)
-            nuevoArrayDisponibilidades.push(disponibilidad);
-
+            
             if (sufrioCambios) {
                 if(disponibilidad.especialidades.length === 0 && disponibilidad.practicas.length === 0){
                     await this.eliminarDisponibilidad(medicoId,disponibilidad._id)
+                    continue;
                 }
                 else{
                     // Notificamos al servicio de turnos sobre los cambios en la disponibilidad
                     await this.turnoService.modificarTurnosDisponibilidad(disponibilidad, dispoCopia);
                 }
             }
+            
+            nuevoArrayDisponibilidades.push(disponibilidad);
         }
 
         return nuevoArrayDisponibilidades
-    
     }
     
     // ======================= DISPONIBILIDADES =============================
@@ -304,15 +307,17 @@ export class MedicoService {
         //Validacion de que el medico exista
         const medico = await this.obtenerPorId(validMedicoId);
 
-        const contieneSede = medico.sedes.some(s => (s.nombre === datosDisponibilidad.sede.nombre) 
-                                                    && (s.direccion === datosDisponibilidad.sede.direccion))
-        if(!contieneSede){
-            throw new BadRequestError(`El medico no tiene la sede ${datosDisponibilidad.sede.nombre}`)
+        const contieneSede = medico.sedes.some(s => String(s._id || s) === String(datosDisponibilidad.sede));
+            
+        if (!contieneSede) {
+            throw new BadRequestError("La sede enviada no está asignada al perfil de este médico.");
         }
 
-        if( (!datosDisponibilidad.especialidades || datosDisponibilidad.especialidades == null || datosDisponibilidad.especialidades == [] ) && 
-            (!datosDisponibilidad.practicas || datosDisponibilidad.practicas == null || datosDisponibilidad.practicas == [] ) ) {
-            throw new BadRequestError(`La disponibilidad debe contar con al menos 1 especialidad o practica para la generacion de turnos`)
+        const sinEspecialidades = !datosDisponibilidad.especialidades || datosDisponibilidad.especialidades.length === 0;
+        const sinPracticas = !datosDisponibilidad.practicas || datosDisponibilidad.practicas.length === 0;
+
+        if (sinEspecialidades && sinPracticas) {
+            throw new BadRequestError(`La disponibilidad debe contar con al menos 1 especialidad o practica para la generacion de turnos`);
         }
 
         const dispo = new DisponibilidadHoraria({
@@ -324,37 +329,61 @@ export class MedicoService {
             practicas : datosDisponibilidad.practicas || []
         });
 
-        const medicoActualizado = await this.medicoRepository.addDisponibilidad(validMedicoId, dispo);
+        medico.definirDisponibilidad(dispo)
 
-        const dispoList = medicoActualizado.disponibilidades || [];
-
-        return dispoList[dispoList.length - 1] || null;
+        return this.medicoRepository.update(validMedicoId, medico);
     }
 
+    //No permitimos modificar el dia y la hora de la disponibilidad
     async modificarDisponibilidad(medicoId, disponibilidadId, datosDisponibilidad) {
         const validMedicoId = objectIdSchema.parse(String(medicoId));
         const validDispoId = objectIdSchema.parse(String(disponibilidadId));
         
         const medico = await this.obtenerPorId(validMedicoId);
 
-        const contieneSede = medico.sedes.some(s => (s.nombre === datosDisponibilidad.sede.nombre) 
-                                                    && (s.direccion === datosDisponibilidad.sede.direccion))
-        if(!contieneSede){
-            throw new BadRequestError(`El medico no tiene la sede ${datosDisponibilidad.sede.nombre}`)
+        const dispo = medico.disponibilidades.find(d => String(d._id) === String(validDispoId));
+        if (!dispo) throw new NotFoundError("Disponibilidad no encontrada");
+
+        const dispoCopia = this.obtenerDispoCopia(dispo); // Copia para pasarla al turno service
+        
+        // asignar Sede
+        if (datosDisponibilidad.sede !== undefined) {
+            const contieneSede = medico.sedes.some(s => String(s._id || s) === String(datosDisponibilidad.sede));
+            
+            if (!contieneSede) {
+                throw new BadRequestError("La sede enviada no está asignada al perfil de este médico.");
+            }
+            
+            dispo.sede = datosDisponibilidad.sede;
         }
 
-        // si no funciona agarramos la dispo desde el repo y la reecribimos en el medico
-        const dispo = medico.disponibilidades.find(d => d._id.toString() === validDispoId)
-        if (!dispo) throw new NotFoundError("Disponibilidad no encontrada")
+        // asignar Especialidades
+        if (datosDisponibilidad.especialidades !== undefined) {
+            const todasPertenecen = datosDisponibilidad.especialidades.every(espId => 
+                medico.especialidades.some(me => String(me._id || me) === String(espId))
+            );
 
-        const dispoCopia = this.crearDispoCopia(dispo) // COPIA PARA PASARLA AL TURNO SERVICE
+            if (!todasPertenecen) {
+                throw new BadRequestError("Una o más especialidades enviadas no están asignadas al perfil de este médico.");
+            }
+
+            dispo.especialidades = datosDisponibilidad.especialidades;
+        }
+
+        // asignar Prácticas
+        if (datosDisponibilidad.practicas !== undefined) {
+            const todasPertenecen = datosDisponibilidad.practicas.every(pracId => 
+                medico.practicas.some(mp => String(mp._id || mp) === String(pracId))
+            );
+
+            if (!todasPertenecen) {
+                throw new BadRequestError("Una o más prácticas enviadas no están asignadas al perfil de este médico.");
+            }
+
+            dispo.practicas = datosDisponibilidad.practicas;
+        }
         
-        if (dispo.sede) dispo.sede = datosDisponibilidad.sede
-        if (dispo.especialidades) dispo.especialidades = datosDisponibilidad.especialidades
-        if (dispo.practicas) dispo.practicas = datosDisponibilidad.practicas
-        
-        // TODO mandamos la vieja y la updateada al turnoService
-        await this.turnoService.modificarTurnosDisponibilidad(dispo, dispoCopia)
+        await this.turnoService.modificarTurnosDisponibilidad(dispo, dispoCopia);
 
         return await this.medicoRepository.update(validMedicoId, medico);
     }
@@ -383,9 +412,7 @@ export class MedicoService {
         
         await this.turnoService.eliminarTurnosDisponibilidad(dispo)
 
-        const medicoActualizado = await this.medicoRepository.update(validMedicoId, medico);
-
-        return medicoActualizado
+        return await this.medicoRepository.update(validMedicoId, medico);
     }
 
     // ======================= SEDES =============================

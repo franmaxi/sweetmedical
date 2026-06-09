@@ -7,7 +7,8 @@ import {
     serviciosBodySchema,
     modificarServicioBodySchema,
     eliminarServicioBodySchema,
-    sedesBodySchema
+    sedesBodySchema,
+    updateDisponibilidadBodySchema
 } from "../validations/medicoValidation.js";
 
 export class MedicoController {
@@ -117,7 +118,7 @@ export class MedicoController {
         try {
             const { id: medicoId } = paramsIdSchema.parse(req.params);
             const disponibilidadId = objectIdSchema.parse(req.params.disponibilidadId);
-            const disponibilidad = disponibilidadBodySchema.parse(req.body);
+            const disponibilidad = updateDisponibilidadBodySchema.parse(req.body);
             const disponibilidadActualizada = await this.medicoService.modificarDisponibilidad(medicoId, disponibilidadId, disponibilidad);
             return res.status(200).json({
                 status: "success",
