@@ -12,7 +12,7 @@ import {
     ConflictError,
     BadRequestError
 } from "../errors/AppErrors.js";
-import mongoose, { mongo } from 'mongoose';
+import mongoose from 'mongoose';
 
 export class MedicoService {
     constructor({
@@ -171,127 +171,72 @@ export class MedicoService {
         }
     }
 
-    async modificarServicios(medicoId, especialidades, practicas) {
+    async modificarServicio(medicoId, servicioId, servicio) {
         const validMedicoId = objectIdSchema.parse(String(medicoId));
-        const medico = await this.obtenerPorId(validMedicoId); // lanza NotFoundError si no existe
-
-        const session = await mongoose.startSession()
-        session.startTransaction();
-        try{
-
-            const listaDispo = []
-
-            for(const especialidad of especialidades){
-                if (especialidad) {
-                    const pertenece = medico.especialidades.some(e => String(e._id || e) === String(especialidad._id));
-                    if (!pertenece) {
-                        throw new BadRequestError(`La especialidad con ID ${especialidad._id} no pertenece a este médico.`);
-                    }
-                    // No hace falta modificar la lista de especialidades del medico, porq ya apunta al objeto que modificamos
-                    await this.especialidadService.actualizar(especialidad._id, especialidad, session);
-                    
-                    const disponibilidadesAfectadas = medico.disponibilidad.filter(dispo => 
-                        dispo.especialidades.some(e => String(e._id || e) === String(especialidad._id))
-                    );
-
-                    listaDispo.push(...disponibilidadesAfectadas)
-                }
-            }
-        
-            for(const practica of practicas){
-                if (practica) {
-                    const pertenece = medico.practicas.some(e => String(e._id || e) === String(practica._id));
-                    if (!pertenece) {
-                        throw new BadRequestError(`La practica con ID ${practica._id} no pertenece a este médico.`);
-                    }
-
-                    await this.practicaService.actualizar(practica._id, practica, session);
-
-                    const disponibilidadesAfectadas = medico.disponibilidad.filter(dispo => 
-                        dispo.practicas.some(e => String(e._id || e) === String(practica._id))
-                    );
-
-                    listaDispo.push(...disponibilidadesAfectadas)
-                }
-            }
-
-            const listaDispoSinRepetidos = [...new Map(listaDispo.map(dispo => [String(dispo._id), dispo])).values()];
-            
-            for(const dispo of listaDispoSinRepetidos){
-                this.turnoService.modificarTurnosPorDisponibilidadModificada(dispo, session)
-            }
-
-            await session.commitTransaction();
-
-            return await this.medicoRepository.findById(validMedicoId);
-
-        } catch(error){
-            await session.abortTransaction();
-            throw error;
-        } finally {
-            session.endSession();
-        }
-        
-    }
-
-    async eliminarServicios(medicoId, especialidadesId = [], practicasId = []) {
-        const validMedicoId = objectIdSchema.parse(String(medicoId));
+        const validServicioId = objectIdSchema.parse(String(servicioId));
         const medico = await this.obtenerPorId(validMedicoId);
 
-        if (!medico) throw new NotFoundError("Medico no encontrado");
-        
-        const listaEsp = especialidadesId ?? [];
-        const listaPrac = practicasId ?? [];
+        // Detectar si es especialidad o practica por el campo que tiene el objeto
+        const esEspecialidad = medico.especialidades.some(e => String(e._id || e) === String(validServicioId));
+        const esPractica = medico.practicas.some(p => String(p._id || p) === String(validServicioId));
 
-        const session = await mongoose.startSession()
-        session.startTransaction();
-        try{
-            
-            for(const especialidadId of listaEsp){
-                const validEspId = objectIdSchema.parse(String(especialidadId));
-                
-                const pertenece = medico.especialidades.some(e => String(e._id || e) === String(validEspId));
-                if (!pertenece) {
-                    throw new BadRequestError(`La especialidad con ID ${validEspId} no pertenece a este médico.`);
-                }
-                
-                medico.eliminarEspecialidad(validEspId);
-                
-            }
-            
-            for (const practicaId of listaPrac){
-                const validPracId = objectIdSchema.parse(String(practicaId));
-                
-                const pertenece = medico.practicas.some(e => String(e._id || e) === String(validPracId));
-                if (!pertenece) {
-                    throw new BadRequestError(`La practica con ID ${validPracId} no pertenece a este médico.`);
-                }
-                
-                medico.eliminarPractica(validPracId);
-            }
-            
-            const disposActualizadas  = await this.limpiarServiciosDeDisponibilidades(validMedicoId, medico.disponibilidades, listaEsp, listaPrac, session)
-            medico.disponibilidades = disposActualizadas
-
-            await this.especialidadService.eliminar(listaEsp, session);
-            await this.practicaService.eliminar(listaPrac, session);
-
-
-            const medicoGuardado = await this.medicoRepository.update(medico._id,medico, session);
-            
-            await session.commitTransaction();
-
-            return medicoGuardado
-
-        } catch(error){
-            await session.abortTransaction();
-            throw error;
-        } finally {
-            session.endSession();
+        if (!esEspecialidad && !esPractica) {
+            throw new BadRequestError(`El servicio con ID ${validServicioId} no pertenece a este médico.`);
         }
+
+        const disponibilidadesAfectadas = medico.disponibilidades.filter(dispo =>
+            dispo.especialidades.some(e => String(e._id || e) === String(validServicioId)) ||
+            dispo.practicas.some(p => String(p._id || p) === String(validServicioId))
+        );
+
+        if (esEspecialidad) {
+            await this.especialidadService.actualizar(validServicioId, servicio);
+        } else {
+            await this.practicaService.actualizar(validServicioId, servicio);
+        }
+
+        for (const dispo of disponibilidadesAfectadas) {
+            await this.turnoService.modificarTurnosPorDisponibilidadModificada(dispo);
+        }
+
+        return await this.medicoRepository.findById(validMedicoId);
     }
 
-    async limpiarServiciosDeDisponibilidades(medicoId,disponibilidades, especialidadesId, practicasId, session = null) {
+    async eliminarServicio(medicoId, servicioId, tipo) {
+        const validMedicoId = objectIdSchema.parse(String(medicoId));
+        const validServicioId = objectIdSchema.parse(String(servicioId));
+        const medico = await this.obtenerPorId(validMedicoId);
+
+        if (tipo === "especialidad") {
+            const pertenece = medico.especialidades.some(e => String(e._id || e) === String(validServicioId));
+            if (!pertenece) {
+                throw new BadRequestError(`La especialidad con ID ${validServicioId} no pertenece a este médico.`);
+            }
+            medico.eliminarEspecialidad(validServicioId);
+            await this.especialidadService.eliminar([validServicioId]);
+        } else if (tipo === "practica") {
+            const pertenece = medico.practicas.some(p => String(p._id || p) === String(validServicioId));
+            if (!pertenece) {
+                throw new BadRequestError(`La práctica con ID ${validServicioId} no pertenece a este médico.`);
+            }
+            medico.eliminarPractica(validServicioId);
+            await this.practicaService.eliminar([validServicioId]);
+        } else {
+            throw new BadRequestError("El tipo debe ser 'especialidad' o 'practica'.");
+        }
+
+        const disposActualizadas = await this.limpiarServiciosDeDisponibilidades(
+            validMedicoId,
+            medico.disponibilidades,
+            tipo === "especialidad" ? [validServicioId] : [],
+            tipo === "practica" ? [validServicioId] : []
+        );
+        medico.disponibilidades = disposActualizadas;
+
+        return await this.medicoRepository.update(medico._id, medico);
+    }
+
+    async limpiarServiciosDeDisponibilidades(medicoId, disponibilidades, especialidadesId, practicasId) {
         const espIds = especialidadesId.map(id => String(id));
         const pracIds = practicasId.map(id => String(id));
 

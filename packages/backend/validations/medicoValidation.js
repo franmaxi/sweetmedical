@@ -77,21 +77,11 @@ export const disponibilidadBodySchema = z.object({
     message: "La hora de inicio debe ser menor que la hora de fin",
     path: ["horaHasta"]
 })
-/*
-export const servicioBodySchema = z.object({
-    especialidad: z.any().optional().nullable(),
-    practica: z.any().optional().nullable()
-}).refine(data => data.especialidad != null || data.practica != null, {
-    message: "Debe proporcionar especialidad o practica"
-})
-*/
-
-//Tienen q ser arrays
+// Schema para AGREGAR servicios (arrays, usado en POST)
 export const serviciosBodySchema = z.object({
     especialidades: z.array(especialidadBodySchema, {
         invalid_type_error: "Las especialidades deben ser una lista."
     }).default([]),
-    
     practicas: z.array(practicaBodySchema, {
         invalid_type_error: "Las prácticas deben ser una lista."
     }).default([])
@@ -99,6 +89,28 @@ export const serviciosBodySchema = z.object({
     message: "Debe proporcionar al menos una especialidad o una práctica.",
     path: ["especialidades", "practicas"]
 });
+
+// Schema para MODIFICAR un servicio (un único objeto con su _id)
+export const modificarServicioBodySchema = z.union([
+    especialidadBodySchema.extend({
+        _id: objectIdSchema
+    }),
+    practicaBodySchema.extend({
+        _id: objectIdSchema
+    })
+], {
+    errorMap: () => ({ message: "Debe ser un objeto de especialidad o práctica válido con _id." })
+});
+
+// Schema para ELIMINAR un servicio (tipo + id)
+export const eliminarServicioBodySchema = z.object({
+    tipo: z.enum(["especialidad", "practica"], {
+        required_error: "El tipo es requerido.",
+        invalid_type_error: "El tipo debe ser 'especialidad' o 'practica'."
+    }),
+    id: objectIdSchema
+});
+
 
 export const sedesBodySchema = z.object({
     sedesId: z.array(objectIdSchema, {

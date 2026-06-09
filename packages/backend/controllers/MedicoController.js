@@ -5,6 +5,8 @@ import {
     medicoBodyUpdateSchema, 
     disponibilidadBodySchema, 
     serviciosBodySchema,
+    modificarServicioBodySchema,
+    eliminarServicioBodySchema,
     sedesBodySchema
 } from "../validations/medicoValidation.js";
 
@@ -155,13 +157,14 @@ export class MedicoController {
         }
     }
 
-    agregarServicio = async (req, res, next) => {
+    // POST /medicos/:id/servicios
+    agregarServicios = async (req, res, next) => {
         try {
             const { id: medicoId } = paramsIdSchema.parse(req.params);
             const { especialidades, practicas } = serviciosBodySchema.parse(req.body);
             const medicoActualizado = await this.medicoService.agregarServicios(
-                medicoId, 
-                especialidades, 
+                medicoId,
+                especialidades,
                 practicas
             );
             return res.status(200).json({
@@ -173,30 +176,32 @@ export class MedicoController {
         }
     }
 
+    // PUT /medicos/:id/servicios/:servicioId
     modificarServicio = async (req, res, next) => {
         try {
             const { id: medicoId } = paramsIdSchema.parse(req.params);
-            const validBody = serviciosBodySchema.parse(req.body);
-            const servicioModificado = await this.medicoService.modificarServicios(medicoId, validBody.especialidades, validBody.practicas);
+            const servicioId = objectIdSchema.parse(req.params.servicioId);
+            const servicio = modificarServicioBodySchema.parse(req.body);
+            const medicoActualizado = await this.medicoService.modificarServicio(medicoId, servicioId, servicio);
             return res.status(200).json({
                 status: "success",
-                data: servicioModificado
+                data: medicoActualizado
             });
         } catch (error) {
             return next(error);
         }
     }
 
-    eliminarServicios = async (req, res, next) => {
+    // DELETE /medicos/:id/servicios/:servicioId
+    eliminarServicio = async (req, res, next) => {
         try {
             const { id: medicoId } = paramsIdSchema.parse(req.params);
-            const { especialidades, practicas } = serviciosBodySchema.parse(req.body);
-            const especialidadesId = especialidades.map(e => e._id).filter(Boolean);
-            const practicasId = practicas.map(p => p._id).filter(Boolean);
-            const serviciosEliminados = await this.medicoService.eliminarServicios(medicoId, especialidadesId, practicasId);
+            const servicioId = objectIdSchema.parse(req.params.servicioId);
+            const { tipo } = eliminarServicioBodySchema.parse(req.body);
+            const medicoActualizado = await this.medicoService.eliminarServicio(medicoId, servicioId, tipo);
             return res.status(200).json({
                 status: "success",
-                data: serviciosEliminados
+                data: medicoActualizado
             });
         } catch (error) {
             return next(error);
