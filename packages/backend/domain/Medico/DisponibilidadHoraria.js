@@ -1,54 +1,50 @@
-import DiaSemana from "../Enumerados/DiaSemana.js";
-class DisponibilidadHoraria {
-    constructor( {diaSemana, horaDesde, horaHasta} ) {
-        this.validarDiaSemana(diaSemana)
-        this.validarHora(horaDesde)
-        this.validarHora(horaHasta)
-        this.validarRangoHoras(horaDesde, horaHasta)
+import { BadRequestError } from "../../errors/AppErrors.js";
+import { disponibilidadDomainSchema } from "../../validations/medicoValidation.js";
 
-        this.diaSemana = diaSemana
-        this.horaDesde = horaDesde
-        this.horaHasta = horaHasta
-    }
+export class DisponibilidadHoraria {
+    constructor( { diaSemana, horaDesde, horaHasta, sede , especialidades = [], practicas = []} ) {
+        const valid = disponibilidadDomainSchema.parse({ diaSemana, horaDesde, horaHasta, sede });
 
-
-    
-    // Validaciones Constructor
-
-    validarDiaSemana(diaSemana){
-        const valoresDiaSemana = Object.values(DiaSemana)
-        if(!valoresDiaSemana.includes(diaSemana)){
-            throw new TypeError(`El dia de la semana debe ser uno de los siguientes: ${valoresDiaSemana.join(', ')}`)
-        }
-    }
-
-    validarHora(hora){
-       // validar que sea un string en formato HH:mm y que esté entre 00:00 y 23:59
-       if (typeof hora !== 'string') {
-            throw new TypeError('La hora debe ser una cadena de texto en formato HH:mm')
-        }
-
-        const regex = /^([01]\d|2[0-3]):([0-5]\d)(:([0-5]\d))?$/ // me genera dudas si esto funciona bien, lo saque de internet, pero no se si es correcto
-        if (!regex.test(hora)) {
-            throw new TypeError('La hora debe estar en formato HH:mm y ser válida (00:00 a 23:59)')
-        }
-    }
-
-    validarRangoHoras(horaInicial, horaFinal){    
-        const minutosDesde = this.convertirHoraEnMinutos(horaInicial)
-        const minutosHasta = this.convertirHoraEnMinutos(horaFinal)
-         
-        if (minutosDesde >= minutosHasta) {
-            throw new RangeError('La hora de inicio debe ser menor que la hora de fin')
-        }
+        // _id
+        this.diaSemana = valid.diaSemana;
+        this.horaDesde = valid.horaDesde; // string con formato "HH:mm"
+        this.horaHasta = valid.horaHasta;
+        this.especialidades = especialidades
+        this.practicas = practicas
+        this.sede = valid.sede;
     }
 
     convertirHoraEnMinutos(hora){
-        const [horas, minutos] = hora.split(':').map(Number)
-        return horas * 60 + minutos
+        const [horas, minutos] = hora.split(':').map(Number);
+        return horas * 60 + minutos;
     }
-        
+    
+    estaSolapada(dispo){
+        if(this.diaSemana !== dispo.diaSemana){
+            return false;
+        }
+        return this.convertirHoraEnMinutos(this.horaDesde) < dispo.convertirHoraEnMinutos(dispo.horaHasta) && 
+               this.convertirHoraEnMinutos(this.horaHasta) > dispo.convertirHoraEnMinutos(dispo.horaDesde);
+    }
 
+    eliminarEspecialidad(id){
+        const indice = this.especialidades.findIndex(n => String(n._id || n) === String(id));
+
+        if (indice !== -1) {
+            this.especialidades.splice(indice, 1);
+        } 
+    }
+
+    eliminarPractica(id){
+        const indice = this.practicas.findIndex(n => String(n._id || n) === String(id));
+        
+        if (indice !== -1) {
+            this.practicas.splice(indice, 1);
+        } 
+    }
+    
+    obtenerDiferenciaEnMinutos(){
+       return this.convertirHoraEnMinutos(this.horaHasta) - this.convertirHoraEnMinutos(this.horaDesde);
+    }
 
 }
-

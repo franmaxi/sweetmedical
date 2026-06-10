@@ -1,5 +1,6 @@
 import { EstadoTurno } from '../Enumerados/EstadoTurno.js'
 import { Notificacion } from './Notificacion.js'
+import { Turno } from '../Turno/Turno.js'
 import i18next from '../../i18n/i18n.js'
 
 export class FactoryNotificacion {
@@ -28,19 +29,20 @@ export class FactoryNotificacion {
                         medico:    turno.medico.nombre,
                     })
             })
-            case EstadoTurno.CANCELADO:
+            case EstadoTurno.CANCELADO: {
                 const usuarioContrario = this.obtenerContrario(turno)
-                const motivoCancelacion = this.obtenerUltimoHistorialEstado(turno).motivo
+                const ultimoCambio = turno.ultimoHistorialEstado()
                 return new Notificacion({
-                destinatario: usuarioContrario, 
-                remitente: null, 
-                mensaje: i18next.t('notificaciones.turno.cancelado.destinatario', {
-                    lng:       usuarioContrario.usuario.idioma,
-                    nombre:    usuarioContrario.nombre,
-                    fechaHora: turno.fechaHora,
-                    motivo:    motivoCancelacion,
-                }) 
-            })
+                    destinatario: usuarioContrario.usuario,
+                    remitente: null, 
+                    mensaje: i18next.t('notificaciones.turno.cancelado.destinatario', {
+                        lng:       usuarioContrario.usuario.idioma,
+                        nombre:    usuarioContrario.nombreUsuario,
+                        fechaHora: turno.fechaHora,
+                        motivo:    ultimoCambio.motivo,
+                    }) 
+                })
+            }
             default:
         }
     }
@@ -76,15 +78,11 @@ export class FactoryNotificacion {
         listaNotificaciones.push(notificacionPaciente)
         return listaNotificaciones
     }
-
-    obtenerUltimoHistorialEstado(turno){
-        return turno.obtenerUltimoHistorialEstado();
-    }
     
     obtenerContrario(turno){
         // devuelve el usuario contrario al que hizo el cambio de estado del turno, para enviarle la notificacion
-        const ultimoHETurno = this.obtenerUltimoHistorialEstado(turno)
-        if(ultimoHETurno.usuario === turno.paciente.usuario){
+        const ultimoHETurno = turno.ultimoHistorialEstado()
+        if(ultimoHETurno.usuario._id.equals(turno.paciente.usuario._id)){
             return turno.medico
         } else {
             return turno.paciente

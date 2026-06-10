@@ -1,30 +1,30 @@
-export class Plan{
-    constructor( {nombre} ){
-        this.validarNombre(nombre)
+import { planDomainSchema } from "../../validations/obraSocialValidation.js";
 
-        this.id = null //todo
-        this.nombre = nombre;
-        this.coberturaEspecialidad = [];
-        this.coberturaPractica = [];
+export class Plan {
+    constructor({ nombre, coberturaEspecialidad = [], coberturaPractica = [] }) {
+        const valid = planDomainSchema.parse({ nombre });
+
+        // _id
+        this.nombre = valid.nombre;
+        this.coberturaEspecialidad = coberturaEspecialidad;
+        this.coberturaPractica = coberturaPractica;
     }
 
-    obtenerCobertura(especialidad){
-        const cobertura = this.coberturaEspecialidad.find(c => c.especialidad === especialidad); //tiene q devolver un unico elemento
-        return cobertura.nivel;
-        // puede que tengamos que verificar los ids en vez de la especialidad directa segun como se trabaje con la persistencia
-    }
-    obtenerCobertura(practica){
-        const cobertura = this.coberturaPractica.find(c => c.practica === practica);  //tiene q devolver un unico elemento
-        return cobertura.nivel;
-    }
-    
-    // Validacion Constructor
-
-    validarNombre(nombre){
-        if (typeof nombre !== 'string' || nombre.trim() === '') {
-            throw new TypeError('El nombre del plan debe ser un string no vacío')
-        }
+    obtenerCoberturaEspecialidad(especialidad) {
+        const generica = especialidad?.especialidadGenerica ?? especialidad;
+        const cobertura = this.coberturaEspecialidad.find(
+            c => c.especialidadGenerica?.toString() === generica?.toString()
+        );
+        return cobertura ?? null;
     }
 
-    
+    obtenerCoberturaPractica(practica) {
+        const generica = practica?.practicaGenerica ?? practica;
+        const cobertura = this.coberturaPractica.find(
+            c => c.practicaGenerica?.toString() === generica?.toString()
+        );
+        return cobertura ?? null;
+    }
+
+
 }

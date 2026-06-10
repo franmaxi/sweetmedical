@@ -11,18 +11,27 @@
     "start:frontend": "npm start --workspace=frontend",
     "start:dev": "concurrently \"npm run dev:backend\" \"npm run start:frontend\"",
     "lint": "eslint .",
-    "format": "prettier . --write"
+    "format": "prettier . --write",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watchAll=false"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "devDependencies": {
-    "@eslint/js": "^9.31.0",
+    "@eslint/js": "^9.39.4",
+    "@jest/globals": "^29.7.0",
     "concurrently": "^9.2.0",
-    "eslint": "^9.31.0",
+    "eslint": "^9.39.4",
     "eslint-plugin-react": "^7.37.5",
-    "globals": "^16.3.0",
+    "globals": "^16.5.0",
+    "jest": "^29.7.0",
     "prettier": "3.6.2"
+  },
+  "dependencies": {
+    "mongoose": "^9.6.2"
+  },
+  "jest": {
+    "testEnvironment": "node"
   }
 }

@@ -1,110 +1,65 @@
-import { CambioEstadoTurno } from "./CambioEstadoTurno";
-import { Medico } from "../Medico/Medico.js";
-import { Paciente } from "../Paciente/Paciente.js";
-import { Especialidad } from "../Medico/Especialidad.js";
-import { Sede } from "../Sede.js";
+import { CambioEstadoTurno } from "./CambioEstadoTurno.js";
+import { EstadoTurno } from "../Enumerados/EstadoTurno.js";
+import { BadRequestError, UnprocessableEntityError } from "../../errors/AppErrors.js";
+import { turnoDomainSchema } from "../../validations/turnoValidation.js";
+import { SolicitudCambio } from "./SolicitudCambio.js";
 
-export class Turno{
-    constructor( {medico,
-        paciente,fechaHora,
-        sede,practica, especialidad,estado,
-        costo} 
-    ){ 
-        this.validarMedico(medico);
-        this.validarPaciente(paciente);
-        this.validarFechaHora(fechaHora);
-        this.validarSede(sede);
-        this.validarPractica(practica);
-        this.validarEspecialidad(especialidad);
-        this.validarEstado(estado);
-        this.validarCosto(costo);
+export class Turno {
+    constructor({ medico, fechaHora, sede, practica, especialidad, disponibilidad }
+    ) {
+        const valid = turnoDomainSchema.parse({ medico, fechaHora, sede, practica, especialidad, disponibilidad });
 
-        this.id = null; //todo
-        this.medico = medico;
-        this.paciente = paciente;
-        this.fechaHora = fechaHora;
-        this.sede = sede;
-        this.practica = practica;
-        this.especialidad = especialidad;
-        this.estado = estado;
-        this.historialEstados = [];
-        this.costo = costo;
+        // _id
+        this.medico = valid.medico
+        this.paciente = null
+        this.fechaHora = valid.fechaHora //DateTime
+        this.sede = valid.sede
+        this.practica = valid.practica // sería una lista cuando se crea el turno, y cuando se reserva un unico valor o null
+        this.especialidad = valid.especialidad // sería una lista cuando se crea el turno, y cuando se reserva un unico valor o null
+        this.estado = EstadoTurno.DISPONIBLE
+        this.historialEstados = []
+        this.costo = null
+        this.disponibilidad = valid.disponibilidad // disponibilidad por la q el turno se creó
+        this.solicitudCambio = null
+        this.modificado = false
     }
 
-    // Validacion Constructor
-    
-    validarMedico(medico){
-        if (!medico instanceof Medico) { // Preguntar si esta bien que sea un objeto.
-            throw new TypeError('El Medico debe ser un objeto válido')
+    actualizarEstado(nuevoEstado, usuario, motivo) {
+        if (this.estado === EstadoTurno.CANCELADO || this.estado === EstadoTurno.REALIZADO) {
+            throw new BadRequestError(`No se puede cambiar el estado de un turno ${this.estado}`)
         }
-    }    
-
-    validarPaciente(paciente){
-        if (!paciente instanceof Paciente) { // Preguntar si esta bien que sea un objeto.
-            throw new TypeError('El Paciente debe ser un objeto válido')
-        }
-    }
-
-    validarFechaHora(fechaHora){
-        if (!fechaHora || !(fechaHora instanceof Date)) { 
-            throw new TypeError('La fecha y hora debe ser un objeto Date válido')
-        }
-        // TODO validar si esto está bien o deberia ser un string con formato ISO.
-    }
-
-    validarSede(sede){
-        if (!sede instanceof Sede) { // Preguntar si esta bien que sea un objeto.
-            throw new TypeError('La sede debe ser un objeto válido')
-        }
-    }
-
-    validarPractica(practica){
-        if (!practica instanceof Practica) { // Preguntar si esta bien que sea un objeto.
-            throw new TypeError('La práctica debe ser una cadena de texto válida')
-        }
-    }
-    
-    validarEspecialidad(especialidad){
-        if (!especialidad instanceof Especialidad) { // Preguntar si esta bien que sea un objeto.
-            throw new TypeError('La especialidad debe ser una cadena de texto válida')
-        }
-    }
-
-    validarEstado(estado){  
-        if(!Object.values(EstadoTurno).includes(estado)){
-            throw new TypeError('El estado debe ser un valor válido')
-        }
-    }
-
-    validarCosto(costo){
-        if (typeof costo !== 'number' || costo < 0) {
-            throw new TypeError('El costo debe ser un número válido')
-        }
-    }
-
-    // FIN VALIDACIONES 
-
-
-    actualizarEstado(nuevoEstado, usuario, motivo){
         const itemHistorial = new CambioEstadoTurno({
             estado: this.estado,
             turno: this,
             usuario: usuario,
             motivo: motivo
         })
-        this.historialEstados.push(itemHistorial);
-        this.estado = nuevoEstado;
-        // cuando nosotros actualizamos, dejamos el estado anterior, quien genero el cambio y porque.
+        this.historialEstados.push(itemHistorial)
+        this.estado = nuevoEstado
     }
-    ultimoHistorialEstado(){
+
+    asignarSolicitud(solicitud) {
+        this.solicitudCambio = solicitud
+    }
+
+    eliminarSolicitud() {
+        this.solicitudCambio = null
+    }
+
+    ultimoHistorialEstado() {
         return this.historialEstados.at(-1)
     }
 
-    esTipoTurno(){
-    // Lo podemos llegar a necesitar para generar un mensaje preciso.
-    //TODO
+    sePuedeCancelar(ahora, horasMinimasParaCancelar) {
+        const limiteMinimo = new Date(this.fechaHora.getTime() - horasMinimasParaCancelar * 60 * 60 * 1000)
+        console.log("Ahora: " + ahora)
+        console.log("Limite: " + limiteMinimo)
+        console.log(ahora + " >= " + limiteMinimo)
+        return ahora <= limiteMinimo
+        // si la fecha actual es menor a la fecha maxima permitida puedo cancelar
     }
 
-
-
+    esTipoTurno() {
+        return this.practica ? 'practica' : 'especialidad';
+    }
 }
