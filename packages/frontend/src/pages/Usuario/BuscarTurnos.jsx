@@ -23,7 +23,6 @@ import Footer from "../../components/Footer";
 import FiltrosTurnos from "../../components/FiltrosTurnos";
 import ModalReservaTurno from "../../components/ModalReservaTurno";
 import {
-  getTurnosDisponibles,
   getEspecialidadesGenericas,
   getSedes,
   getMedicos,
@@ -31,6 +30,8 @@ import {
   getPracticas,
   reservarTurno,
 } from "../../mocks";
+import { getTurnos } from "../../api/api.js"; 
+
 
 const { Title, Text, Paragraph } = Typography;
 const { Content } = Layout;
@@ -57,13 +58,21 @@ function BuscarTurnosInner() {
   const { message } = AntApp.useApp();
 
   // Filtros.
-  const [especialidadGenericaId, setEspecialidadGenericaId] = useState();
-  const [sedeId, setSedeId] = useState();
-  const [medicoQuery, setMedicoQuery] = useState("");
-  const [fechaDesde, setFechaDesde] = useState();
+  const [filtrosBorrador, setFiltrosBorrador] = useState({
+    especialidadGenericaId: undefined,
+    sedeId: undefined,
+    medicoQuery: "",
+    fechaDesde: undefined,
+    fechaHasta: undefined,
+    practicaGenericaId: undefined,
+    ordenarPor: "-fechaHora",
+    direccion : "asc"
+  });
 
   // Catálogos.
   const [especialidadesGenericas, setEspecialidadesGenericas] = useState([]);
+  const [practicasGenericas, setPracticasGenericas] = useState([]);
+
   const [sedes, setSedes] = useState([]);
   const [medicosById, setMedicosById] = useState(new Map());
   const [sedesById, setSedesById] = useState(new Map());
@@ -75,6 +84,20 @@ function BuscarTurnosInner() {
   const [cargando, setCargando] = useState(true);
   const [turnoSeleccionado, setTurnoSeleccionado] = useState(null);
   const [reservando, setReservando] = useState(false);
+  const aplicarFiltros = () => setFiltrosAplicados({ ...filtrosBorrador });
+
+  const [filtrosAplicados, setFiltrosAplicados] = useState(filtrosBorrador);
+
+  const FILTROS_DEFAULT = {
+    especialidadGenericaId: undefined,
+    sedeId: undefined,
+    medicoQuery: "",
+    fechaDesde: undefined,
+    fechaHasta: undefined,
+    practicaGenericaId: undefined,
+    ordenarPor: "-fechaHora",
+    direccion: "asc",
+  };
 
   // Carga inicial de catálogos.
   useEffect(() => {
@@ -87,6 +110,7 @@ function BuscarTurnosInner() {
     ]).then(([genericas, listaSedes, listaMedicos, listaEsp, listaPrac]) => {
       setEspecialidadesGenericas(genericas);
       setSedes(listaSedes);
+      setPracticasGenericas(listaPrac);
       setMedicosById(new Map(listaMedicos.map((m) => [m.id, m])));
       setSedesById(new Map(listaSedes.map((s) => [s.id, s])));
       setEspPersonalizadasById(new Map(listaEsp.map((e) => [e.id, e])));
@@ -95,20 +119,45 @@ function BuscarTurnosInner() {
   }, []);
 
   // Cada cambio de filtro vuelve a consultar los turnos disponibles.
+
+  // Cuando cargamos por primera vez la pagina
   useEffect(() => {
     setCargando(true);
-    getTurnosDisponibles({
-      especialidadGenericaId: especialidadGenericaId ?? undefined,
-      sedeId: sedeId ?? undefined,
-      fechaDesde: fechaDesde ? fechaDesde.format("YYYY-MM-DD") : undefined,
-    }).then((turnos) => {
-      setResultados(turnos);
-      setCargando(false);
-    });
-  }, [especialidadGenericaId, sedeId, fechaDesde]);
+    getTurnos({})
+      .then((data) => {
+        setResultados(data.results ?? data);
+        setCargando(false);
+      })
+      .catch(() => {
+        message.error(t("buscarTurnos.errorCarga"));
+        setCargando(false);
+      });
+  }, []);
+
+  // El useEffect ahora escucha filtrosAplicados, no cada filtro por separado
+  useEffect(() => {
+    setCargando(true);
+    getTurnos({
+      especialidadGenericaId:   filtrosAplicados.especialidadGenericaId,
+      sedeId:                   filtrosAplicados.sedeId,
+      practicaGenericaId:       filtrosAplicados.practicaGenericaId,
+      fechaDesde:               filtrosAplicados.fechaDesde?.format("YYYY-MM-DD"),
+      fechaHasta:               filtrosAplicados.fechaHasta?.format("YYYY-MM-DD"),
+      ordenarPor:               filtrosAplicados.ordenarPor,
+      direccion :               filtrosAplicados.direccion
+    })
+      .then((data) => {
+        setResultados(data.results ?? data);
+        setCargando(false);
+      })
+      .catch(() => {
+        message.error(t("buscarTurnos.errorCarga"));
+        setCargando(false);
+      });
+  }, [filtrosAplicados]); 
 
   const resultadosVisibles = useMemo(() => {
-    const q = medicoQuery.trim().toLowerCase();
+    const q = filtrosBorrador.medicoQuery.trim().toLowerCase();
     return resultados
       .map((turno) => ({
         ...turno,
@@ -140,11 +189,9 @@ function BuscarTurnosInner() {
   };
 
   const limpiar = () => {
-    setEspecialidadGenericaId(undefined);
-    setSedeId(undefined);
-    setMedicoQuery("");
-    setFechaDesde(undefined);
-  };
+    setFiltrosBorrador(FILTROS_DEFAULT);
+    setFiltrosAplicados(FILTROS_DEFAULT);
+};
 
   return (
     <Layout style={{ background: "#fafafa", minHeight: "100vh" }}>
@@ -160,18 +207,14 @@ function BuscarTurnosInner() {
           <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
             <Col xs={24} lg={8}>
               <FiltrosTurnos
-                especialidadesGenericas={especialidadesGenericas}
-                sedes={sedes}
-                especialidadGenericaId={especialidadGenericaId}
-                setEspecialidadGenericaId={setEspecialidadGenericaId}
-                sedeId={sedeId}
-                setSedeId={setSedeId}
-                medicoQuery={medicoQuery}
-                setMedicoQuery={setMedicoQuery}
-                fechaDesde={fechaDesde}
-                setFechaDesde={setFechaDesde}
-                onLimpiar={limpiar}
-              />
+              especialidadesGenericas={especialidadesGenericas}
+              sedes={sedes}
+              practicasGenericas={practicasGenericas}
+              filtros={filtrosBorrador}
+              setFiltros={setFiltrosBorrador}
+              onAplicar={aplicarFiltros}
+              onLimpiar={limpiar}
+            />
             </Col>
 
             <Col xs={24} lg={16}>
