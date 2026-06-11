@@ -11,6 +11,7 @@ import AgendaMedico from "./pages/Medico/AgendaMedico";
 import Disponibilidades from "./pages/Medico/Disponibilidades";
 import Login from "./pages/Login";
 import Registro from "./pages/Registro";
+import MisEspecialidades from "./pages/Medico/MisEspecialidades";
 
 const theme = {
   token: {
@@ -51,6 +52,7 @@ function App() {
               <Route element={<RequireRole role="medico" />}>
                 <Route path="/agenda" element={<AgendaMedico />} />
                 <Route path="/disponibilidades" element={<Disponibilidades />} />
+                <Route path="mis-especialidades" element={<MisEspecialidades />} />
               </Route>
 
               <Route path="*" element={<Navigate to="/" replace />} />

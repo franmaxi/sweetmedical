@@ -76,7 +76,8 @@ function LoginInner() {
             <Form.Item
               name="password"
               label={t("login.labelPassword")}
-              rules={[{ required: true, message: t("login.errorPassword") }]}
+              rules={[{ required: true, message: t("login.errorPassword") }
+                { min: 8, message: t("login.errorPasswordLength") }]}
             >
               <Input.Password prefix={<LockOutlined />} placeholder={t("login.placeholderPassword")} autoComplete="current-password" />
             </Form.Item>

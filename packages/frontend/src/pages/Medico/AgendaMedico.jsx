@@ -17,6 +17,7 @@ import {
   getTurnos,
   confirmarTurno,
   cancelarTurno,
+  rechazarTurno,
   marcarRealizado,
   getPacientes,
   getSedes,
@@ -121,6 +122,12 @@ function AgendaMedicoInner() {
     message.success(t("agenda.confirmadoOk"));
     recargar();
   };
+  
+  const onRechazar = async (turno) => {
+    await rechazarTurno(turno.id, { usuarioId: MEDICO_ACTIVO.usuarioId });
+    message.success(t("agenda.rechazadoOk"));
+    recargar();
+  };
 
   const onRealizado = async (turno) => {
     await marcarRealizado(turno.id, { usuarioId: MEDICO_ACTIVO.usuarioId });
@@ -172,13 +179,16 @@ function AgendaMedicoInner() {
       render: (_, turno) => (
         <Space wrap>
           {turno.estado === EstadoTurno.RESERVADO && (
-            <Button size="small" type="primary" onClick={() => onConfirmar(turno)}>{t("agenda.confirmar")}</Button>
+            <Button size="small" color="green" variant="solid" type="primary" onClick={() => onConfirmar(turno)}>{t("agenda.confirmar")}</Button>
           )}
           {turno.estado === EstadoTurno.CONFIRMADO && !esFuturo(turno.fechaHora) && (
             <Button size="small" onClick={() => onRealizado(turno)}>{t("agenda.marcarRealizado")}</Button>
           )}
-          {[EstadoTurno.RESERVADO, EstadoTurno.CONFIRMADO].includes(turno.estado) && esFuturo(turno.fechaHora) && (
+          {[EstadoTurno.CONFIRMADO].includes(turno.estado) && esFuturo(turno.fechaHora) && (
             <Button size="small" danger onClick={() => onCancelar(turno)}>{t("agenda.cancelar")}</Button>
+          )}
+          {turno.estado === EstadoTurno.RESERVADO && (
+            <Button size="small" type="primary" color="red" variant="solid" onClick={() => onRechazar(turno)}>{t("agenda.rechazar")}</Button>
           )}
         </Space>
       ),

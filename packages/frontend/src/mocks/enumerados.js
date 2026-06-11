@@ -16,6 +16,7 @@ export const EstadoTurno = Object.freeze({
   CONFIRMADO: 2,
   CANCELADO: 3,
   REALIZADO: 4,
+  RECHAZADO:5,
 });
 
 export const NivelCobertura = Object.freeze({

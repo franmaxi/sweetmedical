@@ -118,7 +118,7 @@ function FormularioPaciente() {
         label={t("registro.paciente.passwordLabel")}
         rules={[
           { required: true, message: t("registro.paciente.errorPassword") },
-          { min: 4, message: t("registro.paciente.errorPasswordMin") },
+          { min: 8, message: t("registro.paciente.errorPasswordMin") },
         ]}
       >
         <Input.Password autoComplete="new-password" placeholder={t("registro.paciente.placeholderPassword")} />
@@ -188,16 +188,7 @@ function FormularioMedico() {
       >
         <Input.Password autoComplete="new-password" placeholder={t("registro.medico.placeholderPassword")} />
       </Form.Item>
-      <Form.Item
-        name="especialidadGenericaId"
-        label={t("registro.medico.especialidadLabel")}
-        rules={[{ required: true, message: t("registro.medico.errorEspecialidad") }]}
-      >
-        <Select
-          placeholder={t("registro.medico.placeholderEspecialidad")}
-          options={especialidades.map((e) => ({ value: e.id, label: e.nombre }))}
-        />
-      </Form.Item>
+      
       <Form.Item
         name="sedesIds"
         label={t("registro.medico.sedesLabel")}

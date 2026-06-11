@@ -10,6 +10,7 @@ import {
   HomeOutlined,
   SearchOutlined,
   MenuOutlined,
+  LogoutOutlined,
 } from "@ant-design/icons";
 import NotificacionesDropdown from "./NotificacionesDropdown";
 import SelectorIdioma from "./SelectorIdioma";
@@ -33,7 +34,7 @@ const Logo = () => (
         />
       </svg>
     </span>
-    <span style={{ fontSize: 18, fontWeight: 700, color: "#be123c" }}>SweetMedical</span>
+    <span style={{ fontSize: 18, fontWeight: 700, color: "#be123c" }}>Sweet Medical</span>
   </Link>
 );
 
@@ -44,8 +45,8 @@ const AuthButtons = ({ user, onLogout }) => {
   if (user) {
     return (
       <>
-        <span style={{ marginRight: 8 }}>{user.displayName}</span>
-        <Button onClick={onLogout}>{t("navbar.logout")}</Button>
+        <span style={{ marginRight: 16 }}>{user.displayName}</span>
+        <Button onClick={onLogout}><LogoutOutlined />{t("navbar.logout")}</Button>
       </>
     );
   }
@@ -125,6 +126,12 @@ const allItems = [
     label: <Link to="/disponibilidades">{t("navbar.disponibilidades")}</Link>,
     roles: ["medico"],
   },
+  {
+    key: "/mis-especialidades",
+    icon: <ClockCircleOutlined />,
+    label: <Link to="/mis-especialidades">{t("navbar.misEspecialidades")}</Link>,
+    roles: ["medico"],
+  }
 ];
 
 const rol = user?.role ?? "guest";
@@ -182,7 +189,7 @@ const items = allItems.filter(({ roles }) =>
           onClick={() => setDrawerOpen(false)}
           style={{ borderInlineEnd: "none" }}
         />
-        <Space direction="vertical" style={{ width: "100%", marginTop: 16 }}>
+        <Space direction="vertical" style={{ width: "100%" }}>
           <DrawerAuth
             user={user}
             onLogout={handleLogoutDesdeDrawer}

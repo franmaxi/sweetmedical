@@ -100,7 +100,7 @@ export default function NotificacionesDropdown() {
       onOpenChange={(open) => open && recargar()}
     >
       <Badge count={noLeidas} size="small">
-        <Button type="text" shape="circle" icon={<BellOutlined style={{ fontSize: 18 }} />} />
+        <Button type="text" shape="circle" icon={<BellOutlined style={{ fontSize: 16 }} />} />
       </Badge>
     </Dropdown>
   );

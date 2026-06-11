@@ -151,3 +151,6 @@ export const confirmarTurno = (id, { usuarioId }) =>
 
 export const marcarRealizado = (id, { usuarioId }) =>
   cambiarEstadoTurno(id, { nuevoEstado: EstadoTurno.REALIZADO, usuarioId, motivo: "Atención finalizada" });
+
+export const rechazarTurno = (id, { usuarioId }) =>
+  cambiarEstadoTurno(id, { nuevoEstado: EstadoTurno.RECHAZADO, usuarioId, motivo: "Atención finalizada" });

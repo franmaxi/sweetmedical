@@ -41,9 +41,20 @@ const { Content } = Layout;
 const PACIENTE_ACTIVO = { pacienteId: 1, usuarioId: 201 };
 
 const MESES = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-const fmtHora = (iso) => iso.slice(11, 16);
-const mesAbrev = (iso) => MESES[Number(iso.slice(5, 7)) - 1] ?? "";
-const dia = (iso) => iso.slice(8, 10);
+
+const getUTC3Date = (iso) => {
+  const isUTC = iso.endsWith('Z') || iso.includes('+') || (iso.lastIndexOf('-') > 10);
+  const isoString = isUTC ? iso : `${iso}Z`;
+  const date = new Date(isoString);
+  return new Date(date.getTime() - 3 * 60 * 60 * 1000);
+};
+
+const fmtHora = (iso) => {
+  const d = getUTC3Date(iso);
+  return `${d.getUTCHours().toString().padStart(2, '0')}:${d.getUTCMinutes().toString().padStart(2, '0')}`;
+};
+const mesAbrev = (iso) => MESES[getUTC3Date(iso).getUTCMonth()] ?? "";
+const dia = (iso) => getUTC3Date(iso).getUTCDate().toString().padStart(2, '0');
 
 export default function BuscarTurnos() {
   return (
@@ -157,8 +168,7 @@ function BuscarTurnosInner() {
     return resultados
       // 2. Ya no hace falta el .map() con los mocks. Leemos el nombre directo del objeto anidado.
       .filter((turno) => !q || turno.medico?.nombre?.toLowerCase().includes(q))
-      // 3. Ordenamos
-      .sort((a, b) => a.fechaHora.localeCompare(b.fechaHora));
+  
   }, [resultados, filtrosAplicados.medicoQuery]);
   
   const medicoSeleccionado = turnoSeleccionado ? medicosById.get(turnoSeleccionado.medicoId) : null;
@@ -220,6 +230,21 @@ function BuscarTurnosInner() {
                     })}
                   </Text>
                 </Space>
+                <Space>    
+                  <Select
+                    value={`${filtros.ordenarPor},${filtros.direccion}`}
+                    onChange={(val) => {
+                      const [ordenarPor, direccion] = val.split(",");
+                      setFiltros(prev => ({ ...prev, ordenarPor, direccion }));
+                    }}
+                    options={[
+                      { value: "fechaHora,asc", label: t("buscarTurnos.ordenarPorFechaHoraAsc") },
+                      { value: "fechaHora,desc", label: t("buscarTurnos.ordenarPorFechaHoraDesc") },
+                      { value: "precio,asc", label: t("buscarTurnos.ordenarPorPrecioAsc") },
+                      { value: "precio,desc", label: t("buscarTurnos.ordenarPorPrecioDesc") }
+                    ]}
+                  />
+              </Space>
 
                 {resultadosVisibles.length === 0 && !cargando ? (
                   <Empty description={t("buscarTurnos.noResults")} style={{ padding: "40px 0" }} />
@@ -275,7 +300,8 @@ function BuscarTurnosInner() {
                   />
                 )}
               </Card>
-              <Pagination align="center" defaultCurrent={1} current={paginaActual} pageSize={10} total={paginasTotales*10} 
+              <Pagination  align="center" defaultCurrent={1} current={paginaActual} pageSize={10} total={paginasTotales*10}
+                style={{ marginTop: '16px' }} 
                 onChange={(page) => setPaginaActual(page)} />
             </Col>
           </Row>

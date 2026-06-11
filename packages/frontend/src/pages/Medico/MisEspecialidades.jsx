@@ -15,8 +15,8 @@ import {
   Tabs,
 } from "antd";
 import { DeleteOutlined, EditOutlined, LoadingOutlined, PlusOutlined } from "@ant-design/icons";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+import Navbar from "../../components/Navbar";
+import Footer from "../../components/Footer";
 import {
   getEspecialidadesGenericas,
   getEspecialidadesDeMedico,
@@ -27,7 +27,7 @@ import {
   agregarPractica,
   editarPractica,
   eliminarPractica,
-} from "../mocks";
+} from "../../mocks";
 
 const { Title, Text } = Typography;
 
@@ -138,7 +138,6 @@ function MisEspecialidadesInner() {
     setPracticaEnModal(item);
     if (item) {
       formPrac.setFieldsValue({
-        codigo: item.codigo,
         nombre: item.nombre,
         duracionTurnoEnMins: item.duracionTurnoEnMins,
         costo: item.costo,
@@ -338,13 +337,7 @@ function MisEspecialidadesInner() {
             >
               <Input placeholder="Ej: Electrocardiograma" />
             </Form.Item>
-            <Form.Item
-              name="codigo"
-              label="Código"
-              rules={[{ required: true, message: "Ingresá el código" }]}
-            >
-              <Input placeholder="Ej: ECG" />
-            </Form.Item>
+          
             <Form.Item
               name="duracionTurnoEnMins"
               label="Duración del turno (minutos)"
