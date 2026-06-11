@@ -13,7 +13,8 @@ import {
   Empty,
   Space,
   Divider,
-  Pagination
+  Pagination,
+  Select
 } from "antd";
 import {
   EnvironmentOutlined,
@@ -230,21 +231,7 @@ function BuscarTurnosInner() {
                     })}
                   </Text>
                 </Space>
-                <Space>    
-                  <Select
-                    value={`${filtros.ordenarPor},${filtros.direccion}`}
-                    onChange={(val) => {
-                      const [ordenarPor, direccion] = val.split(",");
-                      setFiltros(prev => ({ ...prev, ordenarPor, direccion }));
-                    }}
-                    options={[
-                      { value: "fechaHora,asc", label: t("buscarTurnos.ordenarPorFechaHoraAsc") },
-                      { value: "fechaHora,desc", label: t("buscarTurnos.ordenarPorFechaHoraDesc") },
-                      { value: "precio,asc", label: t("buscarTurnos.ordenarPorPrecioAsc") },
-                      { value: "precio,desc", label: t("buscarTurnos.ordenarPorPrecioDesc") }
-                    ]}
-                  />
-              </Space>
+
 
                 {resultadosVisibles.length === 0 && !cargando ? (
                   <Empty description={t("buscarTurnos.noResults")} style={{ padding: "40px 0" }} />
