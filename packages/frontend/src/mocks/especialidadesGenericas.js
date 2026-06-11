@@ -14,7 +14,7 @@ export const especialidadesGenericasMock = [
   { id: 6,  nombre: "Pediatría",          descripcion: "Atención dedicada al crecimiento y bienestar de los más chicos." },
   { id: 7,  nombre: "Dermatología",       descripcion: "Cuidado integral de la piel, tratamientos clínicos y estéticos." },
   { id: 8,  nombre: "Clínica Médica",     descripcion: "Consulta general y derivaciones a especialistas según tu caso." },
-  { id: 9,  nombre: "Odontología",        descripcion: "Salud bucal, limpieza, ortodoncia y tratamientos preventivos." },
+  { id: "6a0b5138544283eee122e587",  nombre: "Odontología",        descripcion: "Salud bucal, limpieza, ortodoncia y tratamientos preventivos." },
   { id: 10, nombre: "Neurología",         descripcion: "Diagnóstico y tratamiento de enfermedades del sistema nervioso." },
   { id: 11, nombre: "Obstetricia",        descripcion: "Acompañamiento durante el embarazo, parto y posparto." },
   { id: 12, nombre: "Oncología",          descripcion: "Diagnóstico, tratamiento y seguimiento oncológico integral." },

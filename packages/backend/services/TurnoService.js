@@ -57,7 +57,19 @@ export class TurnoService {
             filtros.medico = medicoId;
         }
 
-        return await this.turnoRepository.obtenerPaginados(numeroPagina, limitePorPagina, filtros, ordenamiento)
+        const { turnos, totalTurnos, totalPaginas } = await this.turnoRepository.obtenerPaginados(numeroPagina, limitePorPagina, filtros, ordenamiento)
+
+        const turnosNormalizados = turnos.map(turno => ({
+            ...turno.toObject ? turno.toObject() : turno,
+            especialidad: Array.isArray(turno.especialidad)
+                ? turno.especialidad
+                : (turno.especialidad ? [turno.especialidad] : []),
+            practica: Array.isArray(turno.practica)
+                ? turno.practica
+                : (turno.practica ? [turno.practica] : []),
+        }));
+
+        return { turnos: turnosNormalizados, totalTurnos, totalPaginas }
     }
 
     async obtenerTodosCobertura({

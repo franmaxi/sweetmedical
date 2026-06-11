@@ -82,6 +82,21 @@ export default function FiltrosTurnos({
             format="DD/MM/YYYY"
           />
         </Form.Item>
+        <Form.Item label="Ordenar por">
+      <Select
+        value={`${filtros.ordenarPor},${filtros.direccion}`}
+        onChange={(val) => {
+          const [ordenarPor, direccion] = val.split(",");
+          setFiltros(prev => ({ ...prev, ordenarPor, direccion }));
+        }}
+        options={[
+          { value: "fechaHora,asc", label: "Fecha (Más cercanos primero)" },
+          { value: "fechaHora,desc", label: "Fecha (Más lejanos primero)" },
+          { value: "costo,asc", label: "Precio (Menor a mayor)" },
+          { value: "costo,desc", label: "Precio (Mayor a menor)" },
+        ]}
+      />
+    </Form.Item>
 
         <Button type="primary" block icon={<SearchOutlined />} onClick={onAplicar}>
           {t("buscarTurnos.buscar")}

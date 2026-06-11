@@ -13,6 +13,7 @@ import {
   Empty,
   Space,
   Divider,
+  Pagination
 } from "antd";
 import {
   EnvironmentOutlined,
@@ -65,7 +66,7 @@ function BuscarTurnosInner() {
     fechaDesde: undefined,
     fechaHasta: undefined,
     practicaGenericaId: undefined,
-    ordenarPor: "-fechaHora",
+    ordenarPor: "fechaHora",
     direccion : "asc"
   });
 
@@ -84,7 +85,13 @@ function BuscarTurnosInner() {
   const [cargando, setCargando] = useState(true);
   const [turnoSeleccionado, setTurnoSeleccionado] = useState(null);
   const [reservando, setReservando] = useState(false);
-  const aplicarFiltros = () => setFiltrosAplicados({ ...filtrosBorrador });
+  const aplicarFiltros = () => {
+    setFiltrosAplicados({ ...filtrosBorrador });
+    setPaginaActual(1);
+  };
+
+  const [paginaActual, setPaginaActual] = useState(1);
+  const [paginasTotales, setPaginasTotales] = useState(1);
 
   const [filtrosAplicados, setFiltrosAplicados] = useState(filtrosBorrador);
 
@@ -95,7 +102,7 @@ function BuscarTurnosInner() {
     fechaDesde: undefined,
     fechaHasta: undefined,
     practicaGenericaId: undefined,
-    ordenarPor: "-fechaHora",
+    ordenarPor: "fechaHora",
     direccion: "asc",
   };
 
@@ -118,57 +125,42 @@ function BuscarTurnosInner() {
     });
   }, []);
 
-  // Cada cambio de filtro vuelve a consultar los turnos disponibles.
-
-  // Cuando cargamos por primera vez la pagina
-  useEffect(() => {
-    setCargando(true);
-    getTurnos({})
-      .then((data) => {
-        setResultados(data.results ?? data);
-        setCargando(false);
-      })
-      .catch(() => {
-        message.error(t("buscarTurnos.errorCarga"));
-        setCargando(false);
-      });
-  }, []);
-
-  // El useEffect ahora escucha filtrosAplicados, no cada filtro por separado
+  // El useEffect escucha la página actual y los filtros aplicados
   useEffect(() => {
     setCargando(true);
     getTurnos({
-      especialidadGenericaId:   filtrosAplicados.especialidadGenericaId,
-      sedeId:                   filtrosAplicados.sedeId,
-      practicaGenericaId:       filtrosAplicados.practicaGenericaId,
-      fechaDesde:               filtrosAplicados.fechaDesde?.format("YYYY-MM-DD"),
-      fechaHasta:               filtrosAplicados.fechaHasta?.format("YYYY-MM-DD"),
-      ordenarPor:               filtrosAplicados.ordenarPor,
-      direccion :               filtrosAplicados.direccion
+      page: paginaActual,
+      especialidadId: filtrosAplicados.especialidadGenericaId,
+      sedeId: filtrosAplicados.sedeId,
+      practicaId: filtrosAplicados.practicaGenericaId,
+      desde: filtrosAplicados.fechaDesde?.format("YYYY-MM-DD"),
+      hasta: filtrosAplicados.fechaHasta?.format("YYYY-MM-DD"),
+      ordenarPor: filtrosAplicados.ordenarPor?.replace("-", ""),
+      ordenDireccion: filtrosAplicados.direccion
     })
-      .then((data) => {
-        setResultados(data.results ?? data);
+      .then((response) => {
+        const arrayReal = Array.isArray(response?.data) ? response.data : [];
+        setPaginasTotales(response?.paginacion?.totalPaginas ?? 1);
+        setResultados(arrayReal);
         setCargando(false);
       })
       .catch(() => {
         message.error(t("buscarTurnos.errorCarga"));
         setCargando(false);
       });
-  }, [filtrosAplicados]); 
+  }, [filtrosAplicados, paginaActual]); 
 
   const resultadosVisibles = useMemo(() => {
-    const q = filtrosBorrador.medicoQuery.trim().toLowerCase();
+    // 1. Usamos filtrosAplicados, no filtrosBorrador
+    const q = (filtrosAplicados.medicoQuery || "").trim().toLowerCase();
+    
     return resultados
-      .map((turno) => ({
-        ...turno,
-        medicoNombre: medicosById.get(turno.medicoId)?.nombre ?? "—",
-        sedeNombre: sedesById.get(turno.sedeId)?.nombre ?? "—",
-        especialidadNombre: espPersonalizadasById.get(turno.especialidadId)?.nombre ?? "—",
-      }))
-      .filter((turno) => !q || turno.medicoNombre.toLowerCase().includes(q))
+      // 2. Ya no hace falta el .map() con los mocks. Leemos el nombre directo del objeto anidado.
+      .filter((turno) => !q || turno.medico?.nombre?.toLowerCase().includes(q))
+      // 3. Ordenamos
       .sort((a, b) => a.fechaHora.localeCompare(b.fechaHora));
-  }, [resultados, medicoQuery, medicosById, sedesById, espPersonalizadasById]);
-
+  }, [resultados, filtrosAplicados.medicoQuery]);
+  
   const medicoSeleccionado = turnoSeleccionado ? medicosById.get(turnoSeleccionado.medicoId) : null;
   const espSeleccionada = medicoSeleccionado
     ? espPersonalizadasById.get(medicoSeleccionado.especialidadId)
@@ -191,7 +183,8 @@ function BuscarTurnosInner() {
   const limpiar = () => {
     setFiltrosBorrador(FILTROS_DEFAULT);
     setFiltrosAplicados(FILTROS_DEFAULT);
-};
+    setPaginaActual(1);
+  };
 
   return (
     <Layout style={{ background: "#fafafa", minHeight: "100vh" }}>
@@ -236,7 +229,7 @@ function BuscarTurnosInner() {
                     dataSource={resultadosVisibles}
                     renderItem={(turno) => (
                       <List.Item
-                        key={turno.id}
+                        key={turno._id}
                         actions={[
                           <Button type="primary" onClick={() => setTurnoSeleccionado(turno)}>
                             {t("buscarTurnos.reservar")}
@@ -257,13 +250,24 @@ function BuscarTurnosInner() {
                               <span style={{ fontSize: 11, marginTop: 2 }}>{mesAbrev(turno.fechaHora)}</span>
                             </div>
                           }
-                          title={turno.medicoNombre}
+                          title={turno.medico?.nombre}
                           description={
-                            <Space split={<Divider type="vertical" />} wrap>
-                              <Text type="secondary">{turno.especialidadNombre}</Text>
-                              <Text type="secondary"><EnvironmentOutlined /> {turno.sedeNombre}</Text>
-                              <Text type="secondary"><ClockCircleOutlined /> {fmtHora(turno.fechaHora)}</Text>
-                            </Space>
+                            <div style={{ lineHeight: "1.6" }}>
+                              {/* Línea 1: hora y sede */}
+                              <Space split={<Divider type="vertical" />} size={0}>
+                                <Text type="secondary"><ClockCircleOutlined /> {fmtHora(turno.fechaHora)}</Text>
+                                <Text type="secondary"><EnvironmentOutlined /> {turno.sede?.nombre}</Text>
+                              </Space>
+                              {/* Línea 2: especialidades y prácticas con ellipsis */}
+                              <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>
+                                <Text type="secondary">
+                                  {[
+                                    ...(Array.isArray(turno.especialidad) ? turno.especialidad : turno.especialidad ? [turno.especialidad] : []),
+                                    ...(Array.isArray(turno.practica) ? turno.practica : turno.practica ? [turno.practica] : []),
+                                  ].map(s => s?.nombre).filter(Boolean).join(" - ") || "—"}
+                                </Text>
+                              </div>
+                            </div>
                           }
                         />
                       </List.Item>
@@ -271,6 +275,8 @@ function BuscarTurnosInner() {
                   />
                 )}
               </Card>
+              <Pagination align="center" defaultCurrent={1} current={paginaActual} pageSize={10} total={paginasTotales*10} 
+                onChange={(page) => setPaginaActual(page)} />
             </Col>
           </Row>
         </div>

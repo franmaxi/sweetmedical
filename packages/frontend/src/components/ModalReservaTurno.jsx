@@ -25,32 +25,34 @@ export default function ModalReservaTurno({
   const [motivoElegido, setMotivoElegido] = useState(null);
 
   // Cada vez que cambia el turno (se abre el modal con otro) reseteo la opción seleccionada.
-  useEffect(() => { setMotivoElegido(null); }, [turno?.id]);
+  useEffect(() => { setMotivoElegido(null); }, [turno?._id]);
 
   // opciones de motivo: la especialidad del medico + todas sus prácticas.
   // nota: useMemo es un hook de React que sirve para memoizar un valor calculado, evitando recalcularlo innecesariamente si las dependencias no cambian.
   const opciones = useMemo(() => {
-    if (!medico) return [];
+    if (!turno) return [];
     const arr = [];
-    if (especialidadPersonalizada) {
-      arr.push({
+    console.log(turno)
+    console.log(turno.especialidad)
+    const especialidadesTurno = turno.especialidad ? [...turno.especialidad] : []
+    for (const especialidad of especialidadesTurno) {
+      if (especialidad) arr.push({
         tipo: "esp",
-        id: especialidadPersonalizada.id,
-        nombre: `Consulta · ${especialidadPersonalizada.nombre}`,
-        precio: especialidadPersonalizada.costoConsulta,
+        id: especialidad._id,
+        nombre: `Consulta · ${especialidad.nombre}`,
+        precio: especialidad.costo,
       });
     }
-    for (const practicaId of medico.practicas ?? []) {
-      const prac = practicasById.get(practicaId);
-      if (prac) arr.push({
+    for (const practica of [...turno.practica] ?? []) {
+      if (practica) arr.push({
         tipo: "prac",
-        id: prac.id,
-        nombre: `Práctica · ${prac.nombre}`,
-        precio: prac.costo,
+        id: practica._id,
+        nombre: `Práctica · ${practica.nombre}`,
+        precio: practica.costo,
       });
     }
     return arr;
-  }, [medico, especialidadPersonalizada, practicasById]);
+  }, [turno]);
 
   const { t } = useTranslation();
 
@@ -72,7 +74,7 @@ export default function ModalReservaTurno({
             <Text strong style={{ fontSize: 16 }}>{turno.medicoNombre}</Text>
             <br />
             <Text type="secondary">
-              <CalendarOutlined /> {fmtFecha(turno.fechaHora)} · <ClockCircleOutlined /> {fmtHora(turno.fechaHora)} · <EnvironmentOutlined /> {turno.sedeNombre}
+              <CalendarOutlined /> {fmtFecha(turno.fechaHora)} · <ClockCircleOutlined /> {fmtHora(turno.fechaHora)} · <EnvironmentOutlined /> {turno.sede.nombre}
             </Text>
           </div>
 
