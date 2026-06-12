@@ -131,8 +131,8 @@ export const turnoDomainSchema = z.object({
 
     sede: z.union([objectId, sedeDomainSchema]),
 
-    practica: z.union([practicaElemento, z.array(practicaElemento)]).nullable().optional().default(null),
-    especialidad: z.union([especialidadElemento, z.array(especialidadElemento)]).nullable().optional().default(null),
+    practica: z.array(practicaElemento).optional().default([]),
+    especialidad: z.array(especialidadElemento).optional().default([]),
     disponibilidad: z.union([objectId, disponibilidadDomainSchema]).nullable().optional().default(null),
 }).strict("No se permiten campos adicionales en el turno.");
 

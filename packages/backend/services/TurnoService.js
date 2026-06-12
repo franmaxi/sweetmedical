@@ -237,11 +237,11 @@ export class TurnoService {
         turno.modificado = true
         // supuestamente Mongoose admite y entiende el especialidadId como ObjectId y lo permite, para no tener que buscar y meter el objeto
         if (especialidadId != null) {
-            turno.especialidad = especialidadId;
-            turno.practica = null;
+            turno.especialidad = [especialidadId];
+            turno.practica = [];
         } else if (practicaId != null) {
-            turno.practica = practicaId;
-            turno.especialidad = null;
+            turno.practica = [practicaId];
+            turno.especialidad = [];
         }
         await this.turnoRepository.update(turno._id, turno);
 
@@ -350,10 +350,10 @@ export class TurnoService {
         let duracionServicio = null
 
         //debemos confirmar que el medico atiende esa especialidad o practica. Pero no es necesario que sea en el dia
-        if (turno.especialidad) duracionServicio = turno.especialidad.duracionTurnoEnMins
+        if (turno.especialidad?.length) duracionServicio = turno.especialidad[0].duracionTurnoEnMins
 
 
-        if (turno.practica) duracionServicio = turno.practica.duracionTurnoEnMins
+        if (turno.practica?.length) duracionServicio = turno.practica[0].duracionTurnoEnMins
 
         if (!duracionServicio) throw new BadRequestError(`La duracion no debe ser nula`)
 
@@ -369,13 +369,15 @@ export class TurnoService {
         //confirmar que entre en el espacio
         if (listaTurnos.length < turnosNecesarios) throw new UnprocessableEntityError('No hay turnos disponibles suficientes')
 
-        if (turno.especialidad) {
-            const especialidadPertenece = listaTurnos.every(n => n.especialidad.some(m => m.especialidadGenerica._id === turno.especialidad.especialidadGenerica._id))
-            if (!especialidadPertenece) throw new BadRequestError(`El medico no atiende la especialidad ${turno.especialidad.nombre} en todos los turnos necesarios`)
+        if (turno.especialidad?.length) {
+            const esp = turno.especialidad[0];
+            const especialidadPertenece = listaTurnos.every(n => n.especialidad.some(m => m.especialidadGenerica._id === esp.especialidadGenerica._id))
+            if (!especialidadPertenece) throw new BadRequestError(`El medico no atiende la especialidad ${esp.nombre} en todos los turnos necesarios`)
         }
-        if (turno.practica) {
-            const practicaPertenece = listaTurnos.every(n => n.practica.some(m => m.practicaGenerica._id === turno.practica.practicaGene.ica_id))
-            if (!practicaPertenece) throw new BadRequestError(`El médico no atiende la practica ${turno.practica.nombre} en todos los turnos necesarios `)
+        if (turno.practica?.length) {
+            const pra = turno.practica[0];
+            const practicaPertenece = listaTurnos.every(n => n.practica.some(m => m.practicaGenerica._id === pra.practicaGene.ica_id))
+            if (!practicaPertenece) throw new BadRequestError(`El médico no atiende la practica ${pra.nombre} en todos los turnos necesarios `)
         }
 
         const usuario = await this.usuarioService.obtenerPorId(usuarioId)
@@ -412,7 +414,7 @@ export class TurnoService {
             throw new BadRequestError(`El turno ${turnoId} no tiene una solicitud de cambio pendiente`)
         }
 
-        const turnoNuevo = await this.reservarTurno(turnoId, turno.paciente._id, turno.especialidad?._id, turno.practica?._id)
+        const turnoNuevo = await this.reservarTurno(turnoId, turno.paciente._id, turno.especialidad?.[0]?._id, turno.practica?.[0]?._id)
 
         await this.cancelar(turnoId, usuarioId, turno.solicitudCambio.motivo)
 
@@ -867,8 +869,8 @@ export class TurnoService {
             medico: this.getIdDocument(turno.medico),
             fechaHora: turno.fechaHora,
             sede: this.getIdDocument(turno.sede),
-            practica: null,
-            especialidad: null,
+            practica: [],
+            especialidad: [],
             disponibilidad: this.getIdDocument(turno.disponibilidad)
         })
     }

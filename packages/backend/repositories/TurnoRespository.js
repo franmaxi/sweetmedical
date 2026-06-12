@@ -65,12 +65,12 @@ export class TurnoRepository {
             return val;
         };
 
-        const mapArrayOrSingle = (val) => {
-            if (!val) return null;
+        const mapToArray = (val) => {
+            if (!val) return [];
             if (Array.isArray(val)) {
                 return val.map(item => getId(item)).filter(Boolean);
             }
-            return getId(val);
+            return [getId(val)];
         };
 
         return {
@@ -79,8 +79,8 @@ export class TurnoRepository {
             paciente: getId(turno.paciente),
             fechaHora: turno.fechaHora,
             sede: getId(turno.sede),
-            practica: mapArrayOrSingle(turno.practica),
-            especialidad: mapArrayOrSingle(turno.especialidad),
+            practica: mapToArray(turno.practica),
+            especialidad: mapToArray(turno.especialidad),
             estado: turno.estado,
             historialEstados: turno.historialEstados,
             costo: turno.costo,
@@ -279,7 +279,7 @@ export class TurnoRepository {
         return match;
     }
     async obtenerCombinados(turno) {
-        const duracion = turno.especialidad?.duracionTurnoEnMins ?? turno.practica?.duracionTurnoEnMins
+        const duracion = turno.especialidad?.[0]?.duracionTurnoEnMins ?? turno.practica?.[0]?.duracionTurnoEnMins
         const fechaFin = new Date(turno.fechaHora.getTime() + duracion * 60 * 1000)
         return await this.model.find({
             medico: turno.medico._id,

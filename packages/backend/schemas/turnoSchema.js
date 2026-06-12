@@ -30,14 +30,14 @@ const turnoSchema = new mongoose.Schema({
         ref: 'Sede',
         required: true
     },
-    practica:{
-        type: mongoose.Schema.Types.Mixed,
+    practica:[{
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'Practica'
-    },
-    especialidad:{
-        type: mongoose.Schema.Types.Mixed,
+    }],
+    especialidad:[{
+        type: mongoose.Schema.Types.ObjectId,
         ref: 'Especialidad'
-    },
+    }],
     estado:{
         type:  String,
         enum: Object.values(EstadoTurno),

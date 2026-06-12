@@ -14,8 +14,8 @@ export class Turno {
         this.paciente = null
         this.fechaHora = valid.fechaHora //DateTime
         this.sede = valid.sede
-        this.practica = valid.practica // sería una lista cuando se crea el turno, y cuando se reserva un unico valor o null
-        this.especialidad = valid.especialidad // sería una lista cuando se crea el turno, y cuando se reserva un unico valor o null
+        this.practica = valid.practica // siempre es un array (vacío cuando no aplica)
+        this.especialidad = valid.especialidad // siempre es un array (vacío cuando no aplica)
         this.estado = EstadoTurno.DISPONIBLE
         this.historialEstados = []
         this.costo = null
@@ -60,6 +60,6 @@ export class Turno {
     }
 
     esTipoTurno() {
-        return this.practica ? 'practica' : 'especialidad';
+        return this.practica?.length ? 'practica' : 'especialidad';
     }
 }
