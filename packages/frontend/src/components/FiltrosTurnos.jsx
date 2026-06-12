@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { Card, Form, Select, Input, DatePicker, Button } from "antd";
+import { Card, Form, Select, Input, DatePicker, Button, Tooltip } from "antd";
 import { ClearOutlined, SearchOutlined } from "@ant-design/icons";
 
 export default function FiltrosTurnos({
@@ -14,7 +14,19 @@ export default function FiltrosTurnos({
   const { t } = useTranslation();
 
   const set = (campo) => (valor) =>
-    setFiltros((prev) => ({ ...prev, [campo]: valor }));
+    setFiltros((prev) => {
+      const next = { ...prev, [campo]: valor };
+      // Si se deselecciona especialidad o práctica y el ordenamiento es por costo, lo reseteamos
+      const limpiaFiltroServicio =
+        (campo === "especialidadGenericaId" || campo === "practicaGenericaId") && !valor;
+      const ordenaPorCosto = next.ordenarPor === "costoFinal";
+      const quedaSinServicio = !next.especialidadGenericaId && !next.practicaGenericaId;
+      if (limpiaFiltroServicio && ordenaPorCosto && quedaSinServicio) {
+        next.ordenarPor = "fechaHora";
+        next.direccion = "asc";
+      }
+      return next;
+    });
 
   return (
     <Card
@@ -107,7 +119,7 @@ export default function FiltrosTurnos({
             }
           />
         </Form.Item>
-        <Form.Item label={t("buscarTurnos.labelOrdenarPor")  }>
+        <Form.Item label={t("buscarTurnos.labelOrdenarPor")}>
           <Select
             value={`${filtros.ordenarPor},${filtros.direccion}`}
             onChange={(val) => {
@@ -115,13 +127,45 @@ export default function FiltrosTurnos({
               setFiltros(prev => ({ ...prev, ordenarPor, direccion }));
             }}
             options={[
-              { value: "fechaHora,asc", label: t("buscarTurnos.ordenarPorFechaHoraAsc") },
+              { value: "fechaHora,asc",  label: t("buscarTurnos.ordenarPorFechaHoraAsc") },
               { value: "fechaHora,desc", label: t("buscarTurnos.ordenarPorFechaHoraDesc") },
-              { value: "costoFinal,asc", label: t("buscarTurnos.ordenarPorPrecioAsc") },
-              { value: "costoFinal,desc", label: t("buscarTurnos.ordenarPorPrecioDesc") }
+              {
+                value: "costoFinal,asc",
+                disabled: !filtros.especialidadGenericaId && !filtros.practicaGenericaId,
+                label: (
+                  <Tooltip
+                    title={!filtros.especialidadGenericaId && !filtros.practicaGenericaId
+                      ? t("buscarTurnos.ayudaOrdenarPorPrecio")
+                      : null
+                    }
+                    placement="right"
+                  >
+                    <span style={{ display: "block", width: "100%" }}>
+                      {t("buscarTurnos.ordenarPorPrecioAsc")}
+                    </span>
+                  </Tooltip>
+                ),
+              },
+              {
+                value: "costoFinal,desc",
+                disabled: !filtros.especialidadGenericaId && !filtros.practicaGenericaId,
+                label: (
+                  <Tooltip
+                    title={!filtros.especialidadGenericaId && !filtros.practicaGenericaId
+                      ? t("buscarTurnos.ayudaOrdenarPorPrecio")
+                      : null
+                    }
+                    placement="right"
+                  >
+                    <span style={{ display: "block", width: "100%" }}>
+                      {t("buscarTurnos.ordenarPorPrecioDesc")}
+                    </span>
+                  </Tooltip>
+                ),
+              },
             ]}
           />
-      </Form.Item>
+        </Form.Item>
 
         <Button type="primary" block icon={<SearchOutlined />} onClick={onAplicar}>
           {t("buscarTurnos.buscar")}

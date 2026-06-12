@@ -162,15 +162,15 @@ function BuscarTurnosInner() {
       });
   }, [filtrosAplicados, paginaActual]); 
 
-  const resultadosVisibles = useMemo(() => {
-    // 1. Usamos filtrosAplicados, no filtrosBorrador
-    const q = (filtrosAplicados.medicoQuery || "").trim().toLowerCase();
+  // const resultadosVisibles = useMemo(() => {
+  //   // 1. Usamos filtrosAplicados, no filtrosBorrador
+  //   const q = (filtrosAplicados.medicoQuery || "").trim().toLowerCase();
     
-    return resultados
-      // 2. Ya no hace falta el .map() con los mocks. Leemos el nombre directo del objeto anidado.
-      .filter((turno) => !q || turno.medico?.nombre?.toLowerCase().includes(q))
+  //   return resultados
+  //     // 2. Ya no hace falta el .map() con los mocks. Leemos el nombre directo del objeto anidado.
+  //     .filter((turno) => !q || turno.medico?.nombre?.toLowerCase().includes(q))
   
-  }, [resultados, filtrosAplicados.medicoQuery]);
+  // }, [resultados, filtrosAplicados.medicoQuery]);
   
   const medicoSeleccionado = turnoSeleccionado ? medicosById.get(turnoSeleccionado.medicoId) : null;
   const espSeleccionada = medicoSeleccionado
@@ -226,19 +226,19 @@ function BuscarTurnosInner() {
                 <Space style={{ width: "100%", justifyContent: "space-between", marginBottom: 16 }}>
                   <Text>
                     {t("buscarTurnos.resultCount", {
-                      count: resultadosVisibles.length,
-                      plural: resultadosVisibles.length === 1 ? "" : "s",
+                      count: resultados.length,
+                      plural: resultados.length === 1 ? "" : "s",
                     })}
                   </Text>
                 </Space>
 
 
-                {resultadosVisibles.length === 0 && !cargando ? (
+                {resultados.length === 0 && !cargando ? (
                   <Empty description={t("buscarTurnos.noResults")} style={{ padding: "40px 0" }} />
                 ) : (
                   <List
                     loading={cargando}
-                    dataSource={resultadosVisibles}
+                    dataSource={resultados}
                     renderItem={(turno) => (
                       <List.Item
                         key={turno._id}

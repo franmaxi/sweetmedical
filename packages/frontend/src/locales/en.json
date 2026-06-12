@@ -121,7 +121,8 @@
       "cancel": "Back"
     },
     "successReservado": "Appointment booked!",
-    "errorFechaRango": "The from date cannot be later than the to date"
+    "errorFechaRango": "The from date cannot be later than the to date",
+    "ayudaOrdenarPorPrecio": "Select a specialty or procedure to sort by price"
   },
   "agenda": {
     "titulo": "My schedule",

@@ -263,7 +263,7 @@ export class TurnoService {
     //El médico debe confirmar los turnos cuando se reservan
     async confirmarReserva(turnoId, usuarioId) {
         const turno = await this.obtenerPorId(turnoId)
-        this.verificarTurnoExistente(turno, EstadoTurno.RESERVADO, `El turno id ${turnoId} esta en estado ${turno.estado}, deberia ser ${EstadoTurno.RESERVADO}`)
+        this.verificarTurnoExistente(turno, EstadoTurno.CONFIRMADO, `El turno id ${turnoId} esta en estado ${turno.estado}, deberia ser ${EstadoTurno.CONFIRMADO}`)
 
         //El usuario debe ser el médico, sino dar error
         if (turno.medico.usuario._id.toString() !== usuarioId) {
@@ -281,7 +281,7 @@ export class TurnoService {
     //El médico puede rechazar los turnos cuando se reservan
     async rechazarReserva(turnoId, usuarioId, motivoRechazo) {
         const turno = await this.obtenerPorId(turnoId)
-        this.verificarTurnoExistente(turno, EstadoTurno.RESERVADO, `El turno id ${turnoId} esta en estado ${turno.estado}, deberia ser ${EstadoTurno.RESERVADO}`)
+        this.verificarTurnoExistente(turno, EstadoTurno.CONFIRMADO, `El turno id ${turnoId} esta en estado ${turno.estado}, deberia ser ${EstadoTurno.CONFIRMADO}`)
 
         //El usuario debe ser el médico, sino dar error
         if (turno.medico.usuario_id.toString() !== usuarioId) {
@@ -373,12 +373,16 @@ export class TurnoService {
 
         if (turno.especialidad?.length) {
             const esp = turno.especialidad[0];
-            const especialidadPertenece = listaTurnos.every(n => n.especialidad.some(m => m.especialidadGenerica._id === esp.especialidadGenerica._id))
+            const especialidadPertenece = listaTurnos.every(n => 
+                n.especialidad.some(m => String(m) === String(turno.especialidad.especialidadGenerica._id))
+            );
             if (!especialidadPertenece) throw new BadRequestError(`El medico no atiende la especialidad ${esp.nombre} en todos los turnos necesarios`)
         }
         if (turno.practica?.length) {
             const pra = turno.practica[0];
-            const practicaPertenece = listaTurnos.every(n => n.practica.some(m => m.practicaGenerica._id === pra.practicaGene.ica_id))
+            const practicaPertenece = listaTurnos.every(n => 
+                n.practica.some(m => String(m) === String(turno.practica.practicaGenerica._id))
+            );
             if (!practicaPertenece) throw new BadRequestError(`El médico no atiende la practica ${pra.nombre} en todos los turnos necesarios `)
         }
 
@@ -402,8 +406,8 @@ export class TurnoService {
 
     async aceptarCambioDeFecha(turnoId, usuarioId) {
         const turno = await this.obtenerPorId(turnoId)
-        if (turno.estado != EstadoTurno.RESERVADO) {
-            throw new BadRequestError(`El turno id ${turnoId} esta en estado ${turno.estado}, deberia ser ${EstadoTurno.RESERVADO}`)
+        if (turno.estado != EstadoTurno.CONFIRMADO) {
+            throw new BadRequestError(`El turno id ${turnoId} esta en estado ${turno.estado}, deberia ser ${EstadoTurno.CONFIRMADO}`)
         }
 
         //Validacion de usuarioId, que sea el medico o paciente
@@ -453,8 +457,6 @@ export class TurnoService {
         this.notificacionService.notificarCambioEstadoTurno(turno)
         return await this.turnoRepository.update(turnoId, turno)
     }
-
-
 
 
     async cancelar(turnoId, usuarioId, motivo) {
@@ -964,7 +966,7 @@ export class TurnoService {
 
         let fechaFin = fechaFinSolicitada
         if (fechaFin == null) {
-            const fechaFin = new Date(fechaInicio.getTime() + 6 * 24 * 60 * 60 * 1000) //sumo 6 dias en milisegundos
+            fechaFin = new Date(fechaInicio.getTime() + 6 * 24 * 60 * 60 * 1000) //sumo 6 dias en milisegundos
             fechaFin.setUTCHours(23, 59, 59, 999)
         }
 

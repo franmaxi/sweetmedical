@@ -2,6 +2,7 @@ import { TurnoService } from '../services/TurnoService.js';
 import { paramsIdSchema,objectIdSchema} from "../validations/commonValidations.js";
 import {
     turnoBodySchema,
+    batchForzadoQuerySchema,
     estadosBodySchema,
     solicitudFechaCambioBodySchema,
     responderCambioDeFecha,
@@ -192,7 +193,7 @@ export class TurnoController {
     // PATCH /turnos/:id/solicitar-cambio-fecha
     solicitarCambioDeFecha = async (req, res, next) => {
         try {
-            const { turnoId: turnoId } = paramsIdSchema.parse(req.params)
+            const { id: turnoId } = paramsIdSchema.parse(req.params);            
             const { usuarioId, fechaPropuesta, motivo } = solicitudFechaCambioBodySchema.parse(req.body);
 
             const data = await this.turnoService.solicitarCambioDeFecha(turnoId, usuarioId, fechaPropuesta, motivo)
@@ -210,7 +211,7 @@ export class TurnoController {
     // PATCH /turnos/:id/responder-cambio-fecha
     responderCambioDeFecha = async (req, res, next) => {
         try {
-            const { turnoId: turnoId } = paramsIdSchema.parse(req.params)
+            const { id: turnoId } = paramsIdSchema.parse(req.params);            
             const { usuarioId, cambioAceptado } = responderCambioDeFecha.parse(req.body);
             let data
 
@@ -232,7 +233,7 @@ export class TurnoController {
 
     consultarAgenda = async (req, res, next) => {
         try {
-            const { medicoId: medicoId } = paramsIdSchema.parse(req.params);
+            const { id: medicoId } = paramsIdSchema.parse(req.params);
             const especialidadId = req.query.especialidadId ? objectIdSchema.parse(req.query.especialidadId) : null;
             const practicaId = req.query.practicaId ? objectIdSchema.parse(req.query.practicaId) : null;
                 
@@ -249,7 +250,7 @@ export class TurnoController {
 
     generarBatchForzado = async(req, res, next) => {
         try {
-            const { medicoId, fechaInicio, fechaFin } = batchForzadoQuerySchema.parse(req.body)
+            const { medicoId, fechaInicio, fechaFin } = batchForzadoQuerySchema.parse(req.body ?? {})
             await this.turnoService.generarTurnosBatchForzado(medicoId, fechaInicio, fechaFin);
 
             return res.status(200).json({

@@ -89,8 +89,8 @@ export class Agenda {
                     medico: medico,
                     fechaHora: new Date(turnoInicio), // dispo_hora_inicio + (index*duracionTurnos)
                     sede: disponibilidad.sede,
-                    practica: opcionesTurno.practicas,
-                    especialidad: opcionesTurno.especialidades,
+                    practica: opcionesTurno?.practicas ?? [],
+                    especialidad: opcionesTurno?.especialidades ?? [],
                     disponibilidad: disponibilidad
                     //practica: [...(disponibilidad.practicas ?? [])], 
                     //especialidad: [...(disponibilidad.especialidades ?? [])]
@@ -134,7 +134,7 @@ export class Agenda {
             }
         }
         if (resultado === undefined) {
-            throw new UnprocessableEntityError(`No existe un número menor o igual a: ${numero}`)
+            return -1;
         }
         return resultado;
     }

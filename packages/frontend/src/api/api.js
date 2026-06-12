@@ -5,7 +5,7 @@ const API_BASE_URL = process.env.REACT_APP_API_URL
 
 export const getTurnos = async ({
     page = 1,
-    limit = 5,
+    limit = 8,
     pacienteId = "6a22243ea59d0c59c2916fd2",
     ordenarPor,
     ordenDireccion,

@@ -45,7 +45,7 @@ export class TurnoRepository {
             medico: medicoId, // estaba como medico id, pero el turno tiene atributo medico
             estado: EstadoTurno.DISPONIBLE,
             fechaHora: {
-                $gt: fechaTurno,
+                $gte: fechaTurno,
                 $lt: fechaMaximo
             }
         }).sort({ fechaHora: 1 })

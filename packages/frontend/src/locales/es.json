@@ -120,7 +120,8 @@
       "cancel": "Volver"
     },
     "successReservado": "¡Turno reservado!",
-    "errorFechaRango": "La fecha desde no puede ser posterior a la fecha hasta"
+    "errorFechaRango": "La fecha desde no puede ser posterior a la fecha hasta",
+    "ayudaOrdenarPorPrecio": "Seleccioná una especialidad o práctica para ordenar por precio"
   },
   "agenda": {
     "titulo": "Mi agenda",
