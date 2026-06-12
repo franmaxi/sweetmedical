@@ -65,21 +65,46 @@ export default function FiltrosTurnos({
           />
         </Form.Item>
 
-        <Form.Item label={t("buscarTurnos.labelFechaDesde")}>
+        <Form.Item
+          label={t("buscarTurnos.labelFechaDesde")}
+          validateStatus={
+            filtros.fechaDesde && filtros.fechaHasta && filtros.fechaDesde.isAfter(filtros.fechaHasta)
+              ? "error"
+              : ""
+          }
+        >
           <DatePicker
             style={{ width: "100%" }}
             value={filtros.fechaDesde}
             onChange={set("fechaDesde")}
             format="DD/MM/YYYY"
+            disabledDate={(current) =>
+              filtros.fechaHasta ? current && current.isAfter(filtros.fechaHasta, "day") : false
+            }
           />
         </Form.Item>
 
-        <Form.Item label={t("buscarTurnos.labelFechaHasta")}>
+        <Form.Item
+          label={t("buscarTurnos.labelFechaHasta")}
+          validateStatus={
+            filtros.fechaDesde && filtros.fechaHasta && filtros.fechaDesde.isAfter(filtros.fechaHasta)
+              ? "error"
+              : ""
+          }
+          help={
+            filtros.fechaDesde && filtros.fechaHasta && filtros.fechaDesde.isAfter(filtros.fechaHasta)
+              ? t("buscarTurnos.errorFechaRango")
+              : ""
+          }
+        >
           <DatePicker
             style={{ width: "100%" }}
             value={filtros.fechaHasta}
             onChange={set("fechaHasta")}
             format="DD/MM/YYYY"
+            disabledDate={(current) =>
+              filtros.fechaDesde ? current && current.isBefore(filtros.fechaDesde, "day") : false
+            }
           />
         </Form.Item>
         <Form.Item label={t("buscarTurnos.labelOrdenarPor")  }>
@@ -92,8 +117,8 @@ export default function FiltrosTurnos({
             options={[
               { value: "fechaHora,asc", label: t("buscarTurnos.ordenarPorFechaHoraAsc") },
               { value: "fechaHora,desc", label: t("buscarTurnos.ordenarPorFechaHoraDesc") },
-              { value: "precio,asc", label: t("buscarTurnos.ordenarPorPrecioAsc") },
-              { value: "precio,desc", label: t("buscarTurnos.ordenarPorPrecioDesc") }
+              { value: "costoFinal,asc", label: t("buscarTurnos.ordenarPorPrecioAsc") },
+              { value: "costoFinal,desc", label: t("buscarTurnos.ordenarPorPrecioDesc") }
             ]}
           />
       </Form.Item>

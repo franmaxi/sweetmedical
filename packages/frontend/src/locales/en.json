@@ -107,9 +107,9 @@
     "labelOrdenarPor": "Sort by",
     "ordenarPorRelevancia": "Order by relevance",
     "ordenarPorFechaHoraAsc": "Date (ascending)",
-    "ordenarPorFechaHoraDesc": "date (descending)",
-    "ordenarPorPrecioAsc": "price (ascending)",
-    "ordenarPorPrecioDesc": "price (descending)",
+    "ordenarPorFechaHoraDesc": "Date (descending)",
+    "ordenarPorPrecioAsc": "Price (ascending)",
+    "ordenarPorPrecioDesc": "Price (descending)",
     "warningMotivo": "Choose a reason for the appointment",
     "modalMotivoLabel": "Reason for the appointment",
     "modalPriceInfo": "The price depends on the selected specialty or procedure.",
@@ -120,7 +120,8 @@
       "ok": "Book",
       "cancel": "Back"
     },
-    "successReservado": "Appointment booked!"
+    "successReservado": "Appointment booked!",
+    "errorFechaRango": "The from date cannot be later than the to date"
   },
   "agenda": {
     "titulo": "My schedule",

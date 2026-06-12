@@ -119,7 +119,8 @@
       "ok": "Reservar",
       "cancel": "Volver"
     },
-    "successReservado": "¡Turno reservado!"
+    "successReservado": "¡Turno reservado!",
+    "errorFechaRango": "La fecha desde no puede ser posterior a la fecha hasta"
   },
   "agenda": {
     "titulo": "Mi agenda",

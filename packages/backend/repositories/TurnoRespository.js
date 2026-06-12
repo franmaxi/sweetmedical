@@ -1,3 +1,4 @@
+import mongoose from "mongoose"
 import { TurnoModel } from "../schemas/turnoSchema.js"
 import { EspecialidadModel } from "../schemas/especialidadSchema.js"
 import { PracticaModel } from "../schemas/practicaSchema.js"
@@ -251,9 +252,27 @@ export class TurnoRepository {
     async construirMatch(filtros) {
         const match = {};
 
-        if (filtros.estado) match.estado = filtros.estado;
-        if (filtros.medicoId) match.medico = filtros.medicoId;
-        if (filtros.sedeId) match.sede = filtros.sedeId;
+        if (filtros.estado) {
+            if (Array.isArray(filtros.estado)) {
+                match.estado = { $in: filtros.estado };
+            } else {
+                match.estado = filtros.estado;
+            }
+        }
+
+        if (filtros.paciente) {
+            match.paciente = new mongoose.Types.ObjectId(filtros.paciente);
+        }
+
+        const idMedico = filtros.medicoId || filtros.medico;
+        if (idMedico) {
+            match.medico = new mongoose.Types.ObjectId(idMedico);
+        }
+
+        if (filtros.sedeId) {
+            match.sede = new mongoose.Types.ObjectId(filtros.sedeId);
+        }
+
 
         if (filtros.especialidadId) {
             const ids = await EspecialidadModel
@@ -275,7 +294,7 @@ export class TurnoRepository {
             match.fechaHora = {};
             if (filtros.desde) match.fechaHora.$gte = filtros.desde;
             if (filtros.hasta) match.fechaHora.$lte = filtros.hasta;
-        }
+            }
         return match;
     }
     async obtenerCombinados(turno) {

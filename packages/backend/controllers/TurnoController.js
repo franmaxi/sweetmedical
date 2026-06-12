@@ -29,7 +29,12 @@ export class TurnoController {
     findAll = async (req, res, next) => {
         try {
             // el (...filtros) recolecta todo lo que no entró
-            const { page: numeroPagina, limit: limitePorPagina, pacienteId, ordenarPor, ordenDireccion, ...filtros } = turnoQuerySchema.parse(req.query);
+            const { page: numeroPagina, 
+                    limit: limitePorPagina, 
+                    pacienteId, 
+                    ordenarPor, 
+                    ordenDireccion, 
+                    ...filtros } = turnoQuerySchema.parse(req.query);
 
             // Construir el array de ordenamiento para el servicio/repositorio
             const ordenamiento = ordenarPor
@@ -244,7 +249,8 @@ export class TurnoController {
 
     generarBatchForzado = async(req, res, next) => {
         try {
-            await this.turnoService.generarTurnosBatch();
+            const { medicoId, fechaInicio, fechaFin } = batchForzadoQuerySchema.parse(req.body)
+            await this.turnoService.generarTurnosBatchForzado(medicoId, fechaInicio, fechaFin);
 
             return res.status(200).json({
                 status: "success"

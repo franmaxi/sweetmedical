@@ -43,7 +43,9 @@ export class TurnoService {
     }
 
     //nos interesa PARA EL HISTORIAl que nos traiga los turnos realizados, cancelados y reservados, no quiero que aparezcan los combinados (se puede filtrar para que algo no aparezca con mongoose). Chequear si se pueden pasar multiples estados
-    async obtenerTodos({ pacienteId, medicoId, numeroPagina = 1, limitePorPagina = 10, filtros = {}, ordenamiento = [] } = {}) {
+    async obtenerTodos({ pacienteId, numeroPagina = 1, limitePorPagina = 10, filtros = {}, ordenamiento = [] } = {}) {
+
+        const medicoId = filtros.medicoId;
 
         if (pacienteId) {
             const paciente = await this.pacienteRepository.findById(pacienteId);
@@ -136,24 +138,24 @@ export class TurnoService {
 
             const especialidadesConCosto = especialidades.map(e => {
                 const cobertura = plan ? plan.obtenerCoberturaEspecialidad(e) : null;
-                const costoFinal = e.calcularCostoSegunCobertura(cobertura);
-                return { id: e._id, nombre: e.nombre, cobertura: cobertura?.nivel ?? null, costoFinal };
+                const costo = e.calcularCostoSegunCobertura(cobertura);
+                return { id: e._id, nombre: e.nombre, cobertura: cobertura?.nivel ?? null, costo };
             });
 
             const practicasConCosto = practicas.map(p => {
                 const cobertura = plan ? plan.obtenerCoberturaPractica(p) : null;
-                const costoFinal = p.calcularCostoSegunCobertura(cobertura);
-                return { id: p._id, nombre: p.nombre, cobertura: cobertura?.nivel ?? null, costoFinal };
+                const costo = p.calcularCostoSegunCobertura(cobertura);
+                return { id: p._id, nombre: p.nombre, cobertura: cobertura?.nivel ?? null, costo };
             });
 
             return {
                 id: turno._id,
-                profesional: {
+                medico: {
                     id: turno.medico._id,
                     nombre: turno.medico.nombre
                 },
-                especialidades: especialidadesConCosto,
-                practicas: practicasConCosto,
+                especialidad: especialidadesConCosto,
+                practica: practicasConCosto,
                 fechaHora: turno.fechaHora,
                 sede: {
                     id: turno.sede._id,
@@ -943,6 +945,57 @@ export class TurnoService {
             if (val.constructor && val.constructor.name === 'ObjectId') return val.toString();
         }
         return val;
+    }
+
+    // FUncion de admin
+
+    async generarTurnosBatchForzado(medicoId = null, fechaInicioSolicitada = null, fechaFinSolicitada = null) {
+        const diasAntelacionTurno = parseInt(process.env.DIAS_ANTELACION_TURNO)
+        const agenda = new Agenda()
+
+        // determinar fecha inicio y fin
+        // IMPORTANTE -> se trabaja con UTC para no tener problemas con el desfasaje de argentina
+        let fechaInicio = fechaInicioSolicitada
+        if (fechaInicio == null) {
+            fechaInicio = new Date()
+            fechaInicio.setUTCDate(fechaInicio.getUTCDate() + diasAntelacionTurno)
+            fechaInicio.setUTCHours(0, 0, 0, 0)
+        }
+
+        let fechaFin = fechaFinSolicitada
+        if (fechaFin == null) {
+            const fechaFin = new Date(fechaInicio.getTime() + 6 * 24 * 60 * 60 * 1000) //sumo 6 dias en milisegundos
+            fechaFin.setUTCHours(23, 59, 59, 999)
+        }
+
+        // obtenemos medicos
+        let medicos = null
+        if(medicoId != null){
+            medicos = [await this.medicoRepository.findById(medicoId)]
+        } else {
+            medicos = await this.medicoRepository.findAll()
+            console.log("Medicos obtenidos: " + medicos.length);
+        }
+
+        if (medicos == null || medicos.length == 0) {
+            console.log("[Batch] No se encontraron ");
+            return
+        }
+
+        // llamamos a agenda y guardamos los turnos de cada medico
+        const turnosAGuardar = []
+        for (const m of medicos) {
+            console.log("[Batch] Accediendo al medico")
+            const turnosMedico = agenda.generarTurnos(m, fechaInicio, fechaFin, this.duracionTurnos)
+            //console.log(turnosMedico)
+            turnosAGuardar.push(...turnosMedico)
+        }
+
+        if (turnosAGuardar.length > 0) {
+            await this.turnoRepository.saveAllBatch(turnosAGuardar)
+        }
+
+        console.log("[Batch] Se generaron exitosamente " + turnosAGuardar.length + " turnos");
     }
 
 }

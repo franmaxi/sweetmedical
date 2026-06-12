@@ -1,7 +1,4 @@
 import { z } from "zod";
-import { Types } from "mongoose";
-import { Usuario } from "../domain/Usuario.js";
-import { Turno } from "../domain/Turno/Turno.js";
 import { EstadoTurno } from "../domain/Enumerados/EstadoTurno.js";
 import { objectIdSchema } from "./commonValidations.js";
 import { medicoDomainSchema, disponibilidadDomainSchema } from "./medicoValidation.js";
@@ -9,40 +6,36 @@ import { sedeDomainSchema } from "./sedeValidation.js";
 import { practicaDomainSchema } from "./practicaValidation.js";
 import { especialidadDomainSchema } from "./especialidadValidation.js";
 
-// Helper reutilizable para ObjectId
-const objectId = z.string({ required_error: "El ID es requerido." }).refine(val => Types.ObjectId.isValid(val), {
-     message: "Debe ser un ID válido de Mongoose."
- });
 
 // ─── Controller-level schemas (input HTTP) ───
 
 // POST /turnos — crear turno
 export const turnoBodySchema = z.object({
-    medicoId: objectId,
+    medicoId: objectIdSchema,
     fechaHora: z.coerce.date({
         required_error: "La fecha/hora es requerida.",
         invalid_type_error: "La fecha/hora debe ser una fecha válida."
     }),
-    sedeId: objectId,
-    especialidadId: objectId.optional().nullable(),
-    practicaId: objectId.optional().nullable(),
+    sedeId: objectIdSchema,
+    especialidadId: objectIdSchema.optional().nullable(),
+    practicaId: objectIdSchema.optional().nullable(),
     costo: z.number().nonnegative("El costo no puede ser negativo.").optional()
 }).strict("No se permiten campos adicionales en la solicitud.");
 
 // PATCH /turnos/:id/ (reservar, cancelar, realizar)
 export const estadosBodySchema = z.object({
     estado: z.string().optional(),
-    pacienteId: objectId.optional().nullable().default(null),
-    medicoId: objectId.optional().nullable().default(null),
-    especialidadId: objectId.optional().nullable().default(null),
-    practicaId: objectId.optional().nullable().default(null),
-    usuarioId: objectId.optional().nullable().default(null),
+    pacienteId: objectIdSchema.optional().nullable().default(null),
+    medicoId: objectIdSchema.optional().nullable().default(null),
+    especialidadId: objectIdSchema.optional().nullable().default(null),
+    practicaId: objectIdSchema.optional().nullable().default(null),
+    usuarioId: objectIdSchema.optional().nullable().default(null),
     motivo: z.string().trim().nullable().default(null),
 }).strict("No se permiten campos adicionales en la solicitud.");
 
 // PATCH /turnos/:id/solicitar-cambio-fecha
 export const solicitudFechaCambioBodySchema = z.object({
-    usuarioId: objectId,
+    usuarioId: objectIdSchema,
     fechaPropuesta: z.coerce.date({
         required_error: "La fecha y hora propuesta son requeridas.",
         invalid_type_error: "Debe ser una fecha y hora válida (formato ISO 8601 o timestamp)."
@@ -87,17 +80,15 @@ export const responderCambioDeFecha = z.object({
     })
 }).strict("No se permiten campos adicionales en la solicitud.");
 
-
-
 // Filtros de query para GET /turnos (sin paginación, se combinan con turnoQuerySchema)
 export const turnoFiltrosSchema = z.object({
-    medicoId: objectId.optional(),
+    medicoId: objectIdSchema.optional(),
     estado: z.enum(Object.values(EstadoTurno), {
         invalid_type_error: "El estado no es válido."
     }).optional(),
-    especialidadId: objectId.optional(),
-    practicaId: objectId.optional(),
-    sedeId: objectId.optional(),
+    especialidadId: objectIdSchema.optional(),
+    practicaId: objectIdSchema.optional(),
+    sedeId: objectIdSchema.optional(),
     desde: z.coerce.date().optional(),
     hasta: z.coerce.date().optional(),
 });
@@ -106,7 +97,7 @@ export const turnoFiltrosSchema = z.object({
 export const turnoQuerySchema = z.object({
     page: z.coerce.number().int().min(1).default(1),
     limit: z.coerce.number().int().positive().default(10),
-    pacienteId: objectId.optional(),
+    pacienteId: objectIdSchema.optional(),
     ordenarPor: z.enum(['fechaHora', 'costoFinal'], {
         invalid_type_error: "El campo ordenarPor debe ser 'fechaHora' o 'costoFinal'."
     }).optional(),
@@ -119,21 +110,21 @@ export const turnoQuerySchema = z.object({
 // ─── Domain-level schemas (constructor validation) ───
 
 // Turno domain — valida los parámetros del constructor
-const practicaElemento = z.union([objectId, practicaDomainSchema]);
-const especialidadElemento = z.union([objectId, especialidadDomainSchema]);
+const practicaElemento = z.union([objectIdSchema, practicaDomainSchema]);
+const especialidadElemento = z.union([objectIdSchema, especialidadDomainSchema]);
 
 export const turnoDomainSchema = z.object({
-    medico: z.union([objectId, medicoDomainSchema]),
+    medico: z.union([objectIdSchema, medicoDomainSchema]),
     fechaHora: z.coerce.date({
         required_error: "La fecha/hora es requerida.",
         invalid_type_error: "La fecha/hora debe ser una fecha válida (formato ISO o timestamp)."
     }),
 
-    sede: z.union([objectId, sedeDomainSchema]),
+    sede: z.union([objectIdSchema, sedeDomainSchema]),
 
     practica: z.array(practicaElemento).optional().default([]),
     especialidad: z.array(especialidadElemento).optional().default([]),
-    disponibilidad: z.union([objectId, disponibilidadDomainSchema]).nullable().optional().default(null),
+    disponibilidad: z.union([objectIdSchema, disponibilidadDomainSchema]).nullable().optional().default(null),
 }).strict("No se permiten campos adicionales en el turno.");
 
 // CambioEstadoTurno domain — valida parámetros del constructor
@@ -145,4 +136,12 @@ export const cambioEstadoDomainSchema = z.object({
     turno: z.any().refine(val => val != null, { message: "El turno es requerido." }),
     usuario: z.any().refine(val => val != null, { message: "El usuario es requerido." }),
     motivo: z.string().trim().optional().default("Sin motivo"),
+});
+
+// generar batch forzado
+
+export const batchForzadoQuerySchema = z.object({
+    medicoId: objectIdSchema.optional().nullable().default(null),
+    fechaInicio: z.coerce.date().optional(),
+    fechaFin: z.coerce.date().optional(),
 });

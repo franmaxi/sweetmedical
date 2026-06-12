@@ -289,7 +289,8 @@ function BuscarTurnosInner() {
               </Card>
               <Pagination  align="center" defaultCurrent={1} current={paginaActual} pageSize={10} total={paginasTotales*10}
                 style={{ marginTop: '16px' }} 
-                onChange={(page) => setPaginaActual(page)} />
+                onChange={(page) => setPaginaActual(page)} 
+                showSizeChanger = {false}/>
             </Col>
           </Row>
         </div>
