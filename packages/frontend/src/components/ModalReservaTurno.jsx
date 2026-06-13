@@ -37,7 +37,7 @@ export default function ModalReservaTurno({
     for (const especialidad of especialidadesTurno) {
       if (especialidad) arr.push({
         tipo: "esp",
-        id: especialidad._id,
+        id: especialidad.id || especialidad._id,
         nombre: `Consulta · ${especialidad.nombre}`,
         precio: especialidad.costo,
       });
@@ -46,7 +46,7 @@ export default function ModalReservaTurno({
     for (const practica of practicasTurno) {
       if (practica) arr.push({
         tipo: "prac",
-        id: practica._id,
+        id: practica.id || practica._id,
         nombre: `Práctica · ${practica.nombre}`,
         precio: practica.costo,
       });

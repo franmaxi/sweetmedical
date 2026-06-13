@@ -189,7 +189,7 @@ export class TurnoRepository {
 
             {
                 $lookup: {
-                    from: esEspecialidad ? 'especialidads' : 'practicas',
+                    from: esEspecialidad ? 'especialidades' : 'practicas',
                     let: { ids: { $ifNull: [esEspecialidad ? '$especialidad' : '$practica', []] } },
                     pipeline: [
                         {

@@ -24,10 +24,7 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import FiltrosTurnos from "../../components/FiltrosTurnos";
 import ModalReservaTurno from "../../components/ModalReservaTurno";
-import {
-  reservarTurno,
-} from "../../mocks";
-import { getTurnos,getSedes, getMedicos, getPracticasGenericas,getEspecialidadesGenericas } from "../../api/api.js"; 
+import { getTurnos,getSedes, getMedicos, getPracticasGenericas,getEspecialidadesGenericas, reservarTurno } from "../../api/api.js"; 
 
 
 const { Title, Text, Paragraph } = Typography;
@@ -182,10 +179,13 @@ function BuscarTurnosInner() {
       return;
     }
     setReservando(true);
-    await reservarTurno(turnoSeleccionado.id, PACIENTE_ACTIVO);
+    let params = { turnoId: turnoSeleccionado.id || turnoSeleccionado._id };
+    if (motivo.tipo === "esp") params.especialidadId = motivo.id;
+    if (motivo.tipo === "prac") params.practicaId = motivo.id;
+    await reservarTurno(params);
     setReservando(false);
     message.success(t("buscarTurnos.successReservado"));
-    setResultados((r) => r.filter((t) => t.id !== turnoSeleccionado.id));
+    setResultados((r) => r.filter((t) => (t.id || t._id) !== (turnoSeleccionado.id || turnoSeleccionado._id)));
     setTurnoSeleccionado(null);
     navigate("/mis-turnos");
   };

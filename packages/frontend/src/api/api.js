@@ -124,3 +124,28 @@ export const getPracticasGenericas = async ({
         throw error;
     }
 };
+
+export const reservarTurno = async ({
+    turnoId,
+    estado = "RESERVADO",
+    pacienteId = "6a22243ea59d0c59c2916fd2",
+    especialidadId,
+    practicaId
+} = {}) => {
+    try {
+        const payload = { estado, pacienteId };
+        if (especialidadId) payload.especialidadId = especialidadId;
+        if (practicaId) payload.practicaId = practicaId;
+
+        const response = await axios.patch(`${API_BASE_URL}/turnos/${turnoId}`, payload, {
+            headers: {
+                'Cache-Control': 'no-cache'
+            }
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error("Error reservando el turno", error);
+        throw error;
+    }
+};
