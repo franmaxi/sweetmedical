@@ -268,7 +268,7 @@ function BuscarTurnosInner() {
                               {/* Línea 1: hora y sede */}
                               <Space split={<Divider type="vertical" />} size={0}>
                                 <Text type="secondary"><ClockCircleOutlined /> {fmtHora(turno.fechaHora)}</Text>
-                                <Text type="secondary"><EnvironmentOutlined /> {turno.sede?.nombre}{turno.sede?.direccion ? `, ${turno.sede.direccion}` : ""}</Text>
+                                <Text type="secondary"><EnvironmentOutlined /> {turno.sede?.nombre}</Text>
                               </Space>
                               {/* Línea 2: especialidades y prácticas con ellipsis */}
                               <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>
