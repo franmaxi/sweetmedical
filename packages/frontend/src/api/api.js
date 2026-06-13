@@ -62,7 +62,7 @@ export const getSedes = async ({
 
         return response.data;
     } catch (error) {
-        console.error("Error obteniendo los turnos", error);
+        console.error("Error obteniendo las sedes", error);
         throw error;
     }
 };
@@ -78,7 +78,7 @@ export const getMedicos = async ({
 
         return response.data;
     } catch (error) {
-        console.error("Error obteniendo los turnos", error);
+        console.error("Error obteniendo los medicos", error);
         throw error;
     }
 };
@@ -99,7 +99,7 @@ export const getEspecialidadesGenericas = async ({
 
         return response.data;
     } catch (error) {
-        console.error("Error obteniendo los turnos", error);
+        console.error("Error al obtener especialidades genericas", error);
         throw error;
     }
 };
@@ -120,7 +120,7 @@ export const getPracticasGenericas = async ({
 
         return response.data;
     } catch (error) {
-        console.error("Error obteniendo los turnos", error);
+        console.error("Error al obtener practicas genericas ", error);
         throw error;
     }
 };
@@ -145,7 +145,98 @@ export const reservarTurno = async ({
 
         return response.data;
     } catch (error) {
-        console.error("Error reservando el turno", error);
+        console.error("Error reservando un turno", error);
         throw error;
     }
 };
+
+export const getServicios = async ({
+    medicoId = "6a14c252688165715658e489"
+} = {}) => {
+    try {
+        const response = await axios.get(`${API_BASE_URL}/medicos/${medicoId}/servicios`, {
+            headers: {
+                'Cache-Control': 'no-cache'
+            }
+        });
+
+        return response.data;
+    } catch (error) {
+        console.error("Error obteniendo los servicios del médico", error);
+        throw error;
+    }
+};
+
+export const crearEspecialidad = async ({
+    medicoId = "6a14c252688165715658e489",
+    especialidadGenericaId,
+    duracionTurnoEnMins,
+    costo,
+} = {}) => {
+    try {
+        const response = await axios.post(`${API_BASE_URL}/medicos/${medicoId}/servicios`, {
+            especialidad: { especialidadGenericaId, duracionTurnoEnMins, costo },
+            practica: null,
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error creando especialidad", error);
+        throw error;
+    }
+};
+
+export const crearPractica = async ({
+    medicoId = "6a14c252688165715658e489",
+    practicaGenericaId,
+    duracionTurnoEnMins,
+    costo,
+} = {}) => {
+    try {
+        const response = await axios.post(`${API_BASE_URL}/medicos/${medicoId}/servicios`, {
+            especialidad: null,
+            practica: { practicaGenericaId, duracionTurnoEnMins, costo },
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error creando práctica", error);
+        throw error;
+    }
+};
+
+export const editarServicio = async ({
+    medicoId = "6a14c252688165715658e489",
+    especialidadId = null,
+    practicaId = null,
+    duracionTurnoEnMins,
+    costo,
+} = {}) => {
+    try {
+        const response = await axios.put(`${API_BASE_URL}/medicos/${medicoId}/servicios`, {
+            especialidadId,
+            practicaId,
+            duracionTurnoEnMins,
+            costo,
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error editando servicio", error);
+        throw error;
+    }
+};
+
+export const eliminarServicio = async ({
+    medicoId = "6a14c252688165715658e489",
+    especialidadId = null,
+    practicaId = null,
+} = {}) => {
+    try {
+        const response = await axios.delete(`${API_BASE_URL}/medicos/${medicoId}/servicios`, {
+            data: { especialidadId, practicaId },
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error eliminando servicio", error);
+        throw error;
+    }
+};
+

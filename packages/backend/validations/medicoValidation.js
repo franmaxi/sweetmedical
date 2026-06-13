@@ -1,5 +1,8 @@
 import { z } from "zod"
 import { objectIdSchema } from "./commonValidations.js"
+import { especialidadBodySchema } from "./especialidadValidation.js";
+import { practicaBodySchema } from "./practicaValidation.js";
+
 
 // MEDICO BODY CONTROLLER
 export const medicoBodySchema = z.object({

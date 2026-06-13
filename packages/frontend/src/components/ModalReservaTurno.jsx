@@ -7,8 +7,10 @@ const { Title, Text, Paragraph } = Typography;
 
 const fmtFecha = (iso) => iso.slice(0, 10);
 const fmtHora = (iso) => iso.slice(11, 16);
-const fmtMoneda = (n) =>
-  new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(n);
+const fmtMoneda = (n) => {
+  if (n === 0 || n === "Sin costo" || !n) return "Sin costo";
+  return new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(n);
+};
 
 /* Modal para reservar un turno. Recibe el turno, el médico (con sus prácticas
  y especialidad personalizada resuelta) y dispara onReservar(motivoElegido)
@@ -39,7 +41,7 @@ export default function ModalReservaTurno({
         tipo: "esp",
         id: especialidad.id || especialidad._id,
         nombre: `Consulta · ${especialidad.nombre}`,
-        precio: especialidad.costo,
+        precio: especialidad.costo || 0,
       });
     }
     const practicasTurno = Array.isArray(turno.practica) ? turno.practica : [];
@@ -48,7 +50,7 @@ export default function ModalReservaTurno({
         tipo: "prac",
         id: practica.id || practica._id,
         nombre: `Práctica · ${practica.nombre}`,
-        precio: practica.costo,
+        precio: practica.costo || 0,
       });
     }
     return arr;

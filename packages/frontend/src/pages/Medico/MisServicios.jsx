@@ -17,17 +17,8 @@ import {
 import { DeleteOutlined, EditOutlined, LoadingOutlined, PlusOutlined } from "@ant-design/icons";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
-import {
-  getEspecialidadesDeMedico,
-  agregarEspecialidad,
-  editarEspecialidad,
-  eliminarEspecialidad,
-  getPracticasDeMedico,
-  agregarPractica,
-  editarPractica,
-  eliminarPractica,
-} from "../../mocks";
-import { getEspecialidadesGenericas, getPracticasGenericas } from "../../api/api";
+import { getEspecialidadesGenericas, getPracticasGenericas, getServicios, crearEspecialidad, crearPractica, editarServicio, eliminarServicio } from "../../api/api";
+
 const { Title, Text } = Typography;
 
 const MEDICO_ID = 1; //todo: sacar cuando se integre con el login real
@@ -80,14 +71,14 @@ function MisServiciosInner() {
 
   const recargar = () => {
     setCargando(true);
-    Promise.all([
-      getEspecialidadesDeMedico(MEDICO_ID),
-      getPracticasDeMedico(MEDICO_ID),
-    ]).then(([esp, prac]) => {
-      setEspecialidades(esp);
-      setPracticas(prac);
-      setCargando(false);
-    });
+    getServicios()
+      .then((res) => {
+        const esp = Array.isArray(res?.data?.especialidades) ? res.data.especialidades : [];
+        const prac = Array.isArray(res?.data?.practicas) ? res.data.practicas : [];
+        setEspecialidades(esp);
+        setPracticas(prac);
+      })
+      .finally(() => setCargando(false));
   };
 
   useEffect(() => {
@@ -113,7 +104,7 @@ function MisServiciosInner() {
       formEsp.setFieldsValue({
         especialidadGenericaId: item.especialidadGenericaId,
         duracionTurnoEnMins: item.duracionTurnoEnMins,
-        costoConsulta: item.costoConsulta,
+        costo: item.costo,
       });
     } else {
       formEsp.resetFields();
@@ -130,10 +121,11 @@ function MisServiciosInner() {
     setGuardando(true);
     try {
       if (especialidadEnModal) {
-        await editarEspecialidad(especialidadEnModal.id, values);
+        const id = especialidadEnModal._id || especialidadEnModal.id;
+        await editarServicio({ especialidadId: id, duracionTurnoEnMins: values.duracionTurnoEnMins, costo: values.costo });
         message.success("Especialidad actualizada");
       } else {
-        await agregarEspecialidad(MEDICO_ID, values);
+        await crearEspecialidad({ especialidadGenericaId: values.especialidadGenericaId, duracionTurnoEnMins: values.duracionTurnoEnMins, costo: values.costoConsulta ?? values.costo });
         message.success("Especialidad agregada");
       }
       setEspecialidadEnModal(false);
@@ -152,7 +144,7 @@ function MisServiciosInner() {
       okButtonProps: { danger: true },
       cancelText: "Cancelar",
       onOk: async () => {
-        await eliminarEspecialidad(MEDICO_ID, item.id);
+        await eliminarServicio({ especialidadId: item._id || item.id });
         message.success("Especialidad eliminada");
         recargar();
       },
@@ -182,10 +174,11 @@ function MisServiciosInner() {
     setGuardando(true);
     try {
       if (practicaEnModal) {
-        await editarPractica(practicaEnModal.id, values);
+        const id = practicaEnModal._id || practicaEnModal.id;
+        await editarServicio({ practicaId: id, duracionTurnoEnMins: values.duracionTurnoEnMins, costo: values.costo });
         message.success("Práctica actualizada");
       } else {
-        await agregarPractica(MEDICO_ID, values);
+        await crearPractica({ practicaGenericaId: values.practicaGenericaId, duracionTurnoEnMins: values.duracionTurnoEnMins, costo: values.costo });
         message.success("Práctica agregada");
       }
       setPracticaEnModal(false);
@@ -204,7 +197,7 @@ function MisServiciosInner() {
       okButtonProps: { danger: true },
       cancelText: "Cancelar",
       onOk: async () => {
-        await eliminarPractica(MEDICO_ID, item.id);
+        await eliminarServicio({ practicaId: item._id || item.id });
         message.success("Práctica eliminada");
         recargar();
       },
@@ -229,7 +222,7 @@ function MisServiciosInner() {
   const columnasEspecialidades = [
     { title: "Especialidad", dataIndex: "nombre" },
     { title: "Duración del turno", dataIndex: "duracionTurnoEnMins", render: (v) => `${v} min` },
-    { title: "Costo de consulta", dataIndex: "costoConsulta", render: precio },
+    { title: "Costo", dataIndex: "costo", render: precio },
     accionesColumna(abrirEspecialidad, eliminarEsp),
   ];
 
@@ -313,19 +306,21 @@ function MisServiciosInner() {
           maskClosable={!guardando}
         >
           <Form form={formEsp} layout="vertical">
-            <Form.Item
-              name="especialidadGenericaId"
-              label="Especialidad"
-              rules={[{ required: true, message: "Elegí una especialidad" }]}
-            >
-              <Select
-                showSearch
-                optionFilterProp="label"
-                placeholder="Elegí una especialidad"
-                loading={genericasCargando}
-                options={especialidadesGenericas.map((g) => ({ value: g._id || g.id, label: g.nombre }))}
-              />
-            </Form.Item>
+            {!especialidadEnModal && (
+              <Form.Item
+                name="especialidadGenericaId"
+                label="Especialidad"
+                rules={[{ required: true, message: "Elegí una especialidad" }]}
+              >
+                <Select
+                  showSearch
+                  optionFilterProp="label"
+                  placeholder="Elegí una especialidad"
+                  loading={genericasCargando}
+                  options={especialidadesGenericas.map((g) => ({ value: g._id || g.id, label: g.nombre }))}
+                />
+              </Form.Item>
+            )}
             <Form.Item
               name="duracionTurnoEnMins"
               label="Duración del turno (minutos)"
@@ -349,8 +344,8 @@ function MisServiciosInner() {
               />
             </Form.Item>
             <Form.Item
-              name="costoConsulta"
-              label="Costo de consulta"
+              name="costo"
+              label="Costo"
               rules={[{ required: true, message: "Ingresá el costo" }]}
             >
               <InputNumber min={0} step={500} prefix="$" style={{ width: "100%" }} />
@@ -370,19 +365,21 @@ function MisServiciosInner() {
           maskClosable={!guardando}
         >
           <Form form={formPrac} layout="vertical">
-            <Form.Item
-              name="practicaGenericaId"
-              label="Práctica"
-              rules={[{ required: true, message: "Elegí una práctica" }]}
-            >
-              <Select
-                showSearch
-                optionFilterProp="label"
-                placeholder="Elegí una práctica"
-                loading={genericasCargando}
-                options={practicasGenericas.map((g) => ({ value: g._id || g.id, label: g.nombre }))}
-              />
-            </Form.Item>
+            {!practicaEnModal && (
+              <Form.Item
+                name="practicaGenericaId"
+                label="Práctica"
+                rules={[{ required: true, message: "Elegí una práctica" }]}
+              >
+                <Select
+                  showSearch
+                  optionFilterProp="label"
+                  placeholder="Elegí una práctica"
+                  loading={genericasCargando}
+                  options={practicasGenericas.map((g) => ({ value: g._id || g.id, label: g.nombre }))}
+                />
+              </Form.Item>
+            )}
           
             <Form.Item
               name="duracionTurnoEnMins"
