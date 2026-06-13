@@ -175,25 +175,6 @@ export class MedicoController {
     obtenerServicios = async (req, res, next) => {
         try {
             const { id: medicoId } = paramsIdSchema.parse(req.params);
-            const { especialidades, practicas } = serviciosBodySchema.parse(req.body);
-            const medicoActualizado = await this.medicoService.agregarServicios(
-                medicoId,
-                especialidades,
-                practicas
-            );
-            return res.status(200).json({
-                status: "success",
-                data: medicoActualizado
-            });
-        } catch (error) {
-            return next(error);
-        }
-    }
-
-    // GET /medicos/:id/servicios
-    obtenerServicios = async (req, res, next) => {
-        try {
-            const { id: medicoId } = paramsIdSchema.parse(req.params);
             const servicios = await this.medicoService.obtenerServicios(medicoId);
             return res.status(200).json({
                 status: "success",
