@@ -46,6 +46,10 @@ export class MedicoService {
             totalMedicos
         };
     }
+    
+    async obtenerTodosShort() {
+        return await this.medicoRepository.obtenerTodosShort();
+    }
 
     async obtenerPorId(id) {
         const validId = objectIdSchema.parse(String(id));

@@ -2,19 +2,21 @@ import { Types } from "mongoose"
 import { z } from "zod"
 
 //----- CONTROLLER Y SERVICE -----
-export const practicaGenericaBodySchema = z.object({
+const practicaBaseBodySchema = z.object({
     codigo: z.string({ required_error: "El campo codigo es requerido." })
         .trim().min(1, "El campo codigo no puede estar vacío."),
     nombre: z.string({ required_error: "El campo nombre es requerido." })
-        .trim().min(1, "El campo nombre no puede estar vacío."),
+        .trim().min(1, "El campo nombre no puede estar vacío.")
+});
+
+export const practicaGenericaBodySchema = practicaBaseBodySchema.extend({
     emoji: z.string({
         required_error: "El campo emoji es requerido.",
         invalid_type_error: "El campo emoji debe ser un texto."
     }).emoji("El campo debe contener un emoji válido.")
 }).strict("No se permiten campos adicionales en la solicitud.");
 
-//La practica hereda de la generica
-export const practicaBodySchema = practicaGenericaBodySchema.extend({
+export const practicaBodySchema = practicaBaseBodySchema.extend({
     id: z.any().optional(),
     duracionTurnoEnMins: z.number({ required_error: "El campo duracionTurnoEnMins es requerido." })
         .int("La duración debe ser un número entero.")
@@ -24,9 +26,7 @@ export const practicaBodySchema = practicaGenericaBodySchema.extend({
         .positive("El costo debe ser un número mayor a 0."),
 }).strict("No se permiten campos adicionales en la solicitud.");
 
-
 //-----DOMINIO-----
-
 // Schema base de dominio (sin emoji, usado por la hija Practica)
 export const practicaBaseDomainSchema = z.object({
     _id: z.any().optional(),

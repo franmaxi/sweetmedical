@@ -43,6 +43,19 @@ export class MedicoController {
         }
     }
 
+    findAllShort = async (req, res, next) => {
+        try {
+            const medicosShort = await this.medicoService.obtenerTodosShort();
+            
+            return res.status(200).json({
+                status: "success",
+                data: medicosShort
+            });
+        } catch (error) {
+            return next(error);
+        }
+    }
+
     create = async (req, res, next) => {
         try {
             const datosMedico = medicoBodySchema.parse(req.body);

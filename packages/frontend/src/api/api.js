@@ -67,18 +67,13 @@ export const getSedes = async ({
     }
 };
 export const getMedicos = async ({
-    page = 1,
-    limit = 100,
+
 } = {}) => {
     try {
-        const response = await axios.get(`${API_BASE_URL}/medicos/`, {
+        const response = await axios.get(`${API_BASE_URL}/medicos/short`, {
             headers: {
                 'Cache-Control': 'no-cache'
             },
-            params: {
-                page,
-                limit,
-            }
         });
 
         return response.data;
@@ -87,7 +82,7 @@ export const getMedicos = async ({
         throw error;
     }
 };
-export const getEspecialidades = async ({
+export const getEspecialidadesGenericas = async ({
     page = 1,
     limit = 100,
 } = {}) => {
@@ -108,7 +103,7 @@ export const getEspecialidades = async ({
         throw error;
     }
 };
-export const getPracticas = async ({
+export const getPracticasGenericas = async ({
     page = 1,
     limit = 100,
 } = {}) => {

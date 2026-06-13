@@ -25,12 +25,9 @@ import Footer from "../../components/Footer";
 import FiltrosTurnos from "../../components/FiltrosTurnos";
 import ModalReservaTurno from "../../components/ModalReservaTurno";
 import {
-  getEspecialidadesGenericas,
-  getEspecialidades,
-  getPracticas,
   reservarTurno,
 } from "../../mocks";
-import { getTurnos,getSedes, getMedicos } from "../../api/api.js"; 
+import { getTurnos,getSedes, getMedicos, getPracticasGenericas,getEspecialidadesGenericas } from "../../api/api.js"; 
 
 
 const { Title, Text, Paragraph } = Typography;
@@ -89,6 +86,8 @@ function BuscarTurnosInner() {
   const [sedesById, setSedesById] = useState(new Map());
   const [espPersonalizadasById, setEspPersonalizadasById] = useState(new Map());
   const [practicasById, setPracticasById] = useState(new Map());
+  const [especialidesById, setEspecialidadesById] = useState(new Map());
+
   const [medicos, setMedicos] = useState([]);
 
   // Resultados y modal de reserva.
@@ -123,18 +122,25 @@ function BuscarTurnosInner() {
       getSedes(),
       getMedicos(),
       getEspecialidadesGenericas(),
-      getPracticasGenercias()
+      getPracticasGenericas()
     ]).then(([sedesResponse, medicosResponse, especialidadesResponse, practicasResponse]) => {
+
       const listaSedes = Array.isArray(sedesResponse?.data) ? sedesResponse.data : [];
       const listaMedicos = Array.isArray(medicosResponse?.data) ? medicosResponse.data : [];
-      setEspecialidadesGenericas(genericas);
+      const listaEspecialidades = Array.isArray(especialidadesResponse?.data) ? especialidadesResponse.data : [];
+      const listaPracticas = Array.isArray(practicasResponse?.data) ? practicasResponse.data : [];
+
       setSedes(listaSedes);
       setMedicos(listaMedicos);
-      setPracticasGenericas(listaPrac);
-      setMedicosById(new Map(listaMedicos.map((s) => [s._id ?? s.id, s])));
+      setEspecialidadesGenericas(listaEspecialidades);
+      setPracticasGenericas(listaPracticas);
+
       setSedesById(new Map(listaSedes.map((s) => [s._id ?? s.id, s])));
-      setEspPersonalizadasById(new Map(listaEsp.map((e) => [e.id, e])));
-      setPracticasById(new Map(listaPrac.map((p) => [p.id, p])));
+      setMedicosById(new Map(listaMedicos.map((s) => [s._id ?? s.id, s])));
+      setEspecialidadesById(new Map(listaEspecialidades.map((s) => [s._id ?? s.id, s])));
+      setPracticasById(new Map(listaPracticas.map((s) => [s._id ?? s.id, s])));
+
+     
     });
   }, []);
 

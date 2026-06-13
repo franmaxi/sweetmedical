@@ -2,25 +2,34 @@ import { Types } from "mongoose"
 import { z } from "zod"
 
 //----- CONTROLLER Y SERVICE -----
-export const especialidadGenericaBodySchema = z.object({
+const especialidadBaseBodySchema = z.object({
     nombre: z.string({
         required_error: "El campo nombre es requerido.",
         invalid_type_error: "El campo nombre debe ser un texto."
-    }).trim().min(1, "El campo nombre no puede estar vacío."),
+    }).trim().min(1, "El campo nombre no puede estar vacío.")
+});
+
+export const especialidadGenericaBodySchema = especialidadBaseBodySchema.extend({
     emoji: z.string({
         required_error: "El campo emoji es requerido.",
         invalid_type_error: "El campo emoji debe ser un texto."
     }).emoji("El campo debe contener un emoji válido.")
 }).strict("No se permiten campos adicionales en la solicitud.");
 
-//La especialidad hereda de la generica
-export const especialidadBodySchema = especialidadGenericaBodySchema.extend({
+export const especialidadBodySchema = especialidadBaseBodySchema.extend({
+    especialidadGenerica: z.string({
+        required_error: "El ID de la especialidad genérica es requerido."
+    }).refine(val => Types.ObjectId.isValid(val), {
+        message: "Debe ser un ID válido de Mongoose."
+    }).optional(),
+
     duracionTurnoEnMins: z.number({
         required_error: "El campo duracionTurnoEnMins es requerido.",
         invalid_type_error: "El campo duracionTurnoEnMins debe ser un número."
-    }) .int("La duración debe ser un número entero.")
-        .positive("La duración debe ser un número mayor a 0.")
-        .multipleOf(15, "La duración del turno debe ser múltiplo de 15 minutos"),
+    }).int("La duración debe ser un número entero.")
+      .positive("La duración debe ser un número mayor a 0.")
+      .multipleOf(15, "La duración del turno debe ser múltiplo de 15 minutos"),
+      
     costo: z.number({
         required_error: "El campo costo es requerido.",
         invalid_type_error: "El campo costo debe ser un número."

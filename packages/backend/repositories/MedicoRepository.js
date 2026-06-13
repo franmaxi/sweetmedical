@@ -35,6 +35,11 @@ export class MedicoRepository{
             pagina
         }
     }
+    async obtenerTodosShort() {
+        // Find filtra los no eliminados. 
+        // Select limita los campos devueltos a _id y nombre.
+        return await this.model.find({ eliminado: false }).select('nombre');
+    }
 
     async findById(id) {
         return await this.#populate(this.model.findOne({ _id: id, eliminado: false }))

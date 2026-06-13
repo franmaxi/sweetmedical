@@ -8,6 +8,8 @@ const router = express.Router()
 router.route('/')
     .get((req, res, next) => medicoController.findAll(req, res, next))
 	.post((req, res, next) => medicoController.create(req, res, next))
+router.route('/short')
+	.get((req, res, next) => medicoController.findAllShort(req, res, next))
 
 router.route('/:id')
 	.get((req, res, next) => medicoController.findById(req, res, next))

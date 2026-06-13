@@ -18,6 +18,11 @@ export default function FiltrosTurnos({
   const set = (campo) => (valor) =>
     setFiltros((prev) => {
       const next = { ...prev, [campo]: valor };
+
+      // Exclusividad mutua: elegir especialidad limpia práctica y viceversa
+      if (campo === "especialidadGenericaId" && valor) next.practicaGenericaId = undefined;
+      if (campo === "practicaGenericaId"     && valor) next.especialidadGenericaId = undefined;
+
       // Si se deselecciona especialidad o práctica y el ordenamiento es por costo, lo reseteamos
       const limpiaFiltroServicio =
         (campo === "especialidadGenericaId" || campo === "practicaGenericaId") && !valor;
@@ -41,31 +46,43 @@ export default function FiltrosTurnos({
     >
       <Form layout="vertical">
         <Form.Item label={t("buscarTurnos.labelEspecialidad")}>
-          <Select
-            placeholder={t("buscarTurnos.placeholderTodas")}
-            allowClear
-            showSearch
-            filterOption={(input, option) =>
-              (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
-            }
-            value={filtros.especialidadGenericaId}
-            onChange={set("especialidadGenericaId")}
-            options={especialidadesGenericas.map((e) => ({ value: e.id, label: e.nombre }))}
-          />
+          <Tooltip
+            title={filtros.practicaGenericaId ? t("buscarTurnos.ayudaEspecialidadBloqueada", "Ya filtraste por práctica. Limpiá ese filtro para buscar por especialidad.") : null}
+            placement="right"
+          >
+            <Select
+              placeholder={t("buscarTurnos.placeholderTodas")}
+              allowClear
+              showSearch
+              disabled={!!filtros.practicaGenericaId}
+              filterOption={(input, option) =>
+                (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+              }
+              value={filtros.especialidadGenericaId}
+              onChange={set("especialidadGenericaId")}
+              options={especialidadesGenericas.map((m) => ({ value: m._id ?? m.id, label: m.nombre }))}
+            />
+          </Tooltip>
         </Form.Item>
 
         <Form.Item label={t("buscarTurnos.labelPractica")}>
-          <Select
-            placeholder={t("buscarTurnos.placeholderTodas")}
-            allowClear
-            showSearch
-            filterOption={(input, option) =>
-              (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
-            }
-            value={filtros.practicaGenericaId}
-            onChange={set("practicaGenericaId")}
-            options={practicasGenericas.map((e) => ({ value: e.id, label: e.nombre }))}
-          />
+          <Tooltip
+            title={filtros.especialidadGenericaId ? t("buscarTurnos.ayudaPracticaBloqueada", "Ya filtraste por especialidad. Limpiá ese filtro para buscar por práctica.") : null}
+            placement="right"
+          >
+            <Select
+              placeholder={t("buscarTurnos.placeholderTodas")}
+              allowClear
+              showSearch
+              disabled={!!filtros.especialidadGenericaId}
+              filterOption={(input, option) =>
+                (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+              }
+              value={filtros.practicaGenericaId}
+              onChange={set("practicaGenericaId")}
+              options={practicasGenericas.map((m) => ({ value: m._id ?? m.id, label: m.nombre }))}
+            />
+          </Tooltip>
         </Form.Item>
 
         <Form.Item label={t("buscarTurnos.labelMedico")}>
