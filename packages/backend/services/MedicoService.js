@@ -119,60 +119,59 @@ export class MedicoService {
 
     // ======================= SERVICIOS =============================
 
-    async agregarServicios(medicoId, especialidades, practicas) {
+    async obtenerServicios(medicoId) {
+        const validMedicoId = objectIdSchema.parse(String(medicoId));
+        const medico = await this.obtenerPorId(validMedicoId);
+        return {
+            especialidades: medico.especialidades || [],
+            practicas: medico.practicas || []
+        };
+    }
+
+    async agregarServicio(medicoId, especialidad, practica) {
         const validMedicoId = objectIdSchema.parse(String(medicoId));
         const medico = await this.obtenerPorId(validMedicoId); // lanza NotFoundError si no existe
 
-        //Usaremos sesiones transaccionales. Si algo falla, se revierte completo y no se guardará nada.
-        const session = await mongoose.startSession()
-        session.startTransaction();
+        if (especialidad) {
+            // Acoplamiento por ID de la genérica (viene del body como especialidadGenericaId)
+            const especialidadGenerica = await this.especialidadService.obtenerPorIdGenerica(especialidad.especialidadGenericaId);
+            // obtenerPorIdGenerica ya lanza NotFoundError si no existe
 
-        try{
-            for(const especialidad of especialidades){
-                if (especialidad) {
-                    const especialidadGenerica = await this.especialidadService.obtenerPorNombreGenerica(especialidad.nombre);
-                    if (!especialidadGenerica) {
-                        throw new NotFoundError(`La especialidad genérica '${especialidad.nombre}' no existe en el sistema.`);
-                    }
-                    if (medico.especialidadGenericaPertenece(especialidadGenerica._id)) {
-                        throw new BadRequestError("El medico ya tiene la especialidad: "+ especialidad.nombre)
-                    } 
-                    const especialidadCreada = await this.especialidadService.crear(especialidad,especialidadGenerica._id, session)
-                    medico.agregarEspecialidad(especialidadCreada);
-                }
-            }
-            
-            for(const practica of practicas){
-                if (practica) {
-                    const practicaGenerica = await this.practicaService.obtenerPorCodigoGenerica(practica.codigo);
-                    if (!practicaGenerica) {
-                        throw new NotFoundError(`La práctica genérica con código '${practica.codigo}' no existe en el sistema.`);
-                    }
-
-                    if (practicaGenerica.nombre.toLowerCase() !== practica.nombre.toLowerCase()) {
-                        throw new BadRequestError(`El código '${practica.codigo}' corresponde a la práctica '${practicaGenerica.nombre}', no a '${practica.nombre}'.`);
-                    }
-
-                    if (medico.practicaGenericaPertenece(practicaGenerica._id)) {
-                        throw new BadRequestError("El médico ya tiene asignada la práctica: " + practica.nombre);
-                    }
-
-                    const practicaCreada = await this.practicaService.crear(practica,practicaGenerica._id, session)
-                    medico.agregarPractica(practicaCreada);
-                }
+            if (medico.especialidadGenericaPertenece(especialidadGenerica._id)) {
+                throw new BadRequestError("El médico ya tiene asignada la especialidad: " + especialidadGenerica.nombre);
             }
 
-            const medicoGuardado = await this.medicoRepository.update(medico._id,medico, session);
-
-            await session.commitTransaction();
-            return medicoGuardado;
-
-        } catch(error){
-            await session.abortTransaction();
-            throw error;
-        } finally {
-            session.endSession();
+            // Inyectamos nombre desde la genérica — el cliente no lo envía
+            const especialidadCreada = await this.especialidadService.crear({
+                nombre: especialidadGenerica.nombre,
+                especialidadGenericaId: especialidad.especialidadGenericaId,
+                duracionTurnoEnMins: especialidad.duracionTurnoEnMins,
+                costo: especialidad.costo
+            }, especialidadGenerica._id);
+            medico.agregarEspecialidad(especialidadCreada);
         }
+
+        if (practica) {
+            // Acoplamiento por ID de la genérica (viene del body como practicaGenericaId)
+            const practicaGenerica = await this.practicaService.obtenerPorIdGenerica(practica.practicaGenericaId);
+            // obtenerPorIdGenerica ya lanza NotFoundError si no existe
+
+            if (medico.practicaGenericaPertenece(practicaGenerica._id)) {
+                throw new BadRequestError("El médico ya tiene asignada la práctica: " + practicaGenerica.nombre);
+            }
+
+            // Inyectamos nombre y codigo desde la genérica — el cliente no los envía
+            const practicaCreada = await this.practicaService.crear({
+                nombre: practicaGenerica.nombre,
+                codigo: practicaGenerica.codigo,
+                practicaGenericaId: practica.practicaGenericaId,
+                duracionTurnoEnMins: practica.duracionTurnoEnMins,
+                costo: practica.costo
+            }, practicaGenerica._id);
+            medico.agregarPractica(practicaCreada);
+        }
+
+        return await this.medicoRepository.update(medico._id, medico);
     }
 
     async modificarServicio(medicoId, especialidadId, practicaId, datosServicio) {

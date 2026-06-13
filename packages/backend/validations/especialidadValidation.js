@@ -17,11 +17,11 @@ export const especialidadGenericaBodySchema = especialidadBaseBodySchema.extend(
 }).strict("No se permiten campos adicionales en la solicitud.");
 
 export const especialidadBodySchema = especialidadBaseBodySchema.extend({
-    especialidadGenerica: z.string({
+    especialidadGenericaId: z.string({
         required_error: "El ID de la especialidad genérica es requerido."
     }).refine(val => Types.ObjectId.isValid(val), {
-        message: "Debe ser un ID válido de Mongoose."
-    }).optional(),
+        message: "El especialidadGenericaId debe ser un ID válido de Mongoose."
+    }),
 
     duracionTurnoEnMins: z.number({
         required_error: "El campo duracionTurnoEnMins es requerido.",

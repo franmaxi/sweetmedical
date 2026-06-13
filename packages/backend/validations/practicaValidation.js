@@ -17,7 +17,11 @@ export const practicaGenericaBodySchema = practicaBaseBodySchema.extend({
 }).strict("No se permiten campos adicionales en la solicitud.");
 
 export const practicaBodySchema = practicaBaseBodySchema.extend({
-    id: z.any().optional(),
+    practicaGenericaId: z.string({
+        required_error: "El ID de la práctica genérica es requerido."
+    }).refine(val => Types.ObjectId.isValid(val), {
+        message: "El practicaGenericaId debe ser un ID válido de Mongoose."
+    }),
     duracionTurnoEnMins: z.number({ required_error: "El campo duracionTurnoEnMins es requerido." })
         .int("La duración debe ser un número entero.")
         .positive("La duración debe ser un número mayor a 0.")

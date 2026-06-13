@@ -1,7 +1,5 @@
 import { z } from "zod"
 import { objectIdSchema } from "./commonValidations.js"
-import { especialidadBodySchema } from "./especialidadValidation.js";
-import { practicaBodySchema } from "./practicaValidation.js";
 
 // MEDICO BODY CONTROLLER
 export const medicoBodySchema = z.object({
@@ -83,18 +81,39 @@ export const updateDisponibilidadBodySchema = z.object({
     practicas: z.array(objectIdSchema).optional()
 })
 
-// Schema para AGREGAR servicios (arrays, usado en POST)
-export const serviciosBodySchema = z.object({
-    especialidades: z.array(especialidadBodySchema, {
-        invalid_type_error: "Las especialidades deben ser una lista."
-    }).default([]),
-    practicas: z.array(practicaBodySchema, {
-        invalid_type_error: "Las prácticas deben ser una lista."
-    }).default([])
-}).refine(data => data.especialidades.length > 0 || data.practicas.length > 0, {
-    message: "Debe proporcionar al menos una especialidad o una práctica.",
-    path: ["especialidades", "practicas"]
+// Schemas internos del body para agregar un servicio (el back inyecta nombre/codigo desde la genérica)
+const especialidadServicioBodySchema = z.object({
+    especialidadGenericaId: objectIdSchema,
+    duracionTurnoEnMins: z.number({
+        required_error: "El campo duracionTurnoEnMins es requerido.",
+        invalid_type_error: "El campo duracionTurnoEnMins debe ser un número."
+    }).int().positive().multipleOf(15),
+    costo: z.number({
+        required_error: "El campo costo es requerido.",
+        invalid_type_error: "El campo costo debe ser un número."
+    }).nonnegative()
 });
+
+const practicaServicioBodySchema = z.object({
+    practicaGenericaId: objectIdSchema,
+    duracionTurnoEnMins: z.number({
+        required_error: "El campo duracionTurnoEnMins es requerido.",
+        invalid_type_error: "El campo duracionTurnoEnMins debe ser un número."
+    }).int().positive().multipleOf(15),
+    costo: z.number({
+        required_error: "El campo costo es requerido.",
+        invalid_type_error: "El campo costo debe ser un número."
+    }).positive()
+});
+
+// Schema para AGREGAR un único servicio (POST) — exactamente uno de los dos debe estar presente
+export const agregarServicioBodySchema = z.object({
+    especialidad: especialidadServicioBodySchema.nullable().default(null),
+    practica:     practicaServicioBodySchema.nullable().default(null)
+}).refine(
+    data => (data.especialidad !== null) !== (data.practica !== null),
+    { message: "Debe proporcionar exactamente uno de 'especialidad' o 'practica', no ambos ni ninguno." }
+);
 
 // Schema para MODIFICAR un servicio — exactamente uno de los dos IDs debe ser no-null
 export const modificarServicioBodySchema = z.object({

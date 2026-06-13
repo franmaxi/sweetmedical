@@ -26,7 +26,8 @@ router.route('/:id/disponibilidades/:disponibilidadId')
 	.delete((req, res, next) => medicoController.eliminarDisponibilidad(req, res, next))
 
 router.route('/:id/servicios')
-	.post((req, res, next) => medicoController.agregarServicios(req, res, next))
+	.get((req, res, next) => medicoController.obtenerServicios(req, res, next))
+	.post((req, res, next) => medicoController.agregarServicio(req, res, next))
 	.put((req, res, next) => medicoController.modificarServicio(req, res, next))
 	.delete((req, res, next) => medicoController.eliminarServicio(req, res, next))
 

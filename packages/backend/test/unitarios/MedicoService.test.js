@@ -38,7 +38,7 @@ const createMockEspecialidadService = () => ({
   crear: jest.fn(),
   actualizar: jest.fn(),
   eliminar: jest.fn(),
-  obtenerPorNombreGenerica: jest.fn()
+  obtenerPorIdGenerica: jest.fn()
 });
 
 const createMockPracticaService = () => ({
@@ -46,7 +46,7 @@ const createMockPracticaService = () => ({
   crear: jest.fn(),
   actualizar: jest.fn(),
   eliminar: jest.fn(),
-  obtenerPorCodigoGenerica: jest.fn()
+  obtenerPorIdGenerica: jest.fn()
 });
 
 const createMockTurnoService = () => ({});
@@ -189,21 +189,22 @@ describe('MedicoService', () => {
 
   test('agregarServicio lanza BadRequestError si médico ya tiene especialidad', async () => {
     const medico = new Medico({ usuario: 'user-1', matricula: 'M-123', nombre: 'Dr. House' });
-    const especialidadGenerica = { _id: 'esp-gen-1', nombre: 'Cardiología' };
+    const espGenId = new Types.ObjectId().toString();
+    const especialidadGenerica = { _id: espGenId, nombre: 'Cardiología' };
     const especialidad = {
-      especialidadGenerica: 'esp-gen-1',
+      especialidadGenericaId: espGenId,
       nombre: 'Cardiología',
       duracionTurnoEnMins: 30,
       costo: 1200
     };
 
     mockMedicoRepository.findById.mockResolvedValue(medico);
-    mockEspecialidadService.obtenerPorNombreGenerica.mockResolvedValue(especialidadGenerica);
+    mockEspecialidadService.obtenerPorIdGenerica.mockResolvedValue(especialidadGenerica);
 
     // Agregar especialidad primera vez
     const especialidadCreada = { _id: 'esp-1', ...especialidad };
     mockEspecialidadService.crear.mockResolvedValue(especialidadCreada);
-    mockMedicoRepository.save.mockResolvedValue(medico);
+    mockMedicoRepository.update.mockResolvedValue(medico);
 
     await medicoService.agregarServicio(MEDICO_ID, especialidad, null);
 
@@ -212,6 +213,20 @@ describe('MedicoService', () => {
     await expect(
       medicoService.agregarServicio(MEDICO_ID, especialidad, null)
     ).rejects.toThrow(BadRequestError);
+  });
+
+  test('obtenerServicios retorna especialidades y prácticas del médico', async () => {
+    const medico = {
+      ...createMedico(),
+      especialidades: [{ _id: 'esp-1', nombre: 'Cardiología' }],
+      practicas: [{ _id: 'prac-1', nombre: 'Eco' }]
+    };
+    mockMedicoRepository.findById.mockResolvedValue(medico);
+
+    const resultado = await medicoService.obtenerServicios(MEDICO_ID);
+
+    expect(resultado.especialidades).toEqual(medico.especialidades);
+    expect(resultado.practicas).toEqual(medico.practicas);
   });
 
   test('obtenerDisponibilidades retorna lista de disponibilidades', async () => {

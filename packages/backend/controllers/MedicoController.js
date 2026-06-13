@@ -4,7 +4,7 @@ import {
     medicoBodySchema, 
     medicoBodyUpdateSchema, 
     disponibilidadBodySchema, 
-    serviciosBodySchema,
+    agregarServicioBodySchema,
     modificarServicioBodySchema,
     eliminarServicioBodySchema,
     sedesBodySchema,
@@ -171,8 +171,8 @@ export class MedicoController {
         }
     }
 
-    // POST /medicos/:id/servicios
-    agregarServicios = async (req, res, next) => {
+    // GET /medicos/:id/servicios
+    obtenerServicios = async (req, res, next) => {
         try {
             const { id: medicoId } = paramsIdSchema.parse(req.params);
             const { especialidades, practicas } = serviciosBodySchema.parse(req.body);
@@ -182,6 +182,39 @@ export class MedicoController {
                 practicas
             );
             return res.status(200).json({
+                status: "success",
+                data: medicoActualizado
+            });
+        } catch (error) {
+            return next(error);
+        }
+    }
+
+    // GET /medicos/:id/servicios
+    obtenerServicios = async (req, res, next) => {
+        try {
+            const { id: medicoId } = paramsIdSchema.parse(req.params);
+            const servicios = await this.medicoService.obtenerServicios(medicoId);
+            return res.status(200).json({
+                status: "success",
+                data: servicios
+            });
+        } catch (error) {
+            return next(error);
+        }
+    }
+
+    // POST /medicos/:id/servicios
+    agregarServicio = async (req, res, next) => {
+        try {
+            const { id: medicoId } = paramsIdSchema.parse(req.params);
+            const { especialidad, practica } = agregarServicioBodySchema.parse(req.body);
+            const medicoActualizado = await this.medicoService.agregarServicio(
+                medicoId,
+                especialidad,
+                practica
+            );
+            return res.status(201).json({
                 status: "success",
                 data: medicoActualizado
             });
