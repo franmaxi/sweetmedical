@@ -205,7 +205,7 @@
       "passwordLabel": "Contraseña",
       "placeholderPassword": "Ingresá una contraseña",
       "errorPassword": "Ingresá una contraseña",
-      "errorPasswordMin": "Mínimo 4 caracteres",
+      "errorPasswordMin": "Mínimo 8 caracteres",
       "obraSocialLabel": "Obra social",
       "placeholderObraSocial": "Elegí una obra social",
       "errorObraSocial": "Elegí una obra social",

@@ -22,19 +22,18 @@ export default function ModalReservaTurno({
   onReservar,
   reservando,
 }) {
-  const [motivoElegido, setMotivoElegido] = useState(null);
+  // Guardamos el ÍNDICE de la opción elegida para evitar cualquier problema
+  // de comparación de ObjectIds o strings.
+  const [motivoIdx, setMotivoIdx] = useState(null);
 
   // Cada vez que cambia el turno (se abre el modal con otro) reseteo la opción seleccionada.
-  useEffect(() => { setMotivoElegido(null); }, [turno?._id]);
+  useEffect(() => { setMotivoIdx(null); }, [turno]);
 
-  // opciones de motivo: la especialidad del medico + todas sus prácticas.
-  // nota: useMemo es un hook de React que sirve para memoizar un valor calculado, evitando recalcularlo innecesariamente si las dependencias no cambian.
+  // opciones de motivo: las especialidades + prácticas del turno.
   const opciones = useMemo(() => {
     if (!turno) return [];
     const arr = [];
-    console.log(turno)
-    console.log(turno.especialidad)
-    const especialidadesTurno = turno.especialidad ? [...turno.especialidad] : []
+    const especialidadesTurno = Array.isArray(turno.especialidad) ? turno.especialidad : [];
     for (const especialidad of especialidadesTurno) {
       if (especialidad) arr.push({
         tipo: "esp",
@@ -43,7 +42,8 @@ export default function ModalReservaTurno({
         precio: especialidad.costo,
       });
     }
-    for (const practica of [...turno.practica] ?? []) {
+    const practicasTurno = Array.isArray(turno.practica) ? turno.practica : [];
+    for (const practica of practicasTurno) {
       if (practica) arr.push({
         tipo: "prac",
         id: practica._id,
@@ -53,6 +53,9 @@ export default function ModalReservaTurno({
     }
     return arr;
   }, [turno]);
+
+  // La opción elegida se deriva del índice guardado en el estado.
+  const motivoElegido = motivoIdx !== null ? opciones[motivoIdx] ?? null : null;
 
   const { t } = useTranslation();
 
@@ -69,12 +72,12 @@ export default function ModalReservaTurno({
     >
       {turno && (
         <Space direction="vertical" size="middle" style={{ width: "100%" }}>
-          
+
           <div>
             <Text strong style={{ fontSize: 16 }}>{turno.medicoNombre}</Text>
             <br />
             <Text type="secondary">
-              <CalendarOutlined /> {fmtFecha(turno.fechaHora)} · <ClockCircleOutlined /> {fmtHora(turno.fechaHora)} · <EnvironmentOutlined /> {turno.sede.nombre}
+              <CalendarOutlined /> {fmtFecha(turno.fechaHora)} · <ClockCircleOutlined /> {fmtHora(turno.fechaHora)} · <EnvironmentOutlined /> {turno.sede?.nombre}{turno.sede?.direccion ? `, ${turno.sede.direccion}` : ""}
             </Text>
           </div>
 
@@ -86,21 +89,13 @@ export default function ModalReservaTurno({
               {t("buscarTurnos.modalPriceInfo")}
             </Paragraph>
             <Radio.Group
-            // el value del radio group concatena el tipo y el id para poder identificar la opción elegida, 
-            // o sea hace algo como "esp-3" o "prac-5". 
-            // En resuemen, es para no confundir las especialidades y practicas en caso que el id sea el mismo
-            // todo: validar
-              value={motivoElegido ? `${motivoElegido.tipo}-${motivoElegido.id}` : null}
-              onChange={(e) => {
-                const [tipo, id] = e.target.value.split("-");
-                setMotivoElegido(opciones.find((o) => o.tipo === tipo && String(o.id) === id));
-              }}
+              value={motivoIdx}
+              onChange={(e) => setMotivoIdx(e.target.value)}
               style={{ width: "100%" }}
-
             >
               <Space direction="vertical" size="small" style={{ width: "100%" }}>
-                {opciones.map((o) => (
-                  <Radio key={`${o.tipo}-${o.id}`} value={`${o.tipo}-${o.id}`} style={{ width: "100%" }}>
+                {opciones.map((o, idx) => (
+                  <Radio key={idx} value={idx} style={{ width: "100%" }}>
                     <Space style={{ justifyContent: "space-between", width: "100%" }}>
                       <span>{o.nombre}</span>
                       <Text type="secondary">{fmtMoneda(o.precio)}</Text>
@@ -116,7 +111,7 @@ export default function ModalReservaTurno({
               <Divider style={{ margin: 0 }} />
               <Space style={{ width: "100%", justifyContent: "space-between" }}>
                 <Text strong>{t("buscarTurnos.total")}</Text>
-                <Title level={4} color="#be123c" style={{ margin: 0, color: "#be123c" }}>
+                <Title level={4} style={{ margin: 0, color: "#be123c" }}>
                   {fmtMoneda(motivoElegido.precio)}
                 </Title>
               </Space>

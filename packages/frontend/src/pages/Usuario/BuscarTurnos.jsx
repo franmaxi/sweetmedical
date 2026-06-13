@@ -170,15 +170,6 @@ function BuscarTurnosInner() {
       });
   }, [filtrosAplicados, paginaActual]); 
 
-  // const resultadosVisibles = useMemo(() => {
-  //   // 1. Usamos filtrosAplicados, no filtrosBorrador
-  //   const q = (filtrosAplicados.medicoQuery || "").trim().toLowerCase();
-    
-  //   return resultados
-  //     // 2. Ya no hace falta el .map() con los mocks. Leemos el nombre directo del objeto anidado.
-  //     .filter((turno) => !q || turno.medico?.nombre?.toLowerCase().includes(q))
-  
-  // }, [resultados, filtrosAplicados.medicoQuery]);
   
   const medicoSeleccionado = turnoSeleccionado ? medicosById.get(turnoSeleccionado.medicoId) : null;
   const espSeleccionada = medicoSeleccionado
@@ -277,7 +268,7 @@ function BuscarTurnosInner() {
                               {/* Línea 1: hora y sede */}
                               <Space split={<Divider type="vertical" />} size={0}>
                                 <Text type="secondary"><ClockCircleOutlined /> {fmtHora(turno.fechaHora)}</Text>
-                                <Text type="secondary"><EnvironmentOutlined /> {turno.sede?.nombre}</Text>
+                                <Text type="secondary"><EnvironmentOutlined /> {turno.sede?.nombre}{turno.sede?.direccion ? `, ${turno.sede.direccion}` : ""}</Text>
                               </Space>
                               {/* Línea 2: especialidades y prácticas con ellipsis */}
                               <div style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "100%" }}>

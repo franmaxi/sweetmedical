@@ -89,7 +89,7 @@
   "buscarTurnos": {
     "encabezado": "Book your appointment",
     "titulo": "Search available appointments",
-    "subtitulo": "Filter by specialty, Practice, doctor, location or date to find the appointment that suits you best.",
+    "subtitulo": "Filter by specialty, practice, doctor, location or date to find the appointment that suits you best.",
     "filtrosTitulo": "Filters",
     "limpiar": "Clear",
     "buscar": "Search",
