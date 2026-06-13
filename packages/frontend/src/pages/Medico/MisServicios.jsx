@@ -18,7 +18,6 @@ import { DeleteOutlined, EditOutlined, LoadingOutlined, PlusOutlined } from "@an
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import {
-  getEspecialidadesGenericas,
   getEspecialidadesDeMedico,
   agregarEspecialidad,
   editarEspecialidad,
@@ -28,7 +27,7 @@ import {
   editarPractica,
   eliminarPractica,
 } from "../../mocks";
-
+import { getEspecialidadesGenericas, getPracticasGenericas } from "../../api/api";
 const { Title, Text } = Typography;
 
 const MEDICO_ID = 1; //todo: sacar cuando se integre con el login real
@@ -48,7 +47,8 @@ function MisServiciosInner() {
 
   const [especialidades, setEspecialidades] = useState([]);
   const [practicas, setPracticas] = useState([]);
-  const [genericas, setGenericas] = useState([]);
+  const [especialidadesGenericas, setEspecialidadesGenericas] = useState([]);
+  const [practicasGenericas, setPracticasGenericas] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [genericasCargando, setGenericasCargando] = useState(true);
   const [guardando, setGuardando] = useState(false);
@@ -59,6 +59,24 @@ function MisServiciosInner() {
   const [practicaEnModal, setPracticaEnModal] = useState(false);
   const [formEsp] = Form.useForm();
   const [formPrac] = Form.useForm();
+
+  const handleDuracionStep = (form, value, info) => {
+    // info.type es 'up' o 'down'. El valor recibido ya tiene sumado/restado el step (15)
+    const oldValue = info.type === 'up' ? value - 15 : value + 15;
+    let snapped;
+    if (info.type === 'up') {
+      snapped = Math.floor(oldValue / 15) * 15 + 15;
+    } else {
+      snapped = Math.ceil(oldValue / 15) * 15 - 15;
+    }
+    if (snapped < 15) snapped = 15;
+    if (snapped > 240) snapped = 240;
+
+    setTimeout(() => {
+      form.setFieldsValue({ duracionTurnoEnMins: snapped });
+      form.validateFields(['duracionTurnoEnMins']);
+    }, 0);
+  };
 
   const recargar = () => {
     setCargando(true);
@@ -73,8 +91,15 @@ function MisServiciosInner() {
   };
 
   useEffect(() => {
-    getEspecialidadesGenericas().then((g) => {
-      setGenericas(g);
+    Promise.all([
+      getEspecialidadesGenericas(),
+      getPracticasGenericas()
+    ]).then(([especialidadesResponse, practicasResponse]) => {
+      const listaEspecialidades = Array.isArray(especialidadesResponse?.data) ? especialidadesResponse.data : [];
+      const listaPracticas = Array.isArray(practicasResponse?.data) ? practicasResponse.data : [];
+
+      setEspecialidadesGenericas(listaEspecialidades);
+      setPracticasGenericas(listaPracticas);
       setGenericasCargando(false);
     });
     recargar();
@@ -138,7 +163,7 @@ function MisServiciosInner() {
     setPracticaEnModal(item);
     if (item) {
       formPrac.setFieldsValue({
-        nombre: item.nombre,
+        practicaGenericaId: item.practicaGenericaId,
         duracionTurnoEnMins: item.duracionTurnoEnMins,
         costo: item.costo,
       });
@@ -264,7 +289,7 @@ function MisServiciosInner() {
     <Layout style={{ background: "#fafafa", minHeight: "100vh" }}>
       <Navbar />
       <Layout.Content style={{ maxWidth: 980, margin: "0 auto", padding: "clamp(20px, 4vw, 32px) clamp(12px, 4vw, 24px)", width: "100%" }}>
-        <Title level={2} style={{ marginBottom: 4 }}>Mis especialidades y prácticas</Title>
+        <Title level={2} style={{ marginBottom: 4 }}>Mis Servicios</Title>
         <Text type="secondary">Gestioná las especialidades que atendés y las prácticas que realizás.</Text>
 
         <Tabs
@@ -298,15 +323,30 @@ function MisServiciosInner() {
                 optionFilterProp="label"
                 placeholder="Elegí una especialidad"
                 loading={genericasCargando}
-                options={genericas.map((g) => ({ value: g.id, label: g.nombre }))}
+                options={especialidadesGenericas.map((g) => ({ value: g._id || g.id, label: g.nombre }))}
               />
             </Form.Item>
             <Form.Item
               name="duracionTurnoEnMins"
               label="Duración del turno (minutos)"
-              rules={[{ required: true, message: "Ingresá la duración" }]}
+              rules={[
+                { required: true, message: "Ingresá la duración" },
+                { validator: (_, value) => {
+                    if (value && value % 15 !== 0) {
+                      return Promise.reject(new Error("La duración debe ser múltiplo de 15"));
+                    }
+                    return Promise.resolve();
+                  }
+                }
+              ]}
             >
-              <InputNumber min={5} max={240} step={5} style={{ width: "100%" }} />
+              <InputNumber 
+                min={15} 
+                max={240} 
+                step={15} 
+                style={{ width: "100%" }} 
+                onStep={(val, info) => handleDuracionStep(formEsp, val, info)}
+              />
             </Form.Item>
             <Form.Item
               name="costoConsulta"
@@ -331,19 +371,40 @@ function MisServiciosInner() {
         >
           <Form form={formPrac} layout="vertical">
             <Form.Item
-              name="nombre"
-              label="Nombre"
-              rules={[{ required: true, message: "Ingresá el nombre" }]}
+              name="practicaGenericaId"
+              label="Práctica"
+              rules={[{ required: true, message: "Elegí una práctica" }]}
             >
-              <Input placeholder="Ej: Electrocardiograma" />
+              <Select
+                showSearch
+                optionFilterProp="label"
+                placeholder="Elegí una práctica"
+                loading={genericasCargando}
+                options={practicasGenericas.map((g) => ({ value: g._id || g.id, label: g.nombre }))}
+              />
             </Form.Item>
           
             <Form.Item
               name="duracionTurnoEnMins"
               label="Duración del turno (minutos)"
-              rules={[{ required: true, message: "Ingresá la duración" }]}
+              rules={[
+                { required: true, message: "Ingresá la duración" },
+                { validator: (_, value) => {
+                    if (value && value % 15 !== 0) {
+                      return Promise.reject(new Error("La duración debe ser múltiplo de 15"));
+                    }
+                    return Promise.resolve();
+                  }
+                }
+              ]}
             >
-              <InputNumber min={5} max={240} step={5} style={{ width: "100%" }} />
+              <InputNumber 
+                min={15} 
+                max={240} 
+                step={15} 
+                style={{ width: "100%" }} 
+                onStep={(val, info) => handleDuracionStep(formPrac, val, info)}
+              />
             </Form.Item>
             <Form.Item
               name="costo"
