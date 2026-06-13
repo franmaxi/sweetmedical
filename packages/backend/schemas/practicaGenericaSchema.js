@@ -14,6 +14,11 @@ const practicaGenericaSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    emoji: {
+        type: String,
+        required: true,
+        trim: true
+    },
     eliminado: {
         type: Boolean,
         default: false

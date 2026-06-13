@@ -8,7 +8,7 @@ import {
     NotFoundError,
 } from "../errors/AppErrors.js";
 import { paginacionSchema, objectIdSchema, stringNoNuloSchema } from "../validations/commonValidations.js";
-import { practicaBodySchema, practicaGenericaBodySchema } from "../validations/practicaValidation.js";
+import { practicaBodySchema, practicaGenericaBodySchema, practicaUpdateBodySchema } from "../validations/practicaValidation.js";
 
 export class PracticaService {
     constructor({
@@ -88,21 +88,14 @@ export class PracticaService {
 
     async actualizar(id, datosPractica, session = null) {
         const validId = objectIdSchema.parse(id);
-        const validDatos = practicaBodySchema.parse(datosPractica);
+        const validDatos = practicaUpdateBodySchema.parse(datosPractica);
         const practicaExistente = await this.practicaRepository.findById(validId);
         if (!practicaExistente) {
             throw new NotFoundError(`No se encontró una practica con el id ${id}`);
         }
 
-        if (practicaExistente?.nombre.toLowerCase() !== validDatos?.nombre.toLowerCase()) {
-            throw new BadRequestError("No se puede modificar el nombre de una practica. Se deberá modificar la genérica");
-        }
-        if (practicaExistente?.codigo.toLowerCase() !== validDatos?.codigo.toLowerCase()) {
-            throw new BadRequestError("No se puede modificar el codigo de una practica. Se deberá modificar la genérica");
-        }
-
-        practicaExistente.costo = validDatos.costo;
-        practicaExistente.duracionTurnoEnMins = validDatos.duracionTurnoEnMins;
+        if (validDatos.duracionTurnoEnMins !== undefined) practicaExistente.duracionTurnoEnMins = validDatos.duracionTurnoEnMins;
+        if (validDatos.costo !== undefined) practicaExistente.costo = validDatos.costo;
 
         return await this.practicaRepository.update(validId, practicaExistente, session);
     }
@@ -150,8 +143,7 @@ export class PracticaService {
     }
 
 
-    async crearGenerica(datosPGenerica) {
-        const validDatos = practicaGenericaBodySchema.parse(datosPGenerica);
+    async crearGenerica(validDatos) {
 
         if (await this.practicaGenericaRepository.findOneByNombre(validDatos.nombre) != null) {
             throw new ConflictError("Ya existe una practica de nombre: " + validDatos.nombre);
@@ -161,34 +153,36 @@ export class PracticaService {
             throw new ConflictError("Ya existe una practica de codigo: " + validDatos.codigo);
         }
         
-        const practicaGenerica = new PracticaGenerica({ nombre: validDatos.nombre, codigo: validDatos.codigo });
+        const practicaGenerica = new PracticaGenerica({ nombre: validDatos.nombre, codigo: validDatos.codigo , emoji: validDatos.emoji});
     
         return await this.practicaGenericaRepository.save(practicaGenerica);
     }
 
     async actualizarGenerica(id, datosNuevos) {
-        const validId = objectIdSchema.parse(id);
-        const validDatos = practicaGenericaBodySchema.parse(datosNuevos);
+        await this.validarDatosNuevos(id, datosNuevos);
 
-        await this.validarDatosNuevos(validId, validDatos);
-        
-        const practicaGenerica = await this.obtenerPorIdGenerica(validId);
+        const practicaGenerica = await this.obtenerPorIdGenerica(id);
 
-        practicaGenerica.nombre = validDatos.nombre;
-        practicaGenerica.codigo = validDatos.codigo;
+        const seDebeModificarHijas = (datosNuevos.nombre !== practicaGenerica.nombre) || (datosNuevos.codigo !== practicaGenerica.codigo)
 
-        const practicasHijas = await this.obtenerPorIdPadre(validId);
+        practicaGenerica.nombre = datosNuevos.nombre;
+        practicaGenerica.codigo = datosNuevos.codigo;
+        practicaGenerica.emoji = datosNuevos.emoji;
 
-        if (practicasHijas.length > 0) {
-            const cambios = { 
-                nombre: validDatos.nombre, 
-                codigo: validDatos.codigo 
-            };
-            const idsHijas = practicasHijas.map(e => e._id);
-            await this.practicaRepository.updateMany(idsHijas, cambios);
+        if(seDebeModificarHijas){
+            const practicasHijas = await this.obtenerPorIdPadre(id);
+
+            if (practicasHijas.length > 0) {
+                const cambios = { 
+                    nombre: datosNuevos.nombre, 
+                    codigo: datosNuevos.codigo 
+                };
+                const idsHijas = practicasHijas.map(e => e._id);
+                await this.practicaRepository.updateMany(idsHijas, cambios);
+            }
         }
 
-        return await this.practicaGenericaRepository.update(validId, practicaGenerica);
+        return await this.practicaGenericaRepository.update(id, practicaGenerica);
     }
 
     async obtenerPorIdGenerica(id) {

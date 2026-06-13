@@ -1,11 +1,12 @@
 import { especialidadGenericaDomainSchema } from "../../../validations/especialidadValidation.js"
 
 export class EspecialidadGenerica {
-    constructor({ nombre }) {
-        const valid = especialidadGenericaDomainSchema.parse({ nombre });
+    constructor({ nombre, emoji }) {
+        const valid = especialidadGenericaDomainSchema.parse({ nombre, emoji });
 
         // _id
         this.nombre = valid.nombre;
-        this.eliminado = false
+        this.emoji = valid.emoji;
+        this.eliminado = false;
     }
 }

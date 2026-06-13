@@ -11,7 +11,12 @@ const especialidadGenericaSchema = new mongoose.Schema({
     eliminado: {
         type: Boolean,
         default: false
-    }
+    },
+    emoji: {
+        type: String,
+        required: true,
+        trim: true
+    },
 }, {
     timestamps: true,
     versionKey: false,

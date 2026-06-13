@@ -8,7 +8,7 @@ import {
     NotFoundError,
 } from "../errors/AppErrors.js";
 import { paginacionSchema, objectIdSchema, stringNoNuloSchema } from "../validations/commonValidations.js";
-import { especialidadBodySchema, especialidadGenericaBodySchema } from "../validations/especialidadValidation.js";
+import { especialidadBodySchema, especialidadGenericaBodySchema, especialidadUpdateBodySchema } from "../validations/especialidadValidation.js";
 
 export class EspecialidadService {
     constructor({
@@ -73,19 +73,15 @@ export class EspecialidadService {
 
     async actualizar(id, datosEspecialidad, session = null) {
         const validId = objectIdSchema.parse(id);
-        const validDatos = especialidadBodySchema.parse(datosEspecialidad);
+        const validDatos = especialidadUpdateBodySchema.parse(datosEspecialidad);
 
         const especialidad = await this.obtenerPorId(validId);
         if (!especialidad) {
             throw new NotFoundError(`No se encontró una especialidad con el id ${id}`);
         }
 
-        if (especialidad?.nombre.toLowerCase() !== validDatos?.nombre.toLowerCase()) {
-            throw new BadRequestError("No se puede modificar el nombre de una especialidad. Se deberá modificar la genérica");
-        }
-        
-        especialidad.duracionTurnoEnMins = validDatos.duracionTurnoEnMins;
-        especialidad.costo = validDatos.costo;
+        if (validDatos.duracionTurnoEnMins !== undefined) especialidad.duracionTurnoEnMins = validDatos.duracionTurnoEnMins;
+        if (validDatos.costo !== undefined) especialidad.costo = validDatos.costo;
 
         return await this.especialidadRepository.update(validId, especialidad, session);
     }
@@ -127,14 +123,12 @@ export class EspecialidadService {
 
 
     // ---------- Especialidades Genericas ----------
-    async crearGenerica(datosEGenerica) {
-        const validDatos = especialidadGenericaBodySchema.parse(datosEGenerica);
-
+    async crearGenerica(validDatos) {
         if (await this.especialidadGenericaRepository.findOneByNombre(validDatos.nombre) != null) {
             throw new ConflictError("Ya existe una especialidad de nombre: " + validDatos.nombre);
         }
 
-        const especialidadGenerica = new EspecialidadGenerica({ nombre: validDatos.nombre });
+        const especialidadGenerica = new EspecialidadGenerica({ nombre: validDatos.nombre, emoji: validDatos.emoji });
 
         return await this.especialidadGenericaRepository.save(especialidadGenerica);
     }
@@ -161,28 +155,30 @@ export class EspecialidadService {
         return await this.especialidadGenericaRepository.findOneByNombre(validNombre);
     }
 
-    async actualizarGenerica(id, datosNuevo) {
-        const validId = objectIdSchema.parse(id);
-        const nombreNuevo = typeof datosNuevo === "object" && datosNuevo !== null && "nombre" in datosNuevo
-            ? stringNoNuloSchema.parse(datosNuevo.nombre)
-            : stringNoNuloSchema.parse(datosNuevo);
+    async actualizarGenerica(id, datosEGenerica) {
+        const especialidadGenerica = await this.obtenerPorIdGenerica(id);
 
-        if (await this.especialidadGenericaRepository.findOneByNombre(nombreNuevo) != null) {
-            throw new ConflictError("Ya existe una especialidad de nombre: " + nombreNuevo);
+        // Lo traigo en el if por lazy evaluation, si los nombres son iguales no traerá del repo la especialidad existente
+        if ( especialidadGenerica.nombre !== datosEGenerica.nombre 
+            && await this.especialidadGenericaRepository.findOneByNombre(datosEGenerica.nombre) != null ) {
+            throw new ConflictError("Ya existe una especialidad de nombre: " + datosEGenerica.nombre);
         }
 
-        const especialidadGenerica = await this.obtenerPorIdGenerica(validId);
+        const nombreCambia = especialidadGenerica.nombre !== datosEGenerica.nombre;
 
-        especialidadGenerica.nombre = nombreNuevo;
+        especialidadGenerica.nombre = datosEGenerica.nombre;
+        especialidadGenerica.emoji = datosEGenerica.emoji;
+        
+        if (nombreCambia) {
+            const especialidadesHijas = await this.obtenerPorIdPadre(id);
 
-        const especialidadesHijas = await this.obtenerPorIdPadre(validId);
-
-        //Si actualizamos el nombre de una generica, las hijas deberán tener su mismo nombre
-        if (especialidadesHijas.length > 0) {
-            const idsHijas = especialidadesHijas.map(e => e._id);
-            await this.especialidadRepository.updateManyNombres(idsHijas, nombreNuevo);
+            //Si actualizamos el nombre de una generica, las hijas deberán tener su mismo nombre
+            if (especialidadesHijas.length > 0) {
+                const idsHijas = especialidadesHijas.map(e => e._id);
+                await this.especialidadRepository.updateManyNombres(idsHijas, datosEGenerica.nombre);
+            }
         }
 
-        return await this.especialidadGenericaRepository.update(validId, especialidadGenerica);
+        return await this.especialidadGenericaRepository.update(id, especialidadGenerica);
     }
 }

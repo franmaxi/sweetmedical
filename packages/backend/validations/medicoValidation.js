@@ -100,13 +100,10 @@ export const serviciosBodySchema = z.object({
 export const modificarServicioBodySchema = z.object({
     especialidadId: objectIdSchema.nullable().default(null),
     practicaId:     objectIdSchema.nullable().default(null),
-    // Campos comunes modificables
-    nombre: z.string({ invalid_type_error: "nombre debe ser un texto." }).trim().min(1).optional(),
+    // Campos modificables (nombre y codigo no se pueden cambiar en hijas, solo en la genérica)
     duracionTurnoEnMins: z.number({ invalid_type_error: "duracionTurnoEnMins debe ser un número." })
         .int().positive().multipleOf(15).optional(),
-    costo: z.number({ invalid_type_error: "costo debe ser un número." }).nonnegative().optional(),
-    // Campo exclusivo de práctica
-    codigo: z.string({ invalid_type_error: "codigo debe ser un texto." }).trim().min(1).optional()
+    costo: z.number({ invalid_type_error: "costo debe ser un número." }).nonnegative().optional()
 }).refine(
     data => (data.especialidadId !== null) !== (data.practicaId !== null),
     { message: "Debe proporcionar exactamente uno de 'especialidadId' o 'practicaId', no ambos ni ninguno." }

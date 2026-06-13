@@ -6,7 +6,11 @@ export const especialidadGenericaBodySchema = z.object({
     nombre: z.string({
         required_error: "El campo nombre es requerido.",
         invalid_type_error: "El campo nombre debe ser un texto."
-    }).trim().min(1, "El campo nombre no puede estar vacío.")
+    }).trim().min(1, "El campo nombre no puede estar vacío."),
+    emoji: z.string({
+        required_error: "El campo emoji es requerido.",
+        invalid_type_error: "El campo emoji debe ser un texto."
+    }).emoji("El campo debe contener un emoji válido.")
 }).strict("No se permiten campos adicionales en la solicitud.");
 
 //La especialidad hereda de la generica
@@ -25,16 +29,25 @@ export const especialidadBodySchema = especialidadGenericaBodySchema.extend({
 
 
 //-----DOMINIO-----
-export const especialidadGenericaDomainSchema = z.object({
+// Schema base de dominio (sin emoji, usado por la hija Especialidad)
+export const especialidadBaseDomainSchema = z.object({
     _id: z.any().optional(),
     nombre: z.string({
         required_error: "El nombre de la especialidad debe ser un string no vacío",
         invalid_type_error: "El nombre de la especialidad debe ser un string no vacío"
-    }).trim().min(1, "El nombre de la especialidad debe ser un string no vacío")
+    }).trim().min(1, "El nombre de la especialidad debe ser un string no vacío"),
 });
 
-//La especialidad hereda de la generica
-export const especialidadDomainSchema = especialidadGenericaDomainSchema.extend({
+// Schema de la genérica: agrega emoji requerido
+export const especialidadGenericaDomainSchema = especialidadBaseDomainSchema.extend({
+    emoji: z.string({
+        required_error: "El campo emoji es requerido.",
+        invalid_type_error: "El campo emoji debe ser un texto."
+    }).emoji("El campo debe contener un emoji válido.")
+});
+
+//La especialidad hija hereda del base (sin emoji, ya que el emoji proviene de la genérica)
+export const especialidadDomainSchema = especialidadBaseDomainSchema.extend({
     _id: z.any().optional(),
     // Cambiado a un string con Regex: más seguro, tipado y sin 'z.any()'
     especialidadGenerica: z.any().refine(val => Types.ObjectId.isValid(val), {
@@ -52,6 +65,17 @@ export const especialidadDomainSchema = especialidadGenericaDomainSchema.extend(
         invalid_type_error: "El costo de la consulta debe ser un número no negativo"
     }).nonnegative("El costo de la consulta debe ser un número no negativo")
 });
+
+// Schema para ACTUALIZAR una especialidad hija (solo campos modificables, nombre/emoji son inmutables)
+export const especialidadUpdateBodySchema = z.object({
+    duracionTurnoEnMins: z.number({
+        invalid_type_error: "El campo duracionTurnoEnMins debe ser un número."
+    }).int().positive().multipleOf(15).optional(),
+    costo: z.number({
+        invalid_type_error: "El campo costo debe ser un número."
+    }).nonnegative().optional()
+});
+
 
 
 
