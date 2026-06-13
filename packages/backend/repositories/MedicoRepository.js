@@ -103,7 +103,7 @@ export class MedicoRepository{
             this.model.findOneAndUpdate(
                 { _id: medicoId, "disponibilidades._id": dispoId },
                 { $set: { "disponibilidades.$": disponibilidad } },
-                { new: true }
+                { returnDocument: 'after' } 
             )
         );
     }
@@ -122,6 +122,4 @@ export class MedicoRepository{
         const medico = await this.#populate(this.model.findById(medicoId).select("disponibilidades"));
         return medico ? medico.disponibilidades : [];
     }
-
-    
 }

@@ -352,26 +352,34 @@ export class MedicoService {
         
         let hayCambios = false;
 
+        const tieneDuplicados = (arr) => new Set(arr).size !== arr.length;
+
         // Asignar Sede
         if (datosDisponibilidad.sede !== undefined) {
-            if (String(dispo.sede) !== String(datosDisponibilidad.sede)) {
-                const contieneSede = medico.sedes.some(s => String(s._id || s) === String(datosDisponibilidad.sede));
-                
-                if (!contieneSede) {
-                    throw new BadRequestError("La sede enviada no está asignada al perfil de este médico.");
-                }
-                dispo.sede = datosDisponibilidad.sede;
-                hayCambios = true;
+            if (String(dispo.sede) === String(datosDisponibilidad.sede)) {
+                throw new BadRequestError("La disponibilidad ya tiene asignada esta sede.");
             }
+            
+            const contieneSede = medico.sedes.some(s => String(s._id || s) === String(datosDisponibilidad.sede));
+            if (!contieneSede) {
+                throw new BadRequestError("La sede enviada no está asignada al perfil de este médico.");
+            }
+            
+            dispo.sede = datosDisponibilidad.sede;
+            hayCambios = true;
         }
 
         // Asignar Especialidades
         if (datosDisponibilidad.especialidades !== undefined) {
-            // Set para q no hayan repetidos
-            const especialidadesUnicas = [...new Set(datosDisponibilidad.especialidades.map(String))];
+            if (tieneDuplicados(datosDisponibilidad.especialidades)) {
+                throw new BadRequestError("La lista de especialidades enviada contiene elementos repetidos.");
+            }
+
+            const especialidadesNuevas = datosDisponibilidad.especialidades.map(String);
             const actuales = dispo.especialidades.map(String);
-            if (!this.arraysSonIguales(actuales, especialidadesUnicas)) {
-                const todasPertenecen = especialidadesUnicas.every(espId => 
+
+            if (!this.arraysSonIguales(actuales, especialidadesNuevas)) {
+                const todasPertenecen = especialidadesNuevas.every(espId => 
                     medico.especialidades.some(me => String(me._id || me) === String(espId))
                 );
 
@@ -379,19 +387,22 @@ export class MedicoService {
                     throw new BadRequestError("Una o más especialidades enviadas no están asignadas al perfil de este médico.");
                 }
 
-                dispo.especialidades = especialidadesUnicas;
+                dispo.especialidades = especialidadesNuevas;
                 hayCambios = true;
             }
         }
 
         // Asignar Prácticas
         if (datosDisponibilidad.practicas !== undefined) {
-            // Set para q no hayan repetidos
-            const practicasUnicas = [...new Set(datosDisponibilidad.practicas.map(String))];
+            if (tieneDuplicados(datosDisponibilidad.practicas)) {
+                throw new BadRequestError("La lista de prácticas enviada contiene elementos repetidos.");
+            }
+
+            const practicasNuevas = datosDisponibilidad.practicas.map(String);
             const actuales = dispo.practicas.map(String);
 
-            if (!this.arraysSonIguales(actuales, practicasUnicas)) {
-                const todasPertenecen = practicasUnicas.every(pracId => 
+            if (!this.arraysSonIguales(actuales, practicasNuevas)) {
+                const todasPertenecen = practicasNuevas.every(pracId => 
                     medico.practicas.some(mp => String(mp._id || mp) === String(pracId))
                 );
 
@@ -399,14 +410,15 @@ export class MedicoService {
                     throw new BadRequestError("Una o más prácticas enviadas no están asignadas al perfil de este médico.");
                 }
 
-                dispo.practicas = practicasUnicas;
+                dispo.practicas = practicasNuevas;
                 hayCambios = true;
             }
         }
         
-        if(!hayCambios){
-            return medico
+        if (!hayCambios) {
+            throw new BadRequestError("No se detectaron cambios para modificar la disponibilidad.");
         }
+
         await this.turnoService.modificarTurnosDisponibilidad(dispo, dispoCopia);
 
         return await this.medicoRepository.update(validMedicoId, medico);
