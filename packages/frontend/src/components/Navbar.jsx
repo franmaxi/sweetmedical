@@ -127,9 +127,9 @@ const allItems = [
     roles: ["medico"],
   },
   {
-    key: "/mis-especialidades",
+    key: "/mis-servicios",
     icon: <ClockCircleOutlined />,
-    label: <Link to="/mis-especialidades">{t("navbar.misEspecialidades")}</Link>,
+    label: <Link to="/mis-servicios">{t("navbar.misServicios")}</Link>,
     roles: ["medico"],
   }
 ];

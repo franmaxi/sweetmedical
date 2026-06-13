@@ -1,11 +1,13 @@
 import { useTranslation } from "react-i18next";
-import { Card, Form, Select, Input, DatePicker, Button, Tooltip } from "antd";
+import { Card, Form, Select, DatePicker, Button, Tooltip } from "antd";
 import { ClearOutlined, SearchOutlined } from "@ant-design/icons";
+import dayjs from "dayjs";
 
 export default function FiltrosTurnos({
   especialidadesGenericas,
   sedes,
   practicasGenericas,
+  medicos = [],
   filtros,
   setFiltros,
   onAplicar,
@@ -42,6 +44,10 @@ export default function FiltrosTurnos({
           <Select
             placeholder={t("buscarTurnos.placeholderTodas")}
             allowClear
+            showSearch
+            filterOption={(input, option) =>
+              (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+            }
             value={filtros.especialidadGenericaId}
             onChange={set("especialidadGenericaId")}
             options={especialidadesGenericas.map((e) => ({ value: e.id, label: e.nombre }))}
@@ -52,6 +58,10 @@ export default function FiltrosTurnos({
           <Select
             placeholder={t("buscarTurnos.placeholderTodas")}
             allowClear
+            showSearch
+            filterOption={(input, option) =>
+              (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+            }
             value={filtros.practicaGenericaId}
             onChange={set("practicaGenericaId")}
             options={practicasGenericas.map((e) => ({ value: e.id, label: e.nombre }))}
@@ -59,11 +69,16 @@ export default function FiltrosTurnos({
         </Form.Item>
 
         <Form.Item label={t("buscarTurnos.labelMedico")}>
-          <Input
+          <Select
             placeholder={t("buscarTurnos.placeholderMedico")}
-            value={filtros.medicoQuery}
-            onChange={(e) => set("medicoQuery")(e.target.value)}
             allowClear
+            showSearch
+            filterOption={(input, option) =>
+              (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+            }
+            value={filtros.medicoId}
+            onChange={set("medicoId")}
+            options={medicos.map((m) => ({ value: m._id ?? m.id, label: m.nombre }))}
           />
         </Form.Item>
 
@@ -71,9 +86,13 @@ export default function FiltrosTurnos({
           <Select
             placeholder={t("buscarTurnos.placeholderTodas")}
             allowClear
+            showSearch
+            filterOption={(input, option) =>
+              (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+            }
             value={filtros.sedeId}
             onChange={set("sedeId")}
-            options={sedes.map((s) => ({ value: s.id, label: s.nombre }))}
+            options={sedes.map((s) => ({ value: s._id ?? s.id, label: s.nombre }))}
           />
         </Form.Item>
 
@@ -90,9 +109,11 @@ export default function FiltrosTurnos({
             value={filtros.fechaDesde}
             onChange={set("fechaDesde")}
             format="DD/MM/YYYY"
-            disabledDate={(current) =>
-              filtros.fechaHasta ? current && current.isAfter(filtros.fechaHasta, "day") : false
-            }
+            disabledDate={(current) => {
+                const antesDeHoy = current && current.isBefore(dayjs().startOf("day"));
+                const despuesDeFechaHasta = filtros.fechaHasta ? current && current.isAfter(filtros.fechaHasta, "day") : false;
+                return antesDeHoy || despuesDeFechaHasta;
+              }}
           />
         </Form.Item>
 

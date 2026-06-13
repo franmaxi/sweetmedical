@@ -38,12 +38,12 @@ const precio = (n) => `$${Number(n).toLocaleString("es-AR")}`; //casteo el preci
 export default function MisEspecialidades() {
   return (
     <AntApp>
-      <MisEspecialidadesInner />
+      <MisServiciosInner />
     </AntApp>
   );
 }
 
-function MisEspecialidadesInner() {
+function MisServiciosInner() {
   const { message, modal } = AntApp.useApp();
 
   const [especialidades, setEspecialidades] = useState([]);

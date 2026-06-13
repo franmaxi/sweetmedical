@@ -26,13 +26,11 @@ import FiltrosTurnos from "../../components/FiltrosTurnos";
 import ModalReservaTurno from "../../components/ModalReservaTurno";
 import {
   getEspecialidadesGenericas,
-  getSedes,
-  getMedicos,
   getEspecialidades,
   getPracticas,
   reservarTurno,
 } from "../../mocks";
-import { getTurnos } from "../../api/api.js"; 
+import { getTurnos,getSedes, getMedicos } from "../../api/api.js"; 
 
 
 const { Title, Text, Paragraph } = Typography;
@@ -91,6 +89,7 @@ function BuscarTurnosInner() {
   const [sedesById, setSedesById] = useState(new Map());
   const [espPersonalizadasById, setEspPersonalizadasById] = useState(new Map());
   const [practicasById, setPracticasById] = useState(new Map());
+  const [medicos, setMedicos] = useState([]);
 
   // Resultados y modal de reserva.
   const [resultados, setResultados] = useState([]);
@@ -110,7 +109,7 @@ function BuscarTurnosInner() {
   const FILTROS_DEFAULT = {
     especialidadGenericaId: undefined,
     sedeId: undefined,
-    medicoQuery: "",
+    medicoId: undefined,
     fechaDesde: undefined,
     fechaHasta: undefined,
     practicaGenericaId: undefined,
@@ -121,17 +120,19 @@ function BuscarTurnosInner() {
   // Carga inicial de catálogos.
   useEffect(() => {
     Promise.all([
-      getEspecialidadesGenericas(),
       getSedes(),
       getMedicos(),
-      getEspecialidades(),
-      getPracticas(),
-    ]).then(([genericas, listaSedes, listaMedicos, listaEsp, listaPrac]) => {
+      getEspecialidadesGenericas(),
+      getPracticasGenercias()
+    ]).then(([sedesResponse, medicosResponse, especialidadesResponse, practicasResponse]) => {
+      const listaSedes = Array.isArray(sedesResponse?.data) ? sedesResponse.data : [];
+      const listaMedicos = Array.isArray(medicosResponse?.data) ? medicosResponse.data : [];
       setEspecialidadesGenericas(genericas);
       setSedes(listaSedes);
+      setMedicos(listaMedicos);
       setPracticasGenericas(listaPrac);
-      setMedicosById(new Map(listaMedicos.map((m) => [m.id, m])));
-      setSedesById(new Map(listaSedes.map((s) => [s.id, s])));
+      setMedicosById(new Map(listaMedicos.map((s) => [s._id ?? s.id, s])));
+      setSedesById(new Map(listaSedes.map((s) => [s._id ?? s.id, s])));
       setEspPersonalizadasById(new Map(listaEsp.map((e) => [e.id, e])));
       setPracticasById(new Map(listaPrac.map((p) => [p.id, p])));
     });
@@ -144,6 +145,7 @@ function BuscarTurnosInner() {
       page: paginaActual,
       especialidadId: filtrosAplicados.especialidadGenericaId,
       sedeId: filtrosAplicados.sedeId,
+      medicoId: filtrosAplicados.medicoId,
       practicaId: filtrosAplicados.practicaGenericaId,
       desde: filtrosAplicados.fechaDesde?.format("YYYY-MM-DD"),
       hasta: filtrosAplicados.fechaHasta?.format("YYYY-MM-DD"),
@@ -214,6 +216,7 @@ function BuscarTurnosInner() {
               especialidadesGenericas={especialidadesGenericas}
               sedes={sedes}
               practicasGenericas={practicasGenericas}
+              medicos={medicos}
               filtros={filtrosBorrador}
               setFiltros={setFiltrosBorrador}
               onAplicar={aplicarFiltros}
