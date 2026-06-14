@@ -256,7 +256,10 @@
     "column": {
       "dia": "Día",
       "desde": "Desde",
-      "hasta": "Hasta"
+      "hasta": "Hasta",
+      "sede": "Sede",
+      "especialidades" : "Especialidades",
+      "practicas": "Practicas"
     },
     "emptyText": "Todavía no cargaste ninguna disponibilidad",
     "de": "de",

@@ -145,6 +145,7 @@ function BuscarTurnosInner() {
   useEffect(() => {
     setCargando(true);
     getTurnos({
+      estado: "DISPONIBLE",
       page: paginaActual,
       especialidadId: filtrosAplicados.especialidadGenericaId,
       sedeId: filtrosAplicados.sedeId,

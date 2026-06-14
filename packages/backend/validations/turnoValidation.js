@@ -83,9 +83,13 @@ export const responderCambioDeFecha = z.object({
 // Filtros de query para GET /turnos (sin paginación, se combinan con turnoQuerySchema)
 export const turnoFiltrosSchema = z.object({
     medicoId: objectIdSchema.optional(),
-    estado: z.enum(Object.values(EstadoTurno), {
-        invalid_type_error: "El estado no es válido."
-    }).optional(),
+    estado: z.preprocess(
+        (val) => (typeof val === 'string' && val.includes(',') ? val.split(',') : val),
+        z.union([
+            z.enum(Object.values(EstadoTurno)),
+            z.array(z.enum(Object.values(EstadoTurno)))
+        ])
+    ).optional(),
     especialidadId: objectIdSchema.optional(),
     practicaId: objectIdSchema.optional(),
     sedeId: objectIdSchema.optional(),

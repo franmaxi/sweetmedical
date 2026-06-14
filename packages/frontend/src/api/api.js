@@ -10,7 +10,7 @@ export const getTurnos = async ({
     ordenarPor,
     ordenDireccion,
     medicoId,
-    estado = "DISPONIBLE",
+    estado,
     especialidadId,
     practicaId,
     sedeId,
@@ -79,6 +79,21 @@ export const getMedicos = async ({
         return response.data;
     } catch (error) {
         console.error("Error obteniendo los medicos", error);
+        throw error;
+    }
+};
+export const getMedicoById = async ({
+    medicoId
+} = {}) => {
+    try {
+        const response = await axios.get(`${API_BASE_URL}/medicos/${medicoId}`, {
+            headers: {
+                'Cache-Control': 'no-cache'
+            },
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error obteniendo el medico", error);
         throw error;
     }
 };
@@ -231,7 +246,9 @@ export const eliminarServicio = async ({
 } = {}) => {
     try {
         const response = await axios.delete(`${API_BASE_URL}/medicos/${medicoId}/servicios`, {
-            data: { especialidadId, practicaId },
+            especialidadId, 
+            practicaId 
+            
         });
         return response.data;
     } catch (error) {
@@ -239,4 +256,78 @@ export const eliminarServicio = async ({
         throw error;
     }
 };
+export const crearDisponibilidad = async ({
+    medicoId = "6a14c252688165715658e489",
+    especialidades = null,
+    practicas = null,
+    sedeId,
+    horaDesde,
+    horaHasta,
+    diaSemana
+} = {}) => {
+    try {
+        const response = await axios.post(`${API_BASE_URL}/medicos/${medicoId}/disponibilidades`, {
+            especialidades, 
+            practicas,
+            sede: sedeId,
+            horaDesde,
+            horaHasta,
+            diaSemana
+            
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error al crear una disponibilidad", error);
+        throw error;
+    }
+};
 
+export const getDisponibilidades = async ({
+    medicoId = "6a14c252688165715658e489",
+} = {}) => {
+    try {
+        const response = await axios.get(`${API_BASE_URL}/medicos/${medicoId}/disponibilidades`, {  
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error al obtener disponibilidades", error);
+        throw error;
+    }
+};
+
+export const eliminarDisponibilidad = async ({
+    medicoId = "6a14c252688165715658e489",
+    disponibilidadId
+} = {}) => {
+    try {
+        const response = await axios.delete(`${API_BASE_URL}/medicos/${medicoId}/disponibilidades/${disponibilidadId}`, {
+            headers: {
+                'Cache-Control': 'no-cache'
+            }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error eliminando disponibilidad", error);
+        throw error;
+    }
+};
+
+export const modificarDisponibilidad = async ({
+    medicoId = "6a14c252688165715658e489",
+    disponibilidadId,
+    especialidades,
+    practicas,
+    sede
+} = {}) => {
+    try {
+        const response = await axios.patch(`${API_BASE_URL}/medicos/${medicoId}/disponibilidades/${disponibilidadId}`, {
+            especialidades,
+            practicas,
+            sede
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error modificando disponibilidad", error);
+        throw error;
+    }
+};

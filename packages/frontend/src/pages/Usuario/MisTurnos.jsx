@@ -11,32 +11,27 @@ import {
   Tabs,
   Tag,
   Typography,
+  Pagination,
 } from "antd";
 import { CalendarOutlined, ClockCircleOutlined, EnvironmentOutlined, MedicineBoxOutlined } from "@ant-design/icons";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import { useTranslation } from "react-i18next";
 import {
-  getTurnos,
   cancelarTurno,
-  getMedicos,
-  getSedes,
-  getEspecialidades,
-  EstadoTurno,
-  nombreEstado,
 } from "../../mocks";
+import { getTurnos } from "../../api/api";
 
 const { Title, Text } = Typography;
 
-// Sin login simulo que el paciente activo es Ana García (id 1).
-const PACIENTE_ACTIVO = { pacienteId: 1, usuarioId: 201 };
+const PACIENTE_ACTIVO = "6a22243ea59d0c59c2916fd2"
 
 const COLOR_ESTADO = {
-  [EstadoTurno.DISPONIBLE]: "default",
-  [EstadoTurno.RESERVADO]: "blue",
-  [EstadoTurno.CONFIRMADO]: "green",
-  [EstadoTurno.CANCELADO]: "red",
-  [EstadoTurno.REALIZADO]: "purple",
+  DISPONIBLE: "default",
+  RESERVADO: "blue",
+  CONFIRMADO: "green",
+  CANCELADO: "red",
+  REALIZADO: "purple",
 };
 
 // formato de fecha legible para mostrar en la UI
@@ -62,49 +57,84 @@ function MisTurnosInner() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { message, modal } = AntApp.useApp();
-  const [turnos, setTurnos] = useState([]);
-  const estadoLabel = (e) => t(`estados.${nombreEstado(e).toLowerCase()}`, { defaultValue: nombreEstado(e) });
-  const [medicosById, setMedicosById] = useState(new Map());
-  const [sedesById, setSedesById] = useState(new Map());
-  const [espById, setEspById] = useState(new Map());
-  const [cargando, setCargando] = useState(true);
+  const [historialTurnos, setHistorialTurnos] = useState([]);
+  const [proximosTurnos, setProximosTurnos] = useState([]);
+  
+  const [paginaActualProximos, setPaginaActualProximos] = useState(1);
+  const [paginasTotalesProximos, setPaginasTotalesProximos] = useState(1);
+  const [totalProximos, setTotalProximos] = useState(0);
+  const [cargandoProximos, setCargandoProximos] = useState(true);
 
-  const recargar = () => {
-    setCargando(true);
-    Promise.all([
-      getTurnos({ pacienteId: PACIENTE_ACTIVO.pacienteId }),
-      getMedicos(),
-      getSedes(),
-      getEspecialidades(),
-    ]).then(([t, medicos, sedes, esps]) => {
-      setMedicosById(new Map(medicos.map((m) => [m.id, m])));
-      setSedesById(new Map(sedes.map((s) => [s.id, s])));
-      setEspById(new Map(esps.map((e) => [e.id, e])));
-      setTurnos(t);
-      setCargando(false);
-    });
+  const [paginaActualHistorial, setPaginaActualHistorial] = useState(1);
+  const [paginasTotalesHistorial, setPaginasTotalesHistorial] = useState(1);
+  const [totalHistorial, setTotalHistorial] = useState(0);
+  const [cargandoHistorial, setCargandoHistorial] = useState(true);
+
+  const fetchHistorial = () => {
+    setCargandoHistorial(true);
+    getTurnos({ pacienteId: PACIENTE_ACTIVO, estado: "CANCELADO,REALIZADO", ordenarPor: "fechaHora", ordenDireccion: "desc", page: paginaActualHistorial, limit: 10 })
+      .then((res) => {
+        setHistorialTurnos(res.data || []);
+        setPaginasTotalesHistorial(res.paginacion?.totalPaginas || 1);
+        setTotalHistorial(res.paginacion?.total || res.data?.length || 0);
+        setCargandoHistorial(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setCargandoHistorial(false);
+        message.error("Error al obtener el historial de turnos");
+      });
   };
 
-  useEffect(recargar, []);
+  const fetchProximos = () => {
+    setCargandoProximos(true);
+    getTurnos({ pacienteId: PACIENTE_ACTIVO, estado: "RESERVADO", ordenarPor: "fechaHora", ordenDireccion: "asc", page: paginaActualProximos, limit: 10 })
+      .then((res) => {
+        setProximosTurnos(res.data || []);
+        setPaginasTotalesProximos(res.paginacion?.totalPaginas || 1);
+        setTotalProximos(res.paginacion?.total || res.data?.length || 0);
+        setCargandoProximos(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setCargandoProximos(false);
+        message.error("Error al obtener los próximos turnos");
+      });
+  };
 
-  const hidratados = useMemo(
-    () =>
-      turnos.map((t) => ({
-        ...t,
-        medicoNombre: medicosById.get(t.medicoId)?.nombre ?? "—",
-        sedeNombre: sedesById.get(t.sedeId)?.nombre ?? "—",
-        especialidadNombre: espById.get(t.especialidadId)?.nombre ?? "—",
-      })),
-    [turnos, medicosById, sedesById, espById],
+  useEffect(fetchHistorial, [paginaActualHistorial]);
+  useEffect(fetchProximos, [paginaActualProximos]);
+
+  const recargar = () => {
+    fetchHistorial();
+    fetchProximos();
+  };
+
+  const hidratarTurno = (t) => {
+    const especialidad = t.especialidad?.[0];
+    const practica = t.practica?.[0];
+    const servicioNombre = especialidad?.nombre || practica?.nombre || "—";
+    const servicioCosto = especialidad?.costo ?? practica?.costo ?? 0;
+
+    return {
+      ...t,
+      id: t._id || t.id,
+      medicoNombre: t.medico?.nombre ?? "—",
+      sedeNombre: t.sede?.nombre ?? "—",
+      especialidadNombre: servicioNombre,
+      costo: servicioCosto,
+    };
+  };
+
+  const proximos = useMemo(
+    () => proximosTurnos.map(hidratarTurno),
+    [proximosTurnos]
   );
 
-  const proximos = hidratados
-    .filter((t) => esFuturo(t.fechaHora) && t.estado !== EstadoTurno.CANCELADO)
-    .sort((a, b) => a.fechaHora.localeCompare(b.fechaHora));
-
-  const historicos = hidratados
-    .filter((t) => !esFuturo(t.fechaHora) || t.estado === EstadoTurno.CANCELADO)
-    .sort((a, b) => b.fechaHora.localeCompare(a.fechaHora));
+  const historicos = useMemo(
+    () => historialTurnos.map(hidratarTurno),
+    [historialTurnos]
+  );
 
   const onCancelar = (turno) => {
     let motivo = "";
@@ -140,7 +170,7 @@ function MisTurnosInner() {
       <Space direction="vertical" size={4} style={{ width: "100%" }}>
         <Space style={{ width: "100%", justifyContent: "space-between" }}>
           <Title level={5} style={{ margin: 0 }}>{turno.medicoNombre}</Title>
-          <Tag color={COLOR_ESTADO[turno.estado]}>{estadoLabel(turno.estado)}</Tag>
+          <Tag color={COLOR_ESTADO[turno.estado]}>{t(`estados.${turno.estado?.toLowerCase()}`, { defaultValue: turno.estado })}</Tag>
         </Space>
         <Space wrap size="large">
           <Text type="secondary"><MedicineBoxOutlined /> {turno.especialidadNombre}</Text>
@@ -148,7 +178,7 @@ function MisTurnosInner() {
           <Text type="secondary"><CalendarOutlined /> {fmt(turno.fechaHora)}</Text>
           <Text type="secondary"><ClockCircleOutlined /> {fmtMoneda(turno.costo)}</Text>
         </Space>
-        {(turno.estado === EstadoTurno.RESERVADO || turno.estado === EstadoTurno.CONFIRMADO) && esFuturo(turno.fechaHora) && (
+        {(turno.estado === "RESERVADO" || turno.estado === "CONFIRMADO") && esFuturo(turno.fechaHora) && (
           <Space style={{ marginTop: 8 }}>
             <Button danger onClick={() => onCancelar(turno)}>{t("misTurnos.cancelarOk")}</Button>
           </Space>
@@ -157,7 +187,7 @@ function MisTurnosInner() {
     </Card>
   );
 
-  const renderLista = (lista) => {
+  const renderLista = (lista, cargando, paginaActual, paginasTotales, setPaginaActual) => {
     if (cargando) return <Text type="secondary">{t("misTurnos.cargando")}</Text>;
     if (lista.length === 0) {
       return (
@@ -168,7 +198,21 @@ function MisTurnosInner() {
         </Empty>
       );
     }
-    return lista.map(renderTurno);
+    return (
+      <>
+        {lista.map(renderTurno)}
+        <Pagination
+          align="center"
+          defaultCurrent={1}
+          current={paginaActual}
+          pageSize={10}
+          total={paginasTotales * 10}
+          style={{ marginTop: '16px' }}
+          onChange={(page) => setPaginaActual(page)}
+          showSizeChanger={false}
+        />
+      </>
+    );
   };
 
   return (
@@ -182,8 +226,16 @@ function MisTurnosInner() {
           defaultActiveKey="proximos"
           style={{ marginTop: 16 }}
           items={[
-            { key: "proximos", label: `${t("misTurnos.proximos")} (${proximos.length})`, children: renderLista(proximos) },
-            { key: "historicos", label: `${t("misTurnos.historial")} (${historicos.length})`, children: renderLista(historicos) },
+            { 
+              key: "proximos", 
+              label: `${t("misTurnos.proximos")} (${totalProximos})`, 
+              children: renderLista(proximos, cargandoProximos, paginaActualProximos, paginasTotalesProximos, setPaginaActualProximos) 
+            },
+            { 
+              key: "historicos", 
+              label: `${t("misTurnos.historial")} (${totalHistorial})`, 
+              children: renderLista(historicos, cargandoHistorial, paginaActualHistorial, paginasTotalesHistorial, setPaginaActualHistorial) 
+            },
           ]}
         />
       </Layout.Content>

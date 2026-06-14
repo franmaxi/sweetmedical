@@ -85,7 +85,7 @@ export class TurnoService {
         const paciente = await this.pacienteRepository.findById(pacienteId);
         if (!paciente) throw new NotFoundError('Paciente no encontrado');
 
-        filtros.estado = EstadoTurno.DISPONIBLE;
+        filtros.estado;
 
         if (filtros.desde != null && filtros.hasta != null) {
             if (filtros.desde > filtros.hasta) {
