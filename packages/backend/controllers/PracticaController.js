@@ -1,6 +1,8 @@
 import { PracticaService } from "../services/PracticaService.js";
-import { paginacionSchema, paramsIdSchema } from "../validations/commonValidations.js";
+import { paginacionSchema, paramsIdSchema, tokenSchema } from "../validations/commonValidations.js";
 import { practicaGenericaBodySchema } from "../validations/practicaValidation.js";
+import { tipoUsuario } from "../domain/Enumerados/TipoUsuario.js";
+import { ForbiddenError } from "../errors/AppErrors.js";
 
 export class PracticaController {
     constructor({
@@ -26,6 +28,10 @@ export class PracticaController {
     createGenerica = async (req, res, next) => {
         try {
             const datosPGenerica = practicaGenericaBodySchema.parse(req.body);
+
+            const {userId, userRol, userName} = tokenSchema.parse(req.usuario.id)
+            this.validarAdmin(userRol)
+
             const practicaGenericaCreada = await this.practicaService.crearGenerica(datosPGenerica);
             return res.status(201).json({
                 status: "success",
@@ -72,6 +78,10 @@ export class PracticaController {
         try {
             const { id } = paramsIdSchema.parse(req.params);
             const datosPGenerica = practicaGenericaBodySchema.parse(req.body);
+
+            const { userId, userRol, userName } = tokenSchema.parse(req.usuario.id)
+            this.validarAdmin(userRol)
+
             const practicaActualizada = await this.practicaService.actualizarGenerica(id, datosPGenerica);
             return res.status(200).json({
                 status: "success",
@@ -80,5 +90,10 @@ export class PracticaController {
         } catch (error) {
             return next(error);
         }
-    }    
+    }
+    
+    validarAdmin(rolUsuario) {
+        if (rolUsuario != tipoUsuario.ADMIN) 
+            throw new ForbiddenError("No cuenta con los permisos necesarios para realizar dicha accion")
+    }
 }

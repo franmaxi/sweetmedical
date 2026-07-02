@@ -7,6 +7,7 @@ import EspecialidadRouter from "./EspecialidadRouter.js"
 import PracticaRouter from "./PracticaRouter.js"
 import SedeRouter from "./SedeRouter.js"
 import ObraSocialRouter from "./ObraSocialRouter.js"
+import AuthRouter from "./AuthRouter.js"
 
 const router = express.Router()
 
@@ -19,6 +20,7 @@ router.use('/especialidades', EspecialidadRouter)
 router.use('/practicas', PracticaRouter)
 router.use('/sedes', SedeRouter)
 router.use('/obras-sociales', ObraSocialRouter)
+router.use('/auth', AuthRouter)
 
 // router.use('/', )
 

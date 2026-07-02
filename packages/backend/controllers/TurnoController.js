@@ -1,5 +1,5 @@
 import { TurnoService } from '../services/TurnoService.js';
-import { paramsIdSchema,objectIdSchema} from "../validations/commonValidations.js";
+import { paramsIdSchema, objectIdSchema, tokenSchema } from "../validations/commonValidations.js";
 import {
     turnoBodySchema,
     batchForzadoQuerySchema,
@@ -9,7 +9,8 @@ import {
     turnoQuerySchema,
     responderReserva
 } from "../validations/turnoValidation.js";
-
+import { ForbiddenError } from "../errors/AppErrors.js";
+import { tipoUsuario } from "../domain/Enumerados/TipoUsuario.js";
 export class TurnoController {
     constructor( {turnoService = new TurnoService()} = {}) {
         this.turnoService = turnoService;
@@ -31,12 +32,13 @@ export class TurnoController {
         try {
             // el (...filtros) recolecta todo lo que no entró
             const { page: numeroPagina, 
-                    limit: limitePorPagina, 
-                    pacienteId, 
+                    limit: limitePorPagina,  
                     ordenarPor, 
                     ordenDireccion, 
                     ...filtros } = turnoQuerySchema.parse(req.query);
-
+            
+            const {userId, userRol, userName} = tokenSchema.parse(req.usuario.id)    
+            
             // Construir el array de ordenamiento para el servicio/repositorio
             const ordenamiento = ordenarPor
                 ? [{ campo: ordenarPor, direccion: ordenDireccion }]
@@ -44,9 +46,9 @@ export class TurnoController {
 
             let resultado = null
 
-            if (pacienteId) {
+            if (userId) {
                 resultado = await this.turnoService.obtenerTodosCobertura({
-                    pacienteId,
+                    userId,
                     numeroPagina,
                     limitePorPagina,
                     filtros,
@@ -76,7 +78,7 @@ export class TurnoController {
         }
     };
 
-    //POST /turnos
+    /*   //POST /turnos
     create = async(req, res, next) => {
         try {
             const datosTurno = turnoBodySchema.parse(req.body);
@@ -89,7 +91,7 @@ export class TurnoController {
         } catch(error) {
             return next(error)
         }
-    };
+    };  */
 
     // GET /turnos/{id}
     findById = async(req, res, next) => {
@@ -111,9 +113,14 @@ export class TurnoController {
     reservar = async(req, res, next) =>  {
         try {
             const { id: turnoId } = paramsIdSchema.parse(req.params);
-            const { pacienteId, especialidadId, practicaId } = estadosBodySchema.parse(req.body);
+            const { especialidadId, practicaId } = estadosBodySchema.parse(req.body)
+            const { userId, userRol, userName } = tokenSchema.parse(req.usuario.id)
 
-            const turno = await this.turnoService.reservarTurno(turnoId, pacienteId, especialidadId, practicaId);
+            this.validarUsuario(userRol, tipoUsuario.PACIENTE)
+
+            // REVISAR que recibimos el userId no el pacienteId
+            // hacer una funcion en pacienteRepository que sea findByUserId(userId) y devuelva el paciente
+            const turno = await this.turnoService.reservarTurno(turnoId, userId, especialidadId, practicaId);
 
             return res.status(200).json({
                 status: "success",
@@ -137,13 +144,16 @@ export class TurnoController {
     responderReserva = async(req, res, next) =>  {
         try {
             const { id: turnoId } = paramsIdSchema.parse(req.params)
-            const { usuarioId, motivo, reservaAceptada } = responderReserva.parse(req.body)
+            const { motivo, reservaAceptada } = responderReserva.parse(req.body)
+            const {userId, userRol, userName} = tokenSchema.parse(req.usuario.id)
 
+            this.validarUsuario(userRol, tipoUsuario.MEDICO)
+            
             let turno
             if(reservaAceptada){
-                turno = await this.turnoService.confirmarReserva(turnoId, usuarioId)
+                turno = await this.turnoService.confirmarReserva(turnoId, userId)
             } else {
-                turno = await this.turnoService.rechazarReserva(turnoId, usuarioId, motivo)
+                turno = await this.turnoService.rechazarReserva(turnoId, userId, motivo)
             }
 
             return res.status(200).json({
@@ -160,9 +170,10 @@ export class TurnoController {
     cancelar = async(req, res, next) => {
         try {
             const { id: turnoId } = paramsIdSchema.parse(req.params);
-            const { usuarioId, motivo } = estadosBodySchema.parse(req.body);
+            const { motivo } = estadosBodySchema.parse(req.body);
+            const {userId, userRol, userName} = tokenSchema.parse(req.usuario.id)
 
-            const turno = await this.turnoService.cancelar( turnoId, usuarioId, motivo )
+            const turno = await this.turnoService.cancelar( turnoId, userId, motivo )
 
             return res.status(200).json({
                 status: "success",
@@ -177,9 +188,11 @@ export class TurnoController {
     realizar = async (req, res, next) => {
         try {
             const { id: turnoId } = paramsIdSchema.parse(req.params);
-            const { medicoId } = estadosBodySchema.parse(req.body);
+            //const { medicoId } = estadosBodySchema.parse(req.body);
+            const {userId, userRol, userName} = tokenSchema.parse(req.usuario.id)
+            this.validarUsuario(userRol, tipoUsuario.MEDICO)
             
-            const turno = await this.turnoService.realizar(turnoId, medicoId)
+            const turno = await this.turnoService.realizar(turnoId, userId)
 
             return res.status(200).json({
                 status: "success",
@@ -194,9 +207,10 @@ export class TurnoController {
     solicitarCambioDeFecha = async (req, res, next) => {
         try {
             const { id: turnoId } = paramsIdSchema.parse(req.params);            
-            const { usuarioId, fechaPropuesta, motivo } = solicitudFechaCambioBodySchema.parse(req.body);
+            const { fechaPropuesta, motivo } = solicitudFechaCambioBodySchema.parse(req.body);
+            const {userId, userRol, userName} = tokenSchema.parse(req.usuario.id)
 
-            const data = await this.turnoService.solicitarCambioDeFecha(turnoId, usuarioId, fechaPropuesta, motivo)
+            const data = await this.turnoService.solicitarCambioDeFecha(turnoId, userId, fechaPropuesta, motivo)
 
             return res.status(200).json({
                 status: "success",
@@ -212,13 +226,15 @@ export class TurnoController {
     responderCambioDeFecha = async (req, res, next) => {
         try {
             const { id: turnoId } = paramsIdSchema.parse(req.params);            
-            const { usuarioId, cambioAceptado } = responderCambioDeFecha.parse(req.body);
+            const { cambioAceptado } = responderCambioDeFecha.parse(req.body);
+            const {userId, userRol, userName} = tokenSchema.parse(req.usuario.id)
+            
             let data
 
             if(cambioAceptado){
-                data = await this.turnoService.aceptarCambioDeFecha(turnoId, usuarioId)
+                data = await this.turnoService.aceptarCambioDeFecha(turnoId, userId)
             } else {
-                data = await this.turnoService.rechazarCambioDeFecha(turnoId, usuarioId)
+                data = await this.turnoService.rechazarCambioDeFecha(turnoId, userId)
             }
 
             return res.status(200).json({
@@ -233,11 +249,14 @@ export class TurnoController {
 
     consultarAgenda = async (req, res, next) => {
         try {
-            const { id: medicoId } = paramsIdSchema.parse(req.params);
+            //const { id: medicoId } = paramsIdSchema.parse(req.params);
+            const {userId, userRol, userName} = tokenSchema.parse(req.usuario.id)
+            this.validarUsuario(userRol, tipoUsuario.MEDICO)
+            
             const especialidadId = req.query.especialidadId ? objectIdSchema.parse(req.query.especialidadId) : null;
             const practicaId = req.query.practicaId ? objectIdSchema.parse(req.query.practicaId) : null;
                 
-            const turnosDisponibles = await this.turnoService.consultarAgenda(medicoId, especialidadId, practicaId);
+            const turnosDisponibles = await this.turnoService.consultarAgenda(userId, especialidadId, practicaId);
             return res.status(200).json({
                 status: "success",
                 data: turnosDisponibles
@@ -247,10 +266,11 @@ export class TurnoController {
         }
     }
 
-
+    // por ahora es una funcion de testeo asi que no la validamos con el token
     generarBatchForzado = async(req, res, next) => {
         try {
             const { medicoId, fechaInicio, fechaFin } = batchForzadoQuerySchema.parse(req.body ?? {})
+            
             await this.turnoService.generarTurnosBatchForzado(medicoId, fechaInicio, fechaFin);
 
             return res.status(200).json({
@@ -261,5 +281,11 @@ export class TurnoController {
         }
     };
 
+    // funcion validacion roles
+
+    validarUsuario(rolUsuario, rolEsperado) {
+        if (rolUsuario != rolEsperado) 
+            throw new ForbiddenError("No cuenta con los permisos necesarios para realizar dicha accion")
+    }
 
 }

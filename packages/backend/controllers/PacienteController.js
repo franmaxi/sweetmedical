@@ -1,6 +1,7 @@
 import { PacienteService } from "../services/PacienteService.js";
-import { paginacionSchema, paramsIdSchema } from "../validations/commonValidations.js";
+import { paginacionSchema, paramsIdSchema, tokenSchema } from "../validations/commonValidations.js";
 import { pacienteBodySchema } from "../validations/pacienteValidation.js";
+import { ForbiddenError } from "../errors/AppErrors.js";
 
 export class PacienteController {
     constructor({
@@ -60,6 +61,9 @@ export class PacienteController {
         try {
             const { id } = paramsIdSchema.parse(req.params);
             const datosPaciente = pacienteBodySchema.parse(req.body);
+            const {userId, userRol, userName} = tokenSchema.parse(req.usuario.id)
+            if (userId != id) throw new ForbiddenError("No se tienen los permisos necesarios para modificar este recurso")
+
             const pacienteActualizado = await this.pacienteService.actualizar(id, datosPaciente);
 
             return res.status(200).json({ status: "success", data: pacienteActualizado });
@@ -71,7 +75,10 @@ export class PacienteController {
     delete = async (req, res, next) => {
         try {
             const { id } = paramsIdSchema.parse(req.params);
-            const pacienteEliminado = await this.pacienteService.eliminar(id);
+            const {userId, userRol, userName} = tokenSchema.parse(req.usuario.id)
+            if (userId != id) throw new ForbiddenError("No se tienen los permisos necesarios para modificar este recurso")
+
+            const pacienteEliminado = await this.pacienteService.eliminar(id)
 
             return res.status(200).json({ status: "success", data: pacienteEliminado });
         } catch (error) {

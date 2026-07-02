@@ -7,10 +7,12 @@ import { EspecialidadService } from "./EspecialidadService.js";
 import { PracticaService } from "./PracticaService.js";
 import { objectIdSchema } from "../validations/commonValidations.js";
 import { SedeService } from "./SedeService.js";
+import {TipoUsuario} from "../domain/Enumerados/TipoUsuario.js";
 import {
     NotFoundError,
     ConflictError,
-    BadRequestError
+    BadRequestError,
+    ForbiddenError
 } from "../errors/AppErrors.js";
 import mongoose from 'mongoose';
 
@@ -67,10 +69,12 @@ export class MedicoService {
 
         const usuarioCreado = await this.usuarioService.crear({ //TODO se puede implementar un factory
             nombreUsuario: datosMedico.nombreUsuario,
-            password: datosMedico.password
+            password: datosMedico.password,
+            tipoUsuario: TipoUsuario.MEDICO
         });
 
         const medico = new Medico({
+            _id: usuarioCreado._id,
             usuario: usuarioCreado._id,
             matricula: datosMedico.matricula,
             nombre: datosMedico.nombre
@@ -90,9 +94,8 @@ export class MedicoService {
         const datosUsuario = {
             nombreUsuario: datosMedico.nombreUsuario,
             // Solo se actualiza la contraseña si se provee una nueva
-            ...(datosMedico.password ? { password: datosMedico.password } : {})
+            ...(datosMedico.password ? { password: datosMedico.password } : {}) //TODO, rehicimos el actualizar de usuario
         };
-
         await this.usuarioService.actualizar(medicoExistente.usuario._id,datosUsuario);
 
         const datosMedicoParaActualizar = {
@@ -105,11 +108,9 @@ export class MedicoService {
 
     async eliminar(id) {
         const validId = objectIdSchema.parse(String(id));
-        const medico = await this.obtenerPorId(validId);
-        const usuario = await this.usuarioService.obtenerPorId(medico.usuario._id);
         
-        await this.usuarioService.eliminar(usuario._id);
-        return await this.medicoRepository.delete(medico._id);
+        await this.usuarioService.eliminar(validId);
+        return await this.medicoRepository.delete(validId);
     }
 
     async existeMatricula(matricula) {
@@ -131,7 +132,7 @@ export class MedicoService {
     async agregarServicio(medicoId, especialidad, practica) {
         const validMedicoId = objectIdSchema.parse(String(medicoId));
         const medico = await this.obtenerPorId(validMedicoId); // lanza NotFoundError si no existe
-
+        
         if (especialidad) {
             // Acoplamiento por ID de la genérica (viene del body como especialidadGenericaId)
             const especialidadGenerica = await this.especialidadService.obtenerPorIdGenerica(especialidad.especialidadGenericaId);
@@ -291,9 +292,9 @@ export class MedicoService {
     }
     
     // ======================= DISPONIBILIDADES =============================
-    async obtenerDisponibilidades(medicoId) {
-        const validMedicoId = objectIdSchema.parse(String(medicoId));
-        return await this.medicoRepository.getDisponibilidades(validMedicoId);
+    async obtenerDisponibilidades(medicoId, userId, self) {
+        const validId = objectIdSchema.parse(String(medicoId));
+        return await this.medicoRepository.getDisponibilidades(validId);
     }
 
     async obtenerDisponibilidad(medicoId, dispoId) {
@@ -304,7 +305,7 @@ export class MedicoService {
         return dispo;
     }
 
-    async crearDisponibilidad(medicoId, datosDisponibilidad) {
+    async crearDisponibilidad(medicoId, userId, datosDisponibilidad) {
         const validMedicoId = objectIdSchema.parse(String(medicoId));
         
         //Validacion de que el medico exista

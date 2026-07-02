@@ -1,5 +1,5 @@
 import { Paciente} from "../domain/Paciente/Paciente.js";
-
+import {TipoUsuario} from "../domain/Enumerados/TipoUsuario.js";
 import { PacienteRepository } from "../repositories/PacienteRepository.js";
 import { ObraSocialRepository } from "../repositories/ObraSocialRepository.js";
 
@@ -57,7 +57,8 @@ export class PacienteService {
 
         const usuarioGuardado = await this.usuarioService.crear({
             nombreUsuario: datosPaciente.nombreUsuario,
-            password: datosPaciente.password
+            password: datosPaciente.password,
+            tipoUsuario: TipoUsuario.PACIENTE
         })
         const paciente= new Paciente({
             dni: datosPaciente.dni,
@@ -71,10 +72,11 @@ export class PacienteService {
     }
 
     async actualizar(id, datosPaciente) {
-        const pacienteExistente = await this.pacienteRepository.findById(id)
+        const pacienteExistente = await this.pacienteRepository.findByUserId(id)
         if (!pacienteExistente) {
-            throw new NotFoundError(`No se encontró un paciente con el id ${id}`)
+            throw new NotFoundError(`No se encontró un paciente con el id de usuario ${id}`)
         }
+        
         const pacienteActualizado = await this.pacienteRepository.update(id,datosPaciente)
         return pacienteActualizado
     }
@@ -84,6 +86,7 @@ export class PacienteService {
         if (!pacienteExistente) {
             throw new NotFoundError(`No se encontró un paciente con el id ${id}`)
         }
+        
         const pacienteEliminado = await this.pacienteRepository.delete(id)
         return pacienteEliminado
     }

@@ -1,6 +1,8 @@
-import { paginacionSchema, paramsIdSchema } from "../validations/commonValidations.js";
+import { paginacionSchema, paramsIdSchema, tokenSchema } from "../validations/commonValidations.js";
+import { tipoUsuario } from "../domain/Enumerados/TipoUsuario.js";
 import { ObraSocialService } from "../services/ObraSocialService.js";
 import { obraSocialDomainSchema, planBodySchema } from "../validations/obraSocialValidation.js";
+import { ForbiddenError } from "../errors/AppErrors.js";
 
 export class ObraSocialController{
     constructor({
@@ -26,6 +28,10 @@ export class ObraSocialController{
         try {
             const datos = obraSocialDomainSchema.parse(req.body);
             const obraSocial = await this.obraSocialService.crearObraSocial(datos.nombre);
+            
+            const {userId, userRol, userName} = tokenSchema.parse(req.usuario.id)
+            this.validarAdmin(userRol)
+
             return res.status(201).json({
                 status: "success",
                 data: obraSocial
@@ -66,6 +72,10 @@ export class ObraSocialController{
         try {
             const datos = planBodySchema.parse(req.body);
             const resp = await this.obraSocialService.cargarNuevoPlan(datos);
+            
+            const {userId, userRol, userName} = tokenSchema.parse(req.usuario.id)
+            this.validarAdmin(userRol)
+            
             return res.status(201).json({
                 status: "success",
                 data: resp
@@ -99,5 +109,10 @@ export class ObraSocialController{
         } catch (error) {
             return next(error)
         }
+    }
+
+    validarAdmin(rolUsuario) {
+    if (rolUsuario != tipoUsuario.ADMIN) 
+        throw new ForbiddenError("No cuenta con los permisos necesarios para realizar dicha accion")
     }
 }

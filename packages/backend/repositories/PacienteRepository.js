@@ -35,6 +35,12 @@ export class PacienteRepository {
             .populate("obraSocial");
     }
 
+    async findByUserId(userId) {
+        return await this.model.findOne({ usuario: userId, eliminado: false })
+            .populate("usuario")
+            .populate("obraSocial");
+    }
+
     async save(paciente) {
         const nuevoPaciente = new this.model(paciente);
         return await nuevoPaciente.save();

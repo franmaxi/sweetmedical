@@ -4,8 +4,7 @@ import { Agenda } from "../domain/Turno/Agenda.js"
 import {
     BadRequestError,
     NotFoundError,
-    UnprocessableEntityError,
-    ValidationError,
+    UnprocessableEntityError
 } from "../errors/AppErrors.js"
 
 import { TurnoRepository } from "../repositories/TurnoRespository.js"
@@ -75,21 +74,21 @@ export class TurnoService {
     }
 
     async obtenerTodosCobertura({
-        pacienteId,
+        userId,
         numeroPagina = 1,
         limitePorPagina = 10,
         filtros = {},
         ordenamiento = [{ campo: 'fechaHora', direccion: 'asc' }]
     } = {}) {
 
-        const paciente = await this.pacienteRepository.findById(pacienteId);
+        const paciente = await this.pacienteRepository.findByUserId(userId);
         if (!paciente) throw new NotFoundError('Paciente no encontrado');
 
         filtros.estado;
 
         if (filtros.desde != null && filtros.hasta != null) {
             if (filtros.desde > filtros.hasta) {
-                throw new ValidationError('La fecha de inicio no puede ser mayor a la fecha de fin');
+                throw new BadRequestError('La fecha de inicio no puede ser mayor a la fecha de fin');
             }
         }
         const ordenaPorCosto = ordenamiento.some(o => o.campo === 'costoFinal');
@@ -189,13 +188,13 @@ export class TurnoService {
     }
 
 
-    async reservarTurno(turnoId, pacienteId, especialidadId, practicaId) {
+    async reservarTurno(turnoId, userId, especialidadId, practicaId) {
         // 1 - verificamos que el turno existe y este disponible
         const turno = await this.turnoRepository.findById(turnoId)
         this.verificarTurnoExistente(turno, EstadoTurno.DISPONIBLE, "El turno seleccionado no esta disponible")
 
         // 1.2 - verificamos que el paciente exista
-        const paciente = await this.pacienteRepository.findById(pacienteId)
+        const paciente = await this.pacienteRepository.findByUserId(userId)
         this.verificarPacienteExistente(paciente)
 
         // 1.3 - verificamos que el servicio exista
@@ -234,7 +233,7 @@ export class TurnoService {
 
         // marcamos el turno solicitado como ocupado y sobreescribimos las practicas/especialidades
         turno.actualizarEstado(EstadoTurno.RESERVADO, paciente.usuario, "El turno fue reservado")
-        turno.paciente = pacienteId
+        turno.paciente = paciente._id
         turno.costo = servicio.costo
         turno.modificado = true
         // supuestamente Mongoose admite y entiende el especialidadId como ObjectId y lo permite, para no tener que buscar y meter el objeto
@@ -650,12 +649,13 @@ export class TurnoService {
     }
 
 
-    async realizar(turnoId, medicoId) {
-
+    async realizar(turnoId, userId) {
         const turno = await this.turnoRepository.findById(turnoId)
         if (!turno) throw new NotFoundError('Turno no encontrado')
-        if (turno.medico._id !== medicoId) {
-            throw new UnprocessableEntityError(`El turno no le pertenece al medico id: ${medicoId}`)
+
+        const medico = await this.medicoRepository.findByUserId(userId)
+        if ( !medico || turno.medico._id !== medico._id ) {
+            throw new UnprocessableEntityError(`El turno no le pertenece al medico id: ${medico._id}`)
         }
         if (turno.estado == EstadoTurno.RESERVADO) {
             turno.actualizarEstado(EstadoTurno.REALIZADO, turno.medico.usuario, "Turno realizado con exito");
@@ -664,8 +664,9 @@ export class TurnoService {
         throw new UnprocessableEntityError(`No se puede marcar como '${EstadoTurno.REALIZADO}' un turno que no esta ${EstadoTurno.RESERVADO}`)
     }
 
-    async consultarAgenda(medicoId, especialidadId, practicaId) {
+    async consultarAgenda(userId, especialidadId, practicaId) {
         // sacamos las validaciones porque si devuelve vacio ya fue.
+        const medico = this.medicoRepository.findByUserId(userId)
         const filtros = {
             estado: EstadoTurno.DISPONIBLE
         };
@@ -673,7 +674,7 @@ export class TurnoService {
         if (practicaId) filtros.practicaId = practicaId;
 
         return await this.obtenerTodos({
-            medicoId: medicoId,
+            medicoId: medico._id,
             numeroPagina: 1,
             limitePorPagina: 100,
             filtros: filtros

@@ -1,5 +1,5 @@
 import { NotificacionService } from "../services/NotificacionService.js";
-import { paginacionSchema, paramsIdSchema } from "../validations/commonValidations.js";
+import { paginacionSchema, paramsIdSchema, tokenSchema } from "../validations/commonValidations.js";
 import { notificacionQuerySchema, marcarLeidaQuerySchema } from "../validations/notificacionValidation.js";
 
 export class NotificacionController {
@@ -38,9 +38,10 @@ export class NotificacionController {
     marcarComoLeida = async (req, res, next) => {
         try {
             const { id } = paramsIdSchema.parse(req.params);
-            const { usuarioId } = marcarLeidaQuerySchema.parse(req.query);
+            //const { usuarioId } = marcarLeidaQuerySchema.parse(req.query);
+            const {userId, userRol, userName} = tokenSchema.parse(req.usuario.id)
 
-            const notificacionActualizada = await this.notificacionService.marcarComoLeida(id, usuarioId);
+            const notificacionActualizada = await this.notificacionService.marcarComoLeida(id, userId);
             return res.status(200).json({
                 status: "success",
                 data: notificacionActualizada

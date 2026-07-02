@@ -1,6 +1,8 @@
 import { EspecialidadService } from "../services/EspecialidadService.js"
-import { paginacionSchema, paramsIdSchema } from "../validations/commonValidations.js"
+import { paginacionSchema, paramsIdSchema, tokenSchema } from "../validations/commonValidations.js"
 import { especialidadGenericaBodySchema } from "../validations/especialidadValidation.js"
+import { tipoUsuario } from "../domain/Enumerados/TipoUsuario.js";
+import { ForbiddenError } from "../errors/AppErrors.js"
 
 export class EspecialidadController {
     constructor({
@@ -26,6 +28,10 @@ export class EspecialidadController {
     createGenerica = async (req, res, next) => {
         try {
             const datosEGenerica = especialidadGenericaBodySchema.parse(req.body)
+            
+            const { userId, userRol, userName } = tokenSchema.parse(req.usuario.id)
+            this.validarAdmin(userRol)
+            
             const eGenericaCreada = await this.especialidadService.crearGenerica(datosEGenerica)
             return res.status(201).json({
                 status: "success",
@@ -72,6 +78,9 @@ export class EspecialidadController {
         try {
             const { id } = paramsIdSchema.parse(req.params)
             const datosEspecialidad = especialidadGenericaBodySchema.parse(req.body)
+            const {userId, userRol, userName} = tokenSchema.parse(req.usuario.id)
+            this.validarAdmin(userRol)
+
             const especialidadActualizada = await this.especialidadService.actualizarGenerica(id, datosEspecialidad)
             return res.status(200).json({
                 status: "success",
@@ -81,4 +90,9 @@ export class EspecialidadController {
             return next(error)
         }
     }    
+
+    validarAdmin(rolUsuario) {
+    if (rolUsuario != tipoUsuario.ADMIN) 
+        throw new ForbiddenError("No cuenta con los permisos necesarios para realizar dicha accion")
+    }
 }

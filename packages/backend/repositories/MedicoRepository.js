@@ -45,6 +45,10 @@ export class MedicoRepository{
         return await this.#populate(this.model.findOne({ _id: id, eliminado: false }))
     }
 
+    async findByUserId(userId) {
+        return await this.model.findOne({ usuario: userId, eliminado: false })
+    }
+
     async findByFilters(filtros = {}) {
         return await this.#populate(this.model.find(filtros))
     }
