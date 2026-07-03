@@ -35,7 +35,6 @@ export const estadosBodySchema = z.object({
 
 // PATCH /turnos/:id/solicitar-cambio-fecha
 export const solicitudFechaCambioBodySchema = z.object({
-    usuarioId: objectIdSchema,
     fechaPropuesta: z.coerce.date({
         required_error: "La fecha y hora propuesta son requeridas.",
         invalid_type_error: "Debe ser una fecha y hora válida (formato ISO 8601 o timestamp)."
@@ -60,7 +59,6 @@ export const solicitudCambioSchema = z.object({
 
 // PATCH /turnos/:id/responder-cambio-fecha
 export const responderReserva = z.object({
-    usuarioId: objectIdSchema,
     motivo: z
         .string({ required_error: "El motivo es obligatorio." })
         .min(5, "El motivo debe tener al menos 5 caracteres.")
@@ -73,7 +71,6 @@ export const responderReserva = z.object({
 
 // PATCH /turnos/:id/responder-cambio-fecha
 export const responderCambioDeFecha = z.object({
-    usuarioId: objectIdSchema,
     cambioAceptado: z.boolean({
         required_error: "El campo cambioAceptado es requerido.",
         invalid_type_error: "El campo cambioAceptado debe ser true o false."

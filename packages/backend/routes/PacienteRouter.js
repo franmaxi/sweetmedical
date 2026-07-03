@@ -1,5 +1,6 @@
 import express from "express"
 import { PacienteController } from "../controllers/PacienteController.js"
+import { verificarToken } from "../middlewares/authMiddleware.js"
 
 const pacienteController = new PacienteController()
 
@@ -11,8 +12,8 @@ router.route('/')
 
 router.route('/:id')
 	.get((req, res, next) => pacienteController.findById(req, res, next))
-	.put((req, res, next) => pacienteController.update(req, res, next))
-	.delete((req, res, next) => pacienteController.delete(req, res, next))
+	.put(verificarToken, (req, res, next) => pacienteController.update(req, res, next))
+	.delete(verificarToken, (req, res, next) => pacienteController.delete(req, res, next))
 
 
 export default router

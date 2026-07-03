@@ -39,7 +39,7 @@ export class NotificacionController {
         try {
             const { id } = paramsIdSchema.parse(req.params);
             //const { usuarioId } = marcarLeidaQuerySchema.parse(req.query);
-            const {userId, userRol, userName} = tokenSchema.parse(req.usuario.id)
+            const {userId, userRol, userName} = tokenSchema.parse(req.usuario)
 
             const notificacionActualizada = await this.notificacionService.marcarComoLeida(id, userId);
             return res.status(200).json({

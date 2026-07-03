@@ -88,9 +88,9 @@ export class UsuarioService{
         if (!passValida) throw new UnauthorizedError("Credenciales Invalidas")
 
         const payload = {
-            id: usuario._id,
-            rol: usuario.tipoUsuario,
-            username: usuario.nombreUsuario
+            userId: usuario._id,
+            userRol: usuario.tipoUsuario,
+            userName: usuario.nombreUsuario
             // podemos enviar tambien el idioma para que se configure el front en ese lenguaje 
         }
 

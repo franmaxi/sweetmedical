@@ -32,11 +32,14 @@ export class SedeController{
 
     create = async (req, res, next) => {
         try {
+
+            const {userId, userRol, userName} = tokenSchema.parse(req.usuario)
+            this.validarAdmin(userRol)
+            
             const datos = sedeBodySchema.parse(req.body);
             const sede = await this.sedeService.crear(datos);
             
-            const {userId, userRol, userName} = tokenSchema.parse(req.usuario.id)
-            this.validarAdmin(userRol)
+            
 
             return res.status(201).json({
                 status: "success",

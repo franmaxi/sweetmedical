@@ -1,5 +1,6 @@
 import express from "express"
 import { MedicoController } from "../controllers/MedicoController.js"
+import { verificarToken } from "../middlewares/authMiddleware.js"
 
 const medicoController = new MedicoController()
 
@@ -13,26 +14,26 @@ router.route('/short')
 
 router.route('/:id')
 	.get((req, res, next) => medicoController.findById(req, res, next))
-	.put((req, res, next) => medicoController.update(req, res, next))
-	.delete((req, res, next) => medicoController.delete(req, res, next))
+	.put(verificarToken, (req, res, next) => medicoController.update(req, res, next))
+	.delete(verificarToken, (req, res, next) => medicoController.delete(req, res, next))
 
 router.route('/:id/disponibilidades')
 	.get((req, res, next) =>	medicoController.listarDisponibilidades(req, res, next))
-	.post((req, res, next) => 	medicoController.crearDisponibilidad(req, res, next))
+	.post(verificarToken, (req, res, next) => 	medicoController.crearDisponibilidad(req, res, next))
 
 router.route('/:id/disponibilidades/:disponibilidadId')
 	.get((req, res, next) =>	medicoController.obtenerDisponibilidad(req, res, next))
-	.patch((req, res, next ) => medicoController.modificarDisponibilidad(req, res, next))
-	.delete((req, res, next) => medicoController.eliminarDisponibilidad(req, res, next))
+	.patch(verificarToken, (req, res, next ) => medicoController.modificarDisponibilidad(req, res, next))
+	.delete(verificarToken, (req, res, next) => medicoController.eliminarDisponibilidad(req, res, next))
 
 router.route('/:id/servicios')
 	.get((req, res, next) => medicoController.obtenerServicios(req, res, next))
-	.post((req, res, next) => medicoController.agregarServicio(req, res, next))
-	.put((req, res, next) => medicoController.modificarServicio(req, res, next))
-	.delete((req, res, next) => medicoController.eliminarServicio(req, res, next))
+	.post(verificarToken, (req, res, next) => medicoController.agregarServicio(req, res, next))
+	.put(verificarToken, (req, res, next) => medicoController.modificarServicio(req, res, next))
+	.delete(verificarToken, (req, res, next) => medicoController.eliminarServicio(req, res, next))
 
 router.route('/:id/sedes')
-	.post((req, res, next) => medicoController.agregarSedes(req, res, next))
-	.delete((req, res, next) => medicoController.quitarSedes(req, res, next))
+	.post(verificarToken, (req, res, next) => medicoController.agregarSedes(req, res, next))
+	.delete(verificarToken, (req, res, next) => medicoController.quitarSedes(req, res, next))
 export default router
 

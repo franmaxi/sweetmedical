@@ -1,5 +1,6 @@
 import express from "express"
 import { NotificacionController } from "../controllers/NotificacionController.js"
+import { verificarToken } from "../middlewares/authMiddleware.js"
 
 const notificacionController = new NotificacionController()
 /*
@@ -15,9 +16,7 @@ router.route('/')
     .get((req, res, next) => notificacionController.findAll(req, res, next))
 
 router.route('/:id')
-    .patch((req, res, next) => notificacionController.marcarComoLeida(req, res, next))
-
-router.route('/:id')
     .get((req, res, next) => notificacionController.findById(req, res, next))
-
+    .patch(verificarToken, (req, res, next) => notificacionController.marcarComoLeida(req, res, next));
+    
 export default router
