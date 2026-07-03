@@ -13,6 +13,10 @@ const usuarioSchema = new mongoose.Schema({
     eliminado: {
         type: Boolean,
         default: false
+    },
+    TipoUsuario: {
+        type: String,
+        required: true
     }
 },
 {

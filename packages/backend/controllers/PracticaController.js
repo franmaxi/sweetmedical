@@ -1,7 +1,7 @@
 import { PracticaService } from "../services/PracticaService.js";
 import { paginacionSchema, paramsIdSchema, tokenSchema } from "../validations/commonValidations.js";
 import { practicaGenericaBodySchema } from "../validations/practicaValidation.js";
-import { tipoUsuario } from "../domain/Enumerados/TipoUsuario.js";
+import { TipoUsuario } from "../domain/Enumerados/TipoUsuario.js";
 import { ForbiddenError } from "../errors/AppErrors.js";
 
 export class PracticaController {
@@ -93,7 +93,7 @@ export class PracticaController {
     }
     
     validarAdmin(rolUsuario) {
-        if (rolUsuario != tipoUsuario.ADMIN) 
+        if (rolUsuario != TipoUsuario.ADMIN) 
             throw new ForbiddenError("No cuenta con los permisos necesarios para realizar dicha accion")
     }
 }

@@ -1,7 +1,7 @@
 import { sedeBodySchema } from "../validations/sedeValidation.js";
 import { SedeService } from "../services/SedeService.js";
 import { paginacionSchema, paramsIdSchema, tokenSchema } from "../validations/commonValidations.js";
-import { tipoUsuario } from "../domain/Enumerados/TipoUsuario.js";
+import { TipoUsuario } from "../domain/Enumerados/TipoUsuario.js";
 import { ForbiddenError } from "../errors/AppErrors.js";
 
 export class SedeController{
@@ -64,7 +64,7 @@ export class SedeController{
     }
 
     validarAdmin(rolUsuario) {
-        if (rolUsuario != tipoUsuario.ADMIN) 
+        if (rolUsuario != TipoUsuario.ADMIN) 
             throw new ForbiddenError("No cuenta con los permisos necesarios para realizar dicha accion")
     }
 }

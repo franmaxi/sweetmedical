@@ -1,5 +1,5 @@
 import { UsuarioRepository } from "../repositories/UsuarioRepository.js";
-import { usuarioSchema, usuarioUpdateSchema } from "../validations/usuarioValidation.js";
+import { usuarioSchema, usuarioDomainSchema, usuarioUpdateSchema } from "../validations/usuarioValidation.js";
 import { BadRequestError, NotFoundError, UnauthorizedError } from "../errors/AppErrors.js";
 import { objectIdSchema } from "../validations/commonValidations.js";
 import jwt from "jsonwebtoken"
@@ -31,7 +31,7 @@ export class UsuarioService{
     }
 
     async crear(datosUsuario){
-        const validUser = usuarioSchema.parse(datosUsuario)
+        const validUser = usuarioDomainSchema.parse(datosUsuario)
 
         const usuarioExistente = await this.usuarioRepository.findByNombre(validUser.nombreUsuario)
         if(usuarioExistente){
@@ -89,7 +89,7 @@ export class UsuarioService{
 
         const payload = {
             userId: usuario._id,
-            userRol: usuario.tipoUsuario,
+            userRol: usuario.TipoUsuario,
             userName: usuario.nombreUsuario
             // podemos enviar tambien el idioma para que se configure el front en ese lenguaje 
         }

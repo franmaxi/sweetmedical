@@ -82,7 +82,8 @@
     "botonIngresar": "Log in",
     "noCuenta": "Don't have an account?",
     "registrate": "Sign up",
-    "success": "Session started (mock)"
+    "success": "Login successful",
+    "errorCredenciales": "Incorrect username or password"
   },
 
 
@@ -190,8 +191,11 @@
     "tabMedico": "I am a doctor",
     "yaTenesCuenta": "Already have an account?",
     "ingresa": "Sign in",
-    "successPaciente": "Patient account created",
-    "successMedico": "Doctor account created",
+    "successPaciente": "Patient account created successfully",
+    "successMedico": "Doctor account created successfully",
+    "errorGenerico": "An error occurred while creating the account. Please try again.",
+    "errorCargarObrasSociales": "Could not load health insurances",
+    "errorCargarSedes": "Could not load locations",
     "paciente": {
       "nombreLabel": "Full name",
       "placeholderNombre": "Ana García",
@@ -205,13 +209,14 @@
       "passwordLabel": "Password",
       "placeholderPassword": "Enter a password",
       "errorPassword": "Enter a password",
-      "errorPasswordMin": "Minimum 4 characters",
+      "errorPasswordMin": "Minimum 6 characters",
       "obraSocialLabel": "Health insurance",
       "placeholderObraSocial": "Choose a health insurance",
       "errorObraSocial": "Choose a health insurance",
-      "planLabel": "Plan (optional)",
+      "planLabel": "Plan",
       "placeholderPlan": "Choose a plan",
       "placeholderPlanFirst": "Choose health insurance first",
+      "errorPlan": "Choose a plan",
       "botonCrear": "Create account"
     },
     "medico": {
@@ -227,16 +232,13 @@
       "passwordLabel": "Password",
       "placeholderPassword": "Enter a password",
       "errorPassword": "Enter a password",
-      "errorPasswordMin": "Minimum 4 characters",
-      "especialidadLabel": "Specialty",
-      "placeholderEspecialidad": "Choose a specialty",
-      "errorEspecialidad": "Choose a specialty",
-      "sedesLabel": "Locations where you practice",
-      "placeholderSedes": "Choose one or more locations",
-      "errorSedes": "Choose at least one location",
+      "errorPasswordMin": "Minimum 6 characters",
+      "sedesLabel": "Locations",
+      "sedesInfo": "You can assign locations from your profile after creating the account.",
       "botonCrear": "Create account"
     }
   },
+
   "disponibilidades": {
     "titulo": "My availabilities",
     "subtitulo": "Define the days and times you are available.",

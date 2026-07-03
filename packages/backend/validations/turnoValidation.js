@@ -92,6 +92,7 @@ export const turnoFiltrosSchema = z.object({
     sedeId: objectIdSchema.optional(),
     desde: z.coerce.date().optional(),
     hasta: z.coerce.date().optional(),
+    filtrarPaciente: z.preprocess((val) => val === 'true' || val === true, z.boolean()).optional() // si esta en true se traen los turnos que tengan al paciente registrado
 });
 
 // Query completa: paginación + pacienteId + filtros + ordenamiento

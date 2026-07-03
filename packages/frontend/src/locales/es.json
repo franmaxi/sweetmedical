@@ -82,7 +82,8 @@
     "botonIngresar": "Ingresar",
     "noCuenta": "¿No tenés cuenta?",
     "registrate": "Registrate",
-    "success": "Sesión iniciada (mock)"
+    "success": "Sesión iniciada correctamente",
+    "errorCredenciales": "Usuario o contraseña incorrectos"
   },
   "buscarTurnos": {
     "encabezado": "Reservá tu turno",
@@ -190,8 +191,11 @@
     "tabMedico": "Soy médico",
     "yaTenesCuenta": "¿Ya tenés cuenta?",
     "ingresa": "Ingresá",
-    "successPaciente": "Cuenta de paciente creada",
-    "successMedico": "Cuenta de médico creada",
+    "successPaciente": "Cuenta de paciente creada exitosamente",
+    "successMedico": "Cuenta de médico creada exitosamente",
+    "errorGenerico": "Ocurrió un error al crear la cuenta. Intentá de nuevo.",
+    "errorCargarObrasSociales": "No se pudieron cargar las obras sociales",
+    "errorCargarSedes": "No se pudieron cargar las sedes",
     "paciente": {
       "nombreLabel": "Nombre completo",
       "placeholderNombre": "Ana García",
@@ -205,13 +209,14 @@
       "passwordLabel": "Contraseña",
       "placeholderPassword": "Ingresá una contraseña",
       "errorPassword": "Ingresá una contraseña",
-      "errorPasswordMin": "Mínimo 8 caracteres",
+      "errorPasswordMin": "Mínimo 6 caracteres",
       "obraSocialLabel": "Obra social",
       "placeholderObraSocial": "Elegí una obra social",
       "errorObraSocial": "Elegí una obra social",
-      "planLabel": "Plan (opcional)",
+      "planLabel": "Plan",
       "placeholderPlan": "Elegí un plan",
       "placeholderPlanFirst": "Elegí primero la obra social",
+      "errorPlan": "Elegí un plan",
       "botonCrear": "Crear cuenta"
     },
     "medico": {
@@ -227,13 +232,9 @@
       "passwordLabel": "Contraseña",
       "placeholderPassword": "Ingresá una contraseña",
       "errorPassword": "Ingresá una contraseña",
-      "errorPasswordMin": "Mínimo 4 caracteres",
-      "especialidadLabel": "Especialidad",
-      "placeholderEspecialidad": "Elegí una especialidad",
-      "errorEspecialidad": "Elegí una especialidad",
-      "sedesLabel": "Sedes donde atendés",
-      "placeholderSedes": "Elegí una o más sedes",
-      "errorSedes": "Elegí al menos una sede",
+      "errorPasswordMin": "Mínimo 6 caracteres",
+      "sedesLabel": "Sedes",
+      "sedesInfo": "Podés asignar sedes desde tu perfil una vez creada la cuenta.",
       "botonCrear": "Crear cuenta"
     }
   },

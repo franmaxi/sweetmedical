@@ -84,6 +84,10 @@ export class TurnoService {
         const paciente = await this.pacienteRepository.findByUserId(userId);
         if (!paciente) throw new NotFoundError('Paciente no encontrado');
 
+        if( filtros.filtrarPaciente ){
+            filtros.paciente = userId
+        }
+
         filtros.estado;
 
         if (filtros.desde != null && filtros.hasta != null) {
@@ -460,12 +464,19 @@ export class TurnoService {
 
     async cancelar(turnoId, usuarioId, motivo) {
         const horasMinimasParaCancelar = parseInt(process.env.HORAS_MINIMAS_CANCELAR)
+        let notificar = true
 
         const turno = await this.obtenerPorId(turnoId)
-        this.verificarTurnoExistente(turno, EstadoTurno.CONFIRMADO, `El turno id ${turnoId} esta en estado ${turno.estado}, deberia ser ${EstadoTurno.CONFIRMADO}`)
 
         if (!turno.sePuedeCancelar(new Date(), horasMinimasParaCancelar)) {
             throw new UnprocessableEntityError(`El turno debe cancelarse con al menos ${horasMinimasParaCancelar} hora/s de anticipación`)
+        }
+
+        if(turno.estado == EstadoTurno.RESERVADO && usuarioId == this.getIdDocument(turno.paciente)) {
+            //se puede cancelar de una sin drama
+            notificar = false
+        } else {
+            this.verificarTurnoExistente(turno, EstadoTurno.CONFIRMADO,`El turno id ${turnoId} esta en estado ${turno.estado}, deberia ser ${EstadoTurno.CONFIRMADO}`)
         }
 
         const usuario = await this.usuarioService.obtenerPorId(usuarioId)
@@ -513,8 +524,10 @@ export class TurnoService {
         }
 
         turno.actualizarEstado(EstadoTurno.CANCELADO, usuario, motivo)
-        this.notificacionService.notificarCambioEstadoTurno(turno) // no hacemos await para que se gestione aparte
-
+        if (notificar) {
+            this.notificacionService.notificarCambioEstadoTurno(turno) // no hacemos await para que se gestione aparte
+        }
+        
         return await this.turnoRepository.update(turno._id, turno)
     }
 

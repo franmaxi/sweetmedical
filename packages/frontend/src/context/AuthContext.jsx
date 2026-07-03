@@ -1,5 +1,20 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { loginApi, logoutApi } from "../api/api";
+
+/**
+ * Decodifica el payload de un JWT sin librerías externas.
+ * Solo lee la parte pública del token (no verifica la firma).
+ */
+function decodeJwt(token) {
+  try {
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(window.atob(base64));
+  } catch {
+    return null;
+  }
+}
 
 const STORAGE_KEY = "sweetmedical_auth";
 const AuthContext = createContext(null);
@@ -26,17 +41,32 @@ export function AuthProvider({ children }) {
     }
   }, [user]);
 
-  const login = async ({ username, role = "usuario" }) => {
+  const login = async ({ nombreUsuario, password }) => {
+    // Llama al backend — lanza error si las credenciales son incorrectas
+    const token = await loginApi({ nombreUsuario, password });
+
+    // Decodifica el payload para obtener los datos del usuario
+    const payload = decodeJwt(token);
+    
+    // Normalizar el rol para que coincida con lo que espera el frontend
+    let normalizedRole = payload.userRol?.toLowerCase();
+    if (normalizedRole === 'paciente') {
+      normalizedRole = 'usuario';
+    }
+
     const nextUser = {
-      username,
-      role,
-      displayName: username,
+      userId: payload.userId,
+      username: payload.userName,
+      role: normalizedRole,
+      displayName: payload.userName,
     };
     setUser(nextUser);
     return nextUser;
   };
 
-  const logout = () => {
+  const logout = async () => {
+    // Blacklistea el token en el servidor y limpia el storage
+    await logoutApi();
     setUser(null);
   };
 

@@ -12,19 +12,15 @@ import {
   Tag,
   Typography,
   Pagination,
+  Modal,
 } from "antd";
 import { CalendarOutlined, ClockCircleOutlined, EnvironmentOutlined, MedicineBoxOutlined } from "@ant-design/icons";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import { useTranslation } from "react-i18next";
-import {
-  cancelarTurno,
-} from "../../mocks";
-import { getTurnos } from "../../api/api";
+import { getTurnos, cancelarTurnoApi } from "../../api/api";
 
 const { Title, Text } = Typography;
-
-const PACIENTE_ACTIVO = "6a22243ea59d0c59c2916fd2"
 
 const COLOR_ESTADO = {
   DISPONIBLE: "default",
@@ -56,7 +52,7 @@ export default function MisTurnos() {
 function MisTurnosInner() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { message, modal } = AntApp.useApp();
+  const { message } = AntApp.useApp();
   const [historialTurnos, setHistorialTurnos] = useState([]);
   const [proximosTurnos, setProximosTurnos] = useState([]);
   
@@ -70,9 +66,13 @@ function MisTurnosInner() {
   const [totalHistorial, setTotalHistorial] = useState(0);
   const [cargandoHistorial, setCargandoHistorial] = useState(true);
 
+  const [modalCancelarVisible, setModalCancelarVisible] = useState(false);
+  const [turnoACancelar, setTurnoACancelar] = useState(null);
+  const [motivoCancelacion, setMotivoCancelacion] = useState("");
+
   const fetchHistorial = () => {
     setCargandoHistorial(true);
-    getTurnos({ pacienteId: PACIENTE_ACTIVO, estado: "CANCELADO,REALIZADO", ordenarPor: "fechaHora", ordenDireccion: "desc", page: paginaActualHistorial, limit: 10 })
+    getTurnos({ filtrarPaciente: true, estado: "CANCELADO,REALIZADO", ordenarPor: "fechaHora", ordenDireccion: "desc", page: paginaActualHistorial, limit: 10 })
       .then((res) => {
         setHistorialTurnos(res.data || []);
         setPaginasTotalesHistorial(res.paginacion?.totalPaginas || 1);
@@ -88,7 +88,7 @@ function MisTurnosInner() {
 
   const fetchProximos = () => {
     setCargandoProximos(true);
-    getTurnos({ pacienteId: PACIENTE_ACTIVO, estado: "RESERVADO", ordenarPor: "fechaHora", ordenDireccion: "asc", page: paginaActualProximos, limit: 10 })
+    getTurnos({ filtrarPaciente: true, estado: "RESERVADO", ordenarPor: "fechaHora", ordenDireccion: "asc", page: paginaActualProximos, limit: 10 })
       .then((res) => {
         setProximosTurnos(res.data || []);
         setPaginasTotalesProximos(res.paginacion?.totalPaginas || 1);
@@ -137,32 +137,24 @@ function MisTurnosInner() {
   );
 
   const onCancelar = (turno) => {
-    let motivo = "";
-    modal.confirm({
-      title: t("misTurnos.cancelarTitle"),
-      content: (
-        <div>
-          <p>{turno.medicoNombre} · {fmt(turno.fechaHora)}</p>
-          <Input.TextArea
-            rows={3}
-            placeholder={t("misTurnos.cancelarPlaceholder")}
-            onChange={(e) => { motivo = e.target.value; }}
-          />
-        </div>
-      ),
-      okText: t("misTurnos.cancelarOk"),
-      okButtonProps: { danger: true },
-      cancelText: t("misTurnos.cancelarCancel"),
-      onOk: async () => {
-        if (!motivo.trim()) {
-          message.error(t("misTurnos.errorFaltaMotivo"));
-          throw new Error("falta motivo");
-        }
-        await cancelarTurno(turno.id, { usuarioId: PACIENTE_ACTIVO.usuarioId, motivo: motivo.trim() });
-        message.success(t("misTurnos.canceladoOk"));
-        recargar();
-      },
-    });
+    setTurnoACancelar(turno);
+    setMotivoCancelacion("");
+    setModalCancelarVisible(true);
+  };
+
+  const confirmarCancelacion = async () => {
+    if (!motivoCancelacion.trim()) {
+      message.error(t("misTurnos.errorFaltaMotivo"));
+      return;
+    }
+    try {
+      await cancelarTurnoApi(turnoACancelar.id, motivoCancelacion.trim());
+      message.success(t("misTurnos.canceladoOk"));
+      setModalCancelarVisible(false);
+      recargar();
+    } catch (error) {
+      // Error handled by interceptor or api
+    }
   };
 
   const renderTurno = (turno) => (
@@ -240,6 +232,30 @@ function MisTurnosInner() {
         />
       </Layout.Content>
       <Footer />
+      <Modal
+        title={t("misTurnos.cancelarTitle")}
+        open={modalCancelarVisible}
+        onCancel={() => setModalCancelarVisible(false)}
+        onOk={confirmarCancelacion}
+        okText={t("misTurnos.cancelarOk")}
+        cancelText={t("misTurnos.cancelarCancel")}
+        okButtonProps={{ 
+          danger: true, 
+          disabled: !motivoCancelacion.trim() 
+        }}
+      >
+        {turnoACancelar && (
+          <div>
+            <p>{turnoACancelar.medicoNombre} · {fmt(turnoACancelar.fechaHora)}</p>
+            <Input.TextArea
+              rows={3}
+              placeholder={t("misTurnos.cancelarPlaceholder")}
+              value={motivoCancelacion}
+              onChange={(e) => setMotivoCancelacion(e.target.value)}
+            />
+          </div>
+        )}
+      </Modal>
     </Layout>
   );
 }

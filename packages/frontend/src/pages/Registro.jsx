@@ -16,11 +16,13 @@ import {
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import {
-  getObrasSociales,
-  getPlanes,
+  registrarPacienteApi,
+  registrarMedicoApi,
+  getObrasSocialesApi,
+  getPlanesPorObraSocialApi,
   getEspecialidadesGenericas,
   getSedes,
-} from "../mocks";
+} from "../api/api";
 
 const { Title, Text } = Typography;
 
@@ -82,35 +84,52 @@ function FormularioPaciente() {
   const [cargando, setCargando] = useState(false);
 
   useEffect(() => {
-    getObrasSociales().then(setObrasSociales);
+    getObrasSocialesApi()
+      .then((res) => setObrasSociales(res.data ?? []))
+      .catch(() => message.error(t("registro.errorCargarObrasSociales")));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
-    if (obraSocialId == null) {
+    if (!obraSocialId) {
       setPlanes([]);
       return;
     }
-    getPlanes({ obraSocialId }).then(setPlanes);
+    getPlanesPorObraSocialApi(obraSocialId)
+      .then((res) => setPlanes(res.data ?? []))
+      .catch(() => setPlanes([]));
   }, [obraSocialId]);
 
-  const onFinish = () => {
+  const onFinish = async (values) => {
     setCargando(true);
-    setTimeout(() => {
-      setCargando(false);
+    try {
+      await registrarPacienteApi({
+        nombre: values.nombre,
+        dni: values.dni,
+        nombreUsuario: values.nombreUsuario,
+        password: values.password,
+        obraSocialId: values.obraSocialId,
+        planId: values.planId,
+      });
       message.success(t("registro.successPaciente"));
       navigate("/login");
-    }, 400);
+    } catch (error) {
+      const msg = error.response?.data?.message ?? t("registro.errorGenerico");
+      message.error(msg);
+    } finally {
+      setCargando(false);
+    }
   };
 
   return (
     <Form layout="vertical" onFinish={onFinish}>
-      <Form.Item name="nombre" label={t("registro.paciente.nombreLabel")} rules={[{ required: true, message: t("registro.paciente.errorNombre") }]}> 
+      <Form.Item name="nombre" label={t("registro.paciente.nombreLabel")} rules={[{ required: true, message: t("registro.paciente.errorNombre") }]}>
         <Input placeholder={t("registro.paciente.placeholderNombre")} />
       </Form.Item>
-      <Form.Item name="dni" label={t("registro.paciente.dniLabel")} rules={[{ required: true, message: t("registro.paciente.errorDni") }]}> 
-        <Input placeholder={t("registro.paciente.placeholderDni")} />
+      <Form.Item name="dni" label={t("registro.paciente.dniLabel")} rules={[{ required: true, message: t("registro.paciente.errorDni") }]}>
+        <Input type="number" placeholder={t("registro.paciente.placeholderDni")} />
       </Form.Item>
-      <Form.Item name="nombreUsuario" label={t("registro.paciente.usuarioLabel")} rules={[{ required: true, message: t("registro.paciente.errorUsuario") }]}> 
+      <Form.Item name="nombreUsuario" label={t("registro.paciente.usuarioLabel")} rules={[{ required: true, message: t("registro.paciente.errorUsuario") }]}>
         <Input placeholder={t("registro.paciente.placeholderUsuario")} autoComplete="username" />
       </Form.Item>
       <Form.Item
@@ -118,24 +137,23 @@ function FormularioPaciente() {
         label={t("registro.paciente.passwordLabel")}
         rules={[
           { required: true, message: t("registro.paciente.errorPassword") },
-          { min: 8, message: t("registro.paciente.errorPasswordMin") },
+          { min: 6, message: t("registro.paciente.errorPasswordMin") },
         ]}
       >
         <Input.Password autoComplete="new-password" placeholder={t("registro.paciente.placeholderPassword")} />
       </Form.Item>
-      <Form.Item name="obraSocialId" label={t("registro.paciente.obraSocialLabel")} rules={[{ required: true, message: t("registro.paciente.errorObraSocial") }]}> 
+      <Form.Item name="obraSocialId" label={t("registro.paciente.obraSocialLabel")} rules={[{ required: true, message: t("registro.paciente.errorObraSocial") }]}>
         <Select
           placeholder={t("registro.paciente.placeholderObraSocial")}
-          options={obrasSociales.map((o) => ({ value: o.id, label: o.nombre }))}
+          options={obrasSociales.map((o) => ({ value: o._id, label: o.nombre }))}
           onChange={(v) => setObraSocialId(v)}
         />
       </Form.Item>
-      <Form.Item name="planId" label={t("registro.paciente.planLabel")}>
+      <Form.Item name="planId" label={t("registro.paciente.planLabel")} rules={[{ required: true, message: t("registro.paciente.errorPlan") }]}>
         <Select
           placeholder={planes.length ? t("registro.paciente.placeholderPlan") : t("registro.paciente.placeholderPlanFirst")}
-          allowClear
           disabled={!planes.length}
-          options={planes.map((p) => ({ value: p.id, label: p.nombre }))}
+          options={planes.map((p) => ({ value: p._id, label: p.nombre }))}
         />
       </Form.Item>
       <Button type="primary" htmlType="submit" block loading={cargando}>
@@ -149,33 +167,45 @@ function FormularioMedico() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { message } = AntApp.useApp();
-  const [especialidades, setEspecialidades] = useState([]);
   const [sedes, setSedes] = useState([]);
   const [cargando, setCargando] = useState(false);
 
   useEffect(() => {
-    getEspecialidadesGenericas().then(setEspecialidades);
-    getSedes().then(setSedes);
+    // Las sedes se siguen cargando desde la API existente en api.js
+    getSedes()
+      .then((res) => setSedes(res.data ?? []))
+      .catch(() => message.error(t("registro.errorCargarSedes")));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const onFinish = () => {
+  const onFinish = async (values) => {
     setCargando(true);
-    setTimeout(() => {
-      setCargando(false);
+    try {
+      await registrarMedicoApi({
+        nombre: values.nombre,
+        matricula: values.matricula,
+        nombreUsuario: values.nombreUsuario,
+        password: values.password,
+      });
       message.success(t("registro.successMedico"));
       navigate("/login");
-    }, 400);
+    } catch (error) {
+      const msg = error.response?.data?.message ?? t("registro.errorGenerico");
+      message.error(msg);
+    } finally {
+      setCargando(false);
+    }
   };
 
   return (
     <Form layout="vertical" onFinish={onFinish}>
-      <Form.Item name="nombre" label={t("registro.medico.nombreLabel")} rules={[{ required: true, message: t("registro.medico.errorNombre") }]}> 
+      <Form.Item name="nombre" label={t("registro.medico.nombreLabel")} rules={[{ required: true, message: t("registro.medico.errorNombre") }]}>
         <Input placeholder={t("registro.medico.placeholderNombre")} />
       </Form.Item>
-      <Form.Item name="matricula" label={t("registro.medico.matriculaLabel")} rules={[{ required: true, message: t("registro.medico.errorMatricula") }]}> 
+      <Form.Item name="matricula" label={t("registro.medico.matriculaLabel")} rules={[{ required: true, message: t("registro.medico.errorMatricula") }]}>
         <Input placeholder={t("registro.medico.placeholderMatricula")} />
       </Form.Item>
-      <Form.Item name="nombreUsuario" label={t("registro.medico.usuarioLabel")} rules={[{ required: true, message: t("registro.medico.errorUsuario") }]}> 
+      <Form.Item name="nombreUsuario" label={t("registro.medico.usuarioLabel")} rules={[{ required: true, message: t("registro.medico.errorUsuario") }]}>
         <Input placeholder={t("registro.medico.placeholderUsuario")} autoComplete="username" />
       </Form.Item>
       <Form.Item
@@ -183,23 +213,17 @@ function FormularioMedico() {
         label={t("registro.medico.passwordLabel")}
         rules={[
           { required: true, message: t("registro.medico.errorPassword") },
-          { min: 4, message: t("registro.medico.errorPasswordMin") },
+          { min: 6, message: t("registro.medico.errorPasswordMin") },
         ]}
       >
         <Input.Password autoComplete="new-password" placeholder={t("registro.medico.placeholderPassword")} />
       </Form.Item>
-      
-      <Form.Item
-        name="sedesIds"
-        label={t("registro.medico.sedesLabel")}
-        rules={[{ required: true, message: t("registro.medico.errorSedes") }]}
-      >
-        <Select
-          mode="multiple"
-          placeholder={t("registro.medico.placeholderSedes")}
-          options={sedes.map((s) => ({ value: s.id, label: s.nombre }))}
-        />
-      </Form.Item>
+      {/* Sedes: el back no las acepta en el create — se asignan luego desde el perfil */}
+      {sedes.length > 0 && (
+        <Form.Item label={t("registro.medico.sedesLabel")}>
+          <Text type="secondary">{t("registro.medico.sedesInfo")}</Text>
+        </Form.Item>
+      )}
       <Button type="primary" htmlType="submit" block loading={cargando}>
         {t("registro.medico.botonCrear")}
       </Button>

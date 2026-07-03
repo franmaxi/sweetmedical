@@ -58,16 +58,16 @@ export class PacienteService {
         const usuarioGuardado = await this.usuarioService.crear({
             nombreUsuario: datosPaciente.nombreUsuario,
             password: datosPaciente.password,
-            tipoUsuario: TipoUsuario.PACIENTE
+            TipoUsuario: TipoUsuario.PACIENTE
         })
         const paciente = new Paciente({
-            _id: usuarioGuardado._id,   // pacienteId === userId
             dni: datosPaciente.dni,
             nombre: datosPaciente.nombre,
             usuario: usuarioGuardado._id,
             obraSocial: obraSocial._id,
             plan: plan._id,
         })
+        paciente._id = usuarioGuardado._id   // pacienteId === userId
         
         return await this.pacienteRepository.save(paciente)
     }

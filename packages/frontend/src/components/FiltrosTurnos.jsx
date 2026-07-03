@@ -152,9 +152,11 @@ export default function FiltrosTurnos({
             value={filtros.fechaHasta}
             onChange={set("fechaHasta")}
             format="DD/MM/YYYY"
-            disabledDate={(current) =>
-              filtros.fechaDesde ? current && current.isBefore(filtros.fechaDesde, "day") : false
-            }
+            disabledDate={(current) => {
+                const antesDeHoy = current && current.isBefore(dayjs().startOf("day"));
+                const antesDeFechaDesde = filtros.fechaDesde ? current && current.isBefore(filtros.fechaDesde, "day") : false;
+                return antesDeHoy || antesDeFechaDesde;
+              }}
           />
         </Form.Item>
         <Form.Item label={t("buscarTurnos.labelOrdenarPor")}>

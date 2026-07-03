@@ -39,12 +39,15 @@ function LoginInner() {
 
   const onFinish = async (values) => {
     setCargando(true);
-    await login({ username: values.nombreUsuario, role: values.role ?? "usuario" });
-    setTimeout(() => {
-      setCargando(false);
+    try {
+      await login({ nombreUsuario: values.nombreUsuario, password: values.password });
       message.success(t("login.success"));
       navigate(from, { replace: true });
-    }, 400);
+    } catch {
+      message.error(t("login.errorCredenciales"));
+    } finally {
+      setCargando(false);
+    }
   };
 
   return (

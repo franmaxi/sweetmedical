@@ -70,15 +70,15 @@ export class MedicoService {
         const usuarioCreado = await this.usuarioService.crear({ //TODO se puede implementar un factory
             nombreUsuario: datosMedico.nombreUsuario,
             password: datosMedico.password,
-            tipoUsuario: TipoUsuario.MEDICO
+            TipoUsuario: TipoUsuario.MEDICO
         });
 
         const medico = new Medico({
-            _id: usuarioCreado._id,
             usuario: usuarioCreado._id,
             matricula: datosMedico.matricula,
             nombre: datosMedico.nombre
         });
+        medico._id = usuarioCreado._id
 
         return await this.medicoRepository.save(medico);
     }

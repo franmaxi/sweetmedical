@@ -9,7 +9,7 @@ import {
     responderReserva
 } from "../validations/turnoValidation.js";
 import { ForbiddenError } from "../errors/AppErrors.js";
-import { tipoUsuario } from "../domain/Enumerados/TipoUsuario.js";
+import { TipoUsuario } from "../domain/Enumerados/TipoUsuario.js";
 export class TurnoController {
     constructor( {turnoService = new TurnoService()} = {}) {
         this.turnoService = turnoService;
@@ -44,7 +44,8 @@ export class TurnoController {
                 : [];
 
             let resultado = null
-
+            //console.log(userId)
+            
             if (userId) {
                 resultado = await this.turnoService.obtenerTodosCobertura({
                     userId,
@@ -115,7 +116,7 @@ export class TurnoController {
             const { especialidadId, practicaId } = estadosBodySchema.parse(req.body)
             const { userId, userRol } = tokenSchema.parse(req.usuario)
 
-            this.validarUsuario(userRol, tipoUsuario.PACIENTE)
+            this.validarUsuario(userRol, TipoUsuario.PACIENTE)
 
             // REVISAR que recibimos el userId no el pacienteId
             // hacer una funcion en pacienteRepository que sea findByUserId(userId) y devuelva el paciente
@@ -146,7 +147,7 @@ export class TurnoController {
             const { motivo, reservaAceptada } = responderReserva.parse(req.body)
             const { userId, userRol } = tokenSchema.parse(req.usuario)
 
-            this.validarUsuario(userRol, tipoUsuario.MEDICO)
+            this.validarUsuario(userRol, TipoUsuario.MEDICO)
             
             let turno
             if(reservaAceptada){
@@ -189,7 +190,7 @@ export class TurnoController {
             const { id: turnoId } = paramsIdSchema.parse(req.params);
             //const { medicoId } = estadosBodySchema.parse(req.body);
             const { userId, userRol } = tokenSchema.parse(req.usuario)
-            this.validarUsuario(userRol, tipoUsuario.MEDICO)
+            this.validarUsuario(userRol, TipoUsuario.MEDICO)
             
             const turno = await this.turnoService.realizar(turnoId, userId)
 
@@ -250,7 +251,7 @@ export class TurnoController {
         try {
             //const { id: medicoId } = paramsIdSchema.parse(req.params);
             const { userId, userRol } = tokenSchema.parse(req.usuario)
-            this.validarUsuario(userRol, tipoUsuario.MEDICO)
+            this.validarUsuario(userRol, TipoUsuario.MEDICO)
             
             const especialidadId = req.query.especialidadId ? objectIdSchema.parse(req.query.especialidadId) : null;
             const practicaId = req.query.practicaId ? objectIdSchema.parse(req.query.practicaId) : null;

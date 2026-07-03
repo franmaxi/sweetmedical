@@ -1,7 +1,7 @@
 import { EspecialidadService } from "../services/EspecialidadService.js"
 import { paginacionSchema, paramsIdSchema, tokenSchema } from "../validations/commonValidations.js"
 import { especialidadGenericaBodySchema } from "../validations/especialidadValidation.js"
-import { tipoUsuario } from "../domain/Enumerados/TipoUsuario.js";
+import { TipoUsuario } from "../domain/Enumerados/TipoUsuario.js";
 import { ForbiddenError } from "../errors/AppErrors.js"
 
 export class EspecialidadController {
@@ -92,7 +92,7 @@ export class EspecialidadController {
     }    
 
     validarAdmin(rolUsuario) {
-    if (rolUsuario != tipoUsuario.ADMIN) 
+    if (rolUsuario != TipoUsuario.ADMIN) 
         throw new ForbiddenError("No cuenta con los permisos necesarios para realizar dicha accion")
     }
 }
