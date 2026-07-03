@@ -33,7 +33,7 @@ export class SedeController{
     create = async (req, res, next) => {
         try {
 
-            const {userId, userRol, userName} = tokenSchema.parse(req.usuario)
+            const { userRol } = tokenSchema.parse(req.usuario)
             this.validarAdmin(userRol)
             
             const datos = sedeBodySchema.parse(req.body);

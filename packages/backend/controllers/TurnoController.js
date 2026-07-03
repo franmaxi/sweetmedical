@@ -1,7 +1,6 @@
 import { TurnoService } from '../services/TurnoService.js';
 import { paramsIdSchema, objectIdSchema, tokenSchema } from "../validations/commonValidations.js";
 import {
-    turnoBodySchema,
     batchForzadoQuerySchema,
     estadosBodySchema,
     solicitudFechaCambioBodySchema,
@@ -37,7 +36,7 @@ export class TurnoController {
                     ordenDireccion, 
                     ...filtros } = turnoQuerySchema.parse(req.query);
             
-            const {userId, userRol, userName} = tokenSchema.parse(req.usuario)    
+            const { userId } = tokenSchema.parse(req.usuario)
             
             // Construir el array de ordenamiento para el servicio/repositorio
             const ordenamiento = ordenarPor
@@ -114,7 +113,7 @@ export class TurnoController {
         try {
             const { id: turnoId } = paramsIdSchema.parse(req.params);
             const { especialidadId, practicaId } = estadosBodySchema.parse(req.body)
-            const { userId, userRol, userName } = tokenSchema.parse(req.usuario)
+            const { userId, userRol } = tokenSchema.parse(req.usuario)
 
             this.validarUsuario(userRol, tipoUsuario.PACIENTE)
 
@@ -145,7 +144,7 @@ export class TurnoController {
         try {
             const { id: turnoId } = paramsIdSchema.parse(req.params)
             const { motivo, reservaAceptada } = responderReserva.parse(req.body)
-            const {userId, userRol, userName} = tokenSchema.parse(req.usuario)
+            const { userId, userRol } = tokenSchema.parse(req.usuario)
 
             this.validarUsuario(userRol, tipoUsuario.MEDICO)
             
@@ -171,7 +170,7 @@ export class TurnoController {
         try {
             const { id: turnoId } = paramsIdSchema.parse(req.params);
             const { motivo } = estadosBodySchema.parse(req.body);
-            const {userId, userRol, userName} = tokenSchema.parse(req.usuario)
+            const { userId } = tokenSchema.parse(req.usuario)
 
             const turno = await this.turnoService.cancelar( turnoId, userId, motivo )
 
@@ -189,7 +188,7 @@ export class TurnoController {
         try {
             const { id: turnoId } = paramsIdSchema.parse(req.params);
             //const { medicoId } = estadosBodySchema.parse(req.body);
-            const {userId, userRol, userName} = tokenSchema.parse(req.usuario)
+            const { userId, userRol } = tokenSchema.parse(req.usuario)
             this.validarUsuario(userRol, tipoUsuario.MEDICO)
             
             const turno = await this.turnoService.realizar(turnoId, userId)
@@ -208,7 +207,7 @@ export class TurnoController {
         try {
             const { id: turnoId } = paramsIdSchema.parse(req.params);            
             const { fechaPropuesta, motivo } = solicitudFechaCambioBodySchema.parse(req.body);
-            const {userId, userRol, userName} = tokenSchema.parse(req.usuario)
+            const { userId } = tokenSchema.parse(req.usuario)
 
             const data = await this.turnoService.solicitarCambioDeFecha(turnoId, userId, fechaPropuesta, motivo)
 
@@ -227,7 +226,7 @@ export class TurnoController {
         try {
             const { id: turnoId } = paramsIdSchema.parse(req.params);            
             const { cambioAceptado } = responderCambioDeFecha.parse(req.body);
-            const {userId, userRol, userName} = tokenSchema.parse(req.usuario)
+            const { userId } = tokenSchema.parse(req.usuario)
             
             let data
 
@@ -250,7 +249,7 @@ export class TurnoController {
     consultarAgenda = async (req, res, next) => {
         try {
             //const { id: medicoId } = paramsIdSchema.parse(req.params);
-            const {userId, userRol, userName} = tokenSchema.parse(req.usuario)
+            const { userId, userRol } = tokenSchema.parse(req.usuario)
             this.validarUsuario(userRol, tipoUsuario.MEDICO)
             
             const especialidadId = req.query.especialidadId ? objectIdSchema.parse(req.query.especialidadId) : null;

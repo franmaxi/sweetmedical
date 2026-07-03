@@ -48,5 +48,3 @@ export const verificarToken = (req, res, next) => {
         ))
     }
 }
-
-// TODO para renovar la expiracion de los tokens tenemos que crear uno nuevo

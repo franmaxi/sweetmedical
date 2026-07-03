@@ -60,10 +60,11 @@ export class PacienteService {
             password: datosPaciente.password,
             tipoUsuario: TipoUsuario.PACIENTE
         })
-        const paciente= new Paciente({
+        const paciente = new Paciente({
+            _id: usuarioGuardado._id,   // pacienteId === userId
             dni: datosPaciente.dni,
             nombre: datosPaciente.nombre,
-            usuario: usuarioGuardado,
+            usuario: usuarioGuardado._id,
             obraSocial: obraSocial._id,
             plan: plan._id,
         })

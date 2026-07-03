@@ -73,7 +73,7 @@ export class MedicoController {
     delete = async (req, res, next) => {
         try {
             const { id } = paramsIdSchema.parse(req.params);
-            const {userId, userRol, userName} = tokenSchema.parse(req.usuario)
+            const { userId } = tokenSchema.parse(req.usuario)
             if (userId != id) throw new ForbiddenError("No se tienen los permisos necesarios para modificar este recurso")
 
             const medicoEliminado = await this.medicoService.eliminar(id);
@@ -90,7 +90,7 @@ export class MedicoController {
         try {
             const { id } = paramsIdSchema.parse(req.params);
             const datosMedico = medicoBodyUpdateSchema.parse(req.body);
-            const {userId, userRol, userName} = tokenSchema.parse(req.usuario)
+            const { userId } = tokenSchema.parse(req.usuario)
             if (userId != id) throw new ForbiddenError("No se tienen los permisos necesarios para modificar este recurso")
 
             const medicoActualizado = await this.medicoService.actualizar(id, datosMedico);
@@ -123,7 +123,7 @@ export class MedicoController {
         try {
             const { id: medicoId } = paramsIdSchema.parse(req.params);
             const disponibilidad = disponibilidadBodySchema.parse(req.body);
-            const {userId, userRol, userName} = tokenSchema.parse(req.usuario)
+            const { userId } = tokenSchema.parse(req.usuario)
             if (userId !== medicoId) throw new ForbiddenError("No se tienen los permisos necesarios para modificar este recurso")
 
             const disponibilidadCreada = await this.medicoService.crearDisponibilidad(medicoId, disponibilidad);
@@ -142,7 +142,7 @@ export class MedicoController {
             const { id: medicoId } = paramsIdSchema.parse(req.params);
             const disponibilidadId = objectIdSchema.parse(req.params.disponibilidadId);
             const disponibilidad = updateDisponibilidadBodySchema.parse(req.body);
-            const {userId, userRol, userName} = tokenSchema.parse(req.usuario)
+            const { userId } = tokenSchema.parse(req.usuario)
             if (userId !== medicoId) throw new ForbiddenError("No se tienen los permisos necesarios para modificar este recurso")
 
             const disponibilidadActualizada = await this.medicoService.modificarDisponibilidad(medicoId, disponibilidadId, disponibilidad);
@@ -204,7 +204,7 @@ export class MedicoController {
         try {
             const { id: medicoId } = paramsIdSchema.parse(req.params);
             const { especialidad, practica } = agregarServicioBodySchema.parse(req.body);
-            const {userId, userRol, userName} = tokenSchema.parse(req.usuario)
+            const { userId } = tokenSchema.parse(req.usuario)
             if (userId !== medicoId) throw new ForbiddenError("No se tienen los permisos necesarios para modificar este recurso")
 
             const medicoActualizado = await this.medicoService.agregarServicio(
@@ -226,7 +226,7 @@ export class MedicoController {
         try {
             const { id: medicoId } = paramsIdSchema.parse(req.params);
             const { especialidadId, practicaId, ...datosServicio } = modificarServicioBodySchema.parse(req.body);
-            const {userId, userRol, userName} = tokenSchema.parse(req.usuario)
+            const { userId } = tokenSchema.parse(req.usuario)
             if (userId !== medicoId) throw new ForbiddenError("No se tienen los permisos necesarios para modificar este recurso")
 
             const medicoActualizado = await this.medicoService.modificarServicio(medicoId, especialidadId, practicaId, datosServicio);
@@ -244,7 +244,7 @@ export class MedicoController {
         try {
             const { id: medicoId } = paramsIdSchema.parse(req.params);
             const { especialidadId, practicaId } = eliminarServicioBodySchema.parse(req.body);
-            const {userId, userRol, userName} = tokenSchema.parse(req.usuario)
+            const { userId } = tokenSchema.parse(req.usuario)
             if (userId !== medicoId) throw new ForbiddenError("No se tienen los permisos necesarios para modificar este recurso")
 
             const medicoActualizado = await this.medicoService.eliminarServicio(medicoId, especialidadId, practicaId);
@@ -262,7 +262,7 @@ export class MedicoController {
         try {
             const { id: medicoId } = paramsIdSchema.parse(req.params);
             const disponibilidadId = objectIdSchema.parse(req.params.disponibilidadId);
-            const {userId, userRol, userName} = tokenSchema.parse(req.usuario)
+            const { userId } = tokenSchema.parse(req.usuario)
             if (userId !== medicoId) throw new ForbiddenError("No se tienen los permisos necesarios para modificar este recurso")
 
             const medicoActualizado = await this.medicoService.eliminarDisponibilidad(medicoId, disponibilidadId);
@@ -280,7 +280,7 @@ export class MedicoController {
         try {
             const { id: medicoId } = paramsIdSchema.parse(req.params);
             const { sedesId } = sedesBodySchema.parse(req.body);
-            const {userId, userRol, userName} = tokenSchema.parse(req.usuario)
+            const { userId } = tokenSchema.parse(req.usuario)
             if (userId !== medicoId) throw new ForbiddenError("No se tienen los permisos necesarios para modificar este recurso")
 
             const medicoActualizado = await this.medicoService.agregarSedes(medicoId, sedesId);
@@ -298,7 +298,7 @@ export class MedicoController {
         try {
             const { id: medicoId } = paramsIdSchema.parse(req.params);
             const { sedesId } = sedesBodySchema.parse(req.body);
-            const {userId, userRol, userName} = tokenSchema.parse(req.usuario)
+            const { userId } = tokenSchema.parse(req.usuario)
             if (userId !== medicoId) throw new ForbiddenError("No se tienen los permisos necesarios para modificar este recurso")
 
             const medicoActualizado = await this.medicoService.quitarSedes(medicoId, sedesId);

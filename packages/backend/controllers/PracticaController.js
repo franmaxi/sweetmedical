@@ -29,7 +29,7 @@ export class PracticaController {
         try {
             const datosPGenerica = practicaGenericaBodySchema.parse(req.body);
 
-            const {userId, userRol, userName} = tokenSchema.parse(req.usuario)
+            const { userRol } = tokenSchema.parse(req.usuario)
             this.validarAdmin(userRol)
 
             const practicaGenericaCreada = await this.practicaService.crearGenerica(datosPGenerica);
@@ -79,7 +79,7 @@ export class PracticaController {
             const { id } = paramsIdSchema.parse(req.params);
             const datosPGenerica = practicaGenericaBodySchema.parse(req.body);
 
-            const { userId, userRol, userName } = tokenSchema.parse(req.usuario)
+            const { userRol } = tokenSchema.parse(req.usuario)
             this.validarAdmin(userRol)
 
             const practicaActualizada = await this.practicaService.actualizarGenerica(id, datosPGenerica);

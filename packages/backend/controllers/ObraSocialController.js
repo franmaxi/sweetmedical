@@ -26,13 +26,11 @@ export class ObraSocialController{
 
     createObraSocial = async (req, res, next) => {
         try {
-            const {userId, userRol, userName} = tokenSchema.parse(req.usuario)
+            const { userRol } = tokenSchema.parse(req.usuario)
             this.validarAdmin(userRol)
 
             const datos = obraSocialDomainSchema.parse(req.body);
             const obraSocial = await this.obraSocialService.crearObraSocial(datos.nombre);
-            
-            
 
             return res.status(201).json({
                 status: "success",
@@ -72,12 +70,12 @@ export class ObraSocialController{
 
     createPlan = async (req, res, next) => {
         try {
-            const {userId, userRol, userName} = tokenSchema.parse(req.usuario)
+            const { userRol } = tokenSchema.parse(req.usuario)
             this.validarAdmin(userRol)
-            
+
             const datos = planBodySchema.parse(req.body);
             const resp = await this.obraSocialService.cargarNuevoPlan(datos);
-            
+
             return res.status(201).json({
                 status: "success",
                 data: resp

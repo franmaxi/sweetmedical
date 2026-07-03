@@ -95,7 +95,7 @@ export class UsuarioService{
         }
 
         const token = jwt.sign(payload, process.env.JWT_SECRET_KEY, {
-            expiresIn: "10m" 
+            expiresIn: process.env.JWT_EXPIRATION ?? "10m"
         });
         
         return token;

@@ -29,7 +29,7 @@ export class EspecialidadController {
         try {
             const datosEGenerica = especialidadGenericaBodySchema.parse(req.body)
             
-            const { userId, userRol, userName } = tokenSchema.parse(req.usuario)
+            const { userRol } = tokenSchema.parse(req.usuario)
             this.validarAdmin(userRol)
             
             const eGenericaCreada = await this.especialidadService.crearGenerica(datosEGenerica)
@@ -78,7 +78,7 @@ export class EspecialidadController {
         try {
             const { id } = paramsIdSchema.parse(req.params)
             const datosEspecialidad = especialidadGenericaBodySchema.parse(req.body)
-            const {userId, userRol, userName} = tokenSchema.parse(req.usuario)
+            const { userRol } = tokenSchema.parse(req.usuario)
             this.validarAdmin(userRol)
 
             const especialidadActualizada = await this.especialidadService.actualizarGenerica(id, datosEspecialidad)

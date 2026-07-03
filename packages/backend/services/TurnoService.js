@@ -283,7 +283,7 @@ export class TurnoService {
         this.verificarTurnoExistente(turno, EstadoTurno.CONFIRMADO, `El turno id ${turnoId} esta en estado ${turno.estado}, deberia ser ${EstadoTurno.CONFIRMADO}`)
 
         //El usuario debe ser el médico, sino dar error
-        if (turno.medico.usuario_id.toString() !== usuarioId) {
+        if (turno.medico.usuario._id.toString() !== usuarioId) {
             throw new BadRequestError(`El usuario con id ${usuarioId} no es el médico del turno ${turnoId}`)
         }
 
@@ -332,7 +332,7 @@ export class TurnoService {
         }
 
         //Validacion de usuarioId, que sea el medico o paciente
-        if (!(turno.medico.usuario_id == usuarioId || turno.paciente.usuario._id == usuarioId)) {
+        if (!(turno.medico.usuario._id.toString() === usuarioId || turno.paciente.usuario._id.toString() === usuarioId)) {
             throw new BadRequestError(`El usuario con id ${usuarioId} no pertenece al turno ${turnoId}`)
         }
 
@@ -410,7 +410,7 @@ export class TurnoService {
         }
 
         //Validacion de usuarioId, que sea el medico o paciente
-        if (!(turno.medico.usuario_id == usuarioId || turno.paciente.usuario._id == usuarioId)) {
+        if (!(turno.medico.usuario._id.toString() === usuarioId || turno.paciente.usuario._id.toString() === usuarioId)) {
             throw new BadRequestError(`El usuario con id ${usuarioId} no pertenece al turno ${turnoId}`)
         }
 
@@ -434,7 +434,7 @@ export class TurnoService {
         }
 
         //Validacion de usuarioId, que sea el medico o paciente
-        if (!(turno.medico.usuario_id == usuarioId || turno.paciente.usuario._id == usuarioId)) {
+        if (!(turno.medico.usuario._id.toString() === usuarioId || turno.paciente.usuario._id.toString() === usuarioId)) {
             throw new BadRequestError(`El usuario con id ${usuarioId} no pertenece al turno ${turnoId}`)
         }
 
@@ -654,7 +654,7 @@ export class TurnoService {
         if (!turno) throw new NotFoundError('Turno no encontrado')
 
         const medico = await this.medicoRepository.findByUserId(userId)
-        if ( !medico || turno.medico._id !== medico._id ) {
+        if (!medico || turno.medico._id.toString() !== medico._id.toString()) {
             throw new UnprocessableEntityError(`El turno no le pertenece al medico id: ${medico._id}`)
         }
         if (turno.estado == EstadoTurno.RESERVADO) {
@@ -665,8 +665,8 @@ export class TurnoService {
     }
 
     async consultarAgenda(userId, especialidadId, practicaId) {
-        // sacamos las validaciones porque si devuelve vacio ya fue.
-        const medico = this.medicoRepository.findByUserId(userId)
+        const medico = await this.medicoRepository.findByUserId(userId)
+        if (!medico) throw new NotFoundError('Médico no encontrado')
         const filtros = {
             estado: EstadoTurno.DISPONIBLE
         };
