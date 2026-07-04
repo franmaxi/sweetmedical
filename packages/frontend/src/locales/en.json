@@ -20,7 +20,20 @@
     "descripcion": "Manage your account and session details.",
     "nombre": "Name",
     "usuario": "Username",
-    "rol": "Role"
+    "password": "Password",
+    "rol": "Role",
+    "role": {
+      "medico": "Doctor",
+      "paciente": "Patient",
+      "admin": "Admin",
+      "default": "User"
+    },
+    "errorCargar": "Unable to load profile data.",
+    "errorGuardar": "Unable to save the profile.",
+    "success": "Profile updated successfully.",
+    "passwordPlaceholder": "Leave blank to keep current password",
+    "errorPassword": "Enter a password",
+    "loginRequired": "You must be logged in to view your profile."
   },
   "language": {
     "spanish": "Español",
@@ -84,7 +97,7 @@
     "labelPassword": "Password",
     "errorPassword": "Enter your password",
     "placeholderPassword": "••••••••",
-    "errorPasswordLength": "Minimum 8 characters",
+    "errorPasswordLength": "Minimum 6 characters",
     "labelRol": "Role",
     "rolePaciente": "Patient",
     "roleMedico": "Doctor",
@@ -222,6 +235,10 @@
     "errorGenerico": "An error occurred while creating the account. Please try again.",
     "errorCargarObrasSociales": "Could not load health insurances",
     "errorCargarSedes": "Could not load locations",
+    "confirmarPasswordLabel": "Confirm password",
+    "placeholderConfirmarPassword": "Repeat your password",
+    "errorConfirmarPassword": "Please confirm your password",
+    "errorPasswordNoCoincide": "Passwords do not match",
     "paciente": {
       "nombreLabel": "Full name",
       "placeholderNombre": "Ana García",
@@ -278,6 +295,7 @@
     "errorElegirHorario": "Choose a time range",
     "errorHoraInicio": "Start time must be before end time",
     "successAgregada": "Availability added",
+    "successEditada": "Availability updated successfully",
     "successEliminada": "Availability removed",
     "eliminarTitle": "Remove availability",
     "eliminar": "Remove",
@@ -289,6 +307,19 @@
     "emptyText": "You haven't added any availability yet",
     "de": "from",
     "a": "to"
+  },
+  "misServicios": {
+    "especialidadAgregada": "Specialty added",
+    "especialidadActualizada": "Specialty updated",
+    "especialidadEliminada": "Specialty removed",
+    "practicaAgregada": "Procedure added",
+    "practicaActualizada": "Procedure updated",
+    "practicaEliminada": "Procedure removed"
+  },
+  "misSedes": {
+    "sedeAgregada": "Location added successfully",
+    "sedesAgregadas": "Locations added successfully",
+    "sedeQuitada": "Location removed from your profile"
   },
   "dias": {
     "lunes": "Monday",

@@ -19,7 +19,20 @@
     "descripcion": "Administrá tus datos de cuenta y sesión.",
     "nombre": "Nombre",
     "usuario": "Usuario",
-    "rol": "Rol"
+    "password": "Contraseña",
+    "rol": "Rol",
+    "role": {
+      "medico": "Médico",
+      "paciente": "Paciente",
+      "admin": "Administrador",
+      "default": "Usuario"
+    },
+    "errorCargar": "No se pudieron cargar los datos del perfil.",
+    "errorGuardar": "No se pudo guardar el perfil.",
+    "success": "Perfil actualizado correctamente.",
+    "passwordPlaceholder": "Dejar vacío para no cambiarla",
+    "errorPassword": "Ingresá una contraseña",
+    "loginRequired": "Debes iniciar sesión para ver tu perfil."
   },
   "language": {
     "spanish": "Español",
@@ -84,7 +97,7 @@
     "errorPassword": "Ingresá tu contraseña",
     "placeholderPassword": "••••••••",
     "labelRol": "Rol",
-    "errorPasswordLength": "La contraseña tiene que contener minimo 8 caracteres",
+    "errorPasswordLength": "La contraseña debe tener al menos 6 caracteres",
     "rolePaciente": "Paciente",
     "roleMedico": "Médico",
     "roleAdmin": "Admin",
@@ -221,6 +234,10 @@
     "errorGenerico": "Ocurrió un error al crear la cuenta. Intentá de nuevo.",
     "errorCargarObrasSociales": "No se pudieron cargar las obras sociales",
     "errorCargarSedes": "No se pudieron cargar las sedes",
+    "confirmarPasswordLabel": "Confirmar contraseña",
+    "placeholderConfirmarPassword": "Repitá tu contraseña",
+    "errorConfirmarPassword": "Confirmá tu contraseña",
+    "errorPasswordNoCoincide": "Las contraseñas no coinciden",
     "paciente": {
       "nombreLabel": "Nombre completo",
       "placeholderNombre": "Ana García",
@@ -276,6 +293,7 @@
     "errorElegirHorario": "Elegí el rango horario",
     "errorHoraInicio": "La hora de inicio debe ser menor que la de fin",
     "successAgregada": "Disponibilidad agregada",
+    "successEditada": "Disponibilidad editada con éxito",
     "successEliminada": "Disponibilidad eliminada",
     "eliminarTitle": "Eliminar disponibilidad",
     "eliminar": "Eliminar",
@@ -290,6 +308,19 @@
     "emptyText": "Todavía no cargaste ninguna disponibilidad",
     "de": "de",
     "a": "a"
+  },
+  "misServicios": {
+    "especialidadAgregada": "Especialidad agregada",
+    "especialidadActualizada": "Especialidad actualizada",
+    "especialidadEliminada": "Especialidad eliminada",
+    "practicaAgregada": "Práctica agregada",
+    "practicaActualizada": "Práctica actualizada",
+    "practicaEliminada": "Práctica eliminada"
+  },
+  "misSedes": {
+    "sedeAgregada": "Sede agregada con éxito",
+    "sedesAgregadas": "Sedes agregadas con éxito",
+    "sedeQuitada": "Sede quitada de tu perfil"
   },
   "dias": {
     "lunes": "Lunes",

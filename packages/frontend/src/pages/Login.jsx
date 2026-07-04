@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, Link, useLocation } from "react-router-dom";
 import {
   App as AntApp,
@@ -14,6 +14,7 @@ import {
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
+import { extraerMensajeError } from "../api/errorUtils";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
@@ -36,6 +37,18 @@ function LoginInner() {
   const [cargando, setCargando] = useState(false);
 
   const from = location.state?.from?.pathname ?? "/";
+  const successMsgShown = useRef(false);
+
+  // Mensaje de éxito proveniente del registro
+  useEffect(() => {
+    const msg = location.state?.successMessage;
+    if (msg && !successMsgShown.current) {
+      successMsgShown.current = true;
+      message.success(msg);
+      // Limpia el state para que no reaparezca si el usuario navega atrás/adelante
+      window.history.replaceState({}, "");
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onFinish = async (values) => {
     setCargando(true);
@@ -43,8 +56,8 @@ function LoginInner() {
       await login({ nombreUsuario: values.nombreUsuario, password: values.password });
       message.success(t("login.success"));
       navigate(from, { replace: true });
-    } catch {
-      message.error(t("login.errorCredenciales"));
+    } catch (err) {
+      message.error(extraerMensajeError(err, t("login.errorCredenciales")));
     } finally {
       setCargando(false);
     }
@@ -80,7 +93,7 @@ function LoginInner() {
               name="password"
               label={t("login.labelPassword")}
               rules={[{ required: true, message: t("login.errorPassword") },
-                { min: 8, message: t("login.errorPasswordLength") }]}
+                { min: 6, message: t("login.errorPasswordLength") }]}
             >
               <Input.Password prefix={<LockOutlined />} placeholder={t("login.placeholderPassword")} autoComplete="current-password" />
             </Form.Item>

@@ -20,6 +20,7 @@ import { DiaSemana, nombreDia } from "../../mocks";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import { getServicios, getSedes, crearDisponibilidad, getDisponibilidades, getMedicoById, eliminarDisponibilidad, modificarDisponibilidad } from "../../api/api";
+import { extraerMensajeError } from "../../api/errorUtils";
 
 const { Title, Text } = Typography;
 
@@ -127,8 +128,8 @@ function DisponibilidadesInner() {
         });
         setMapaSedes(mapSedes);
       })
-      .catch(() => {
-        message.error("Error al cargar los datos");
+      .catch((err) => {
+        message.error(extraerMensajeError(err, "Error al cargar los datos"));
       })
       .finally(() => setCargandoSelects(false));
   }, []);
@@ -154,8 +155,8 @@ function DisponibilidadesInner() {
         });
         setDisponibilidades(formateadas);
       })
-      .catch(() => {
-        message.error("Error al cargar las disponibilidades");
+      .catch((err) => {
+        message.error(extraerMensajeError(err, "Error al cargar las disponibilidades"));
       })
       .finally(() => {
         setCargando(false);
@@ -193,7 +194,7 @@ function DisponibilidadesInner() {
           practicas: practicasIds,
           sedeId: values.sedeId,
         });
-        message.success("Disponibilidad editada con éxito");
+        message.success(t("disponibilidades.successEditada"));
       } else {
         const horaDesde = values.rango[0].format("HH:mm");
         const horaHasta = values.rango[1].format("HH:mm");
@@ -220,8 +221,8 @@ function DisponibilidadesInner() {
       setDisponibilidadEnEdicion(null);
       form.resetFields();
       recargarDisponibilidades();
-    } catch {
-      message.error("Error al guardar la disponibilidad");
+    } catch (err) {
+      message.error(extraerMensajeError(err, "Error al guardar la disponibilidad"));
     } finally {
       setGuardando(false);
     }
@@ -267,8 +268,8 @@ function DisponibilidadesInner() {
           await eliminarDisponibilidad({ medicoId: MEDICO_ID, disponibilidadId: d._id });
           message.success(t("disponibilidades.successEliminada"));
           recargarDisponibilidades();
-        } catch {
-          message.error("Error al eliminar la disponibilidad");
+        } catch (err) {
+          message.error(extraerMensajeError(err, "Error al eliminar la disponibilidad"));
         }
       },
     });

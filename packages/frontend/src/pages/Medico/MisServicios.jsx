@@ -15,9 +15,11 @@ import {
   Tabs,
 } from "antd";
 import { DeleteOutlined, EditOutlined, LoadingOutlined, PlusOutlined } from "@ant-design/icons";
+import { useTranslation } from "react-i18next";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import { getEspecialidadesGenericas, getPracticasGenericas, getServicios, crearEspecialidad, crearPractica, editarServicio, eliminarServicio } from "../../api/api";
+import { extraerMensajeError } from "../../api/errorUtils";
 
 const { Title, Text } = Typography;
 
@@ -34,6 +36,7 @@ export default function MisEspecialidades() {
 }
 
 function MisServiciosInner() {
+  const { t } = useTranslation();
   const { message, modal } = AntApp.useApp();
 
   const [especialidades, setEspecialidades] = useState([]);
@@ -123,14 +126,16 @@ function MisServiciosInner() {
       if (especialidadEnModal) {
         const id = especialidadEnModal._id || especialidadEnModal.id;
         await editarServicio({ especialidadId: id, duracionTurnoEnMins: values.duracionTurnoEnMins, costo: values.costo });
-        message.success("Especialidad actualizada");
+        message.success(t("misServicios.especialidadActualizada"));
       } else {
         await crearEspecialidad({ especialidadGenericaId: values.especialidadGenericaId, duracionTurnoEnMins: values.duracionTurnoEnMins, costo: values.costoConsulta ?? values.costo });
-        message.success("Especialidad agregada");
+        message.success(t("misServicios.especialidadAgregada"));
       }
       setEspecialidadEnModal(false);
       formEsp.resetFields();
       recargar();
+    } catch (err) {
+      message.error(extraerMensajeError(err, "Error al guardar la especialidad"));
     } finally {
       setGuardando(false);
     }
@@ -144,9 +149,13 @@ function MisServiciosInner() {
       okButtonProps: { danger: true },
       cancelText: "Cancelar",
       onOk: async () => {
-        await eliminarServicio({ especialidadId: item._id || item.id });
-        message.success("Especialidad eliminada");
-        recargar();
+        try {
+          await eliminarServicio({ especialidadId: item._id || item.id });
+          message.success(t("misServicios.especialidadEliminada"));
+          recargar();
+        } catch (err) {
+          message.error(extraerMensajeError(err, "Error al eliminar la especialidad"));
+        }
       },
     });
   };
@@ -176,14 +185,16 @@ function MisServiciosInner() {
       if (practicaEnModal) {
         const id = practicaEnModal._id || practicaEnModal.id;
         await editarServicio({ practicaId: id, duracionTurnoEnMins: values.duracionTurnoEnMins, costo: values.costo });
-        message.success("Práctica actualizada");
+        message.success(t("misServicios.practicaActualizada"));
       } else {
         await crearPractica({ practicaGenericaId: values.practicaGenericaId, duracionTurnoEnMins: values.duracionTurnoEnMins, costo: values.costo });
-        message.success("Práctica agregada");
+        message.success(t("misServicios.practicaAgregada"));
       }
       setPracticaEnModal(false);
       formPrac.resetFields();
       recargar();
+    } catch (err) {
+      message.error(extraerMensajeError(err, "Error al guardar la práctica"));
     } finally {
       setGuardando(false);
     }
@@ -197,9 +208,13 @@ function MisServiciosInner() {
       okButtonProps: { danger: true },
       cancelText: "Cancelar",
       onOk: async () => {
-        await eliminarServicio({ practicaId: item._id || item.id });
-        message.success("Práctica eliminada");
-        recargar();
+        try {
+          await eliminarServicio({ practicaId: item._id || item.id });
+          message.success(t("misServicios.practicaEliminada"));
+          recargar();
+        } catch (err) {
+          message.error(extraerMensajeError(err, "Error al eliminar la práctica"));
+        }
       },
     });
   };

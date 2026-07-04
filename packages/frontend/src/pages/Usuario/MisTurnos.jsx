@@ -19,6 +19,7 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import { useTranslation } from "react-i18next";
 import { getTurnos, cancelarTurnoApi } from "../../api/api";
+import { extraerMensajeError } from "../../api/errorUtils";
 
 const { Title, Text } = Typography;
 
@@ -81,7 +82,7 @@ function MisTurnosInner() {
       .catch((err) => {
         console.error(err);
         setCargandoHistorial(false);
-        message.error("Error al obtener el historial de turnos");
+        message.error(extraerMensajeError(err, "Error al obtener el historial de turnos"));
       });
   };
 
@@ -97,7 +98,7 @@ function MisTurnosInner() {
       .catch((err) => {
         console.error(err);
         setCargandoProximos(false);
-        message.error("Error al obtener los próximos turnos");
+        message.error(extraerMensajeError(err, "Error al obtener los próximos turnos"));
       });
   };
 
@@ -231,8 +232,8 @@ function MisTurnosInner() {
 function ModalCancelacion({ visible, turno, onCancel, onSuccess }) {
   const { t } = useTranslation();
   const { message, modal } = AntApp.useApp();
-  const [motivo, setMotivo] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [ motivo, setMotivo ] = useState("");
+  const [ loading, setLoading ] = useState(false);
 
   useEffect(() => {
     if (visible) setMotivo("");

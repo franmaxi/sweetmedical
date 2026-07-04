@@ -11,11 +11,10 @@ import {
   SearchOutlined,
   MenuOutlined,
   LogoutOutlined,
-  EnvironmentOutlined,
-  SettingOutlined,
 } from "@ant-design/icons";
 import NotificacionesDropdown from "./NotificacionesDropdown";
 import SelectorIdioma from "./SelectorIdioma";
+import MiPerfilDropdown from "./MiPerfilDropdown";
 
 const { Header } = Layout;
 const { useBreakpoint } = Grid;
@@ -45,14 +44,7 @@ const AuthButtons = ({ user, onLogout }) => {
   const navigate = useNavigate();
 
   if (user) {
-    return (
-      <>
-        <Button type="text" onClick={() => navigate("/mi-perfil")} style={{ padding: 0, color: "#111827", fontWeight: 600 }}>
-          {user.displayName}
-        </Button>
-        <Button onClick={onLogout}><LogoutOutlined />{t("navbar.logout")}</Button>
-      </>
-    );
+    return <MiPerfilDropdown />;
   }
 
   return (
@@ -67,11 +59,16 @@ const DrawerAuth = ({ user, onLogout, onClose }) => {
   const { t } = useTranslation();
   const navigate = useNavigate();
 
-  const handleNavigate = (path) => { onClose(); navigate(path); };
+  const handleNavigate = (path) => {
+    onClose();
+    navigate(path);
+  };
 
   if (user) {
     return (
-      <Button block danger onClick={onLogout}>{t("navbar.logout")}</Button>
+      <Button block danger onClick={onLogout}>
+        {t("navbar.logout")}
+      </Button>
     );
   }
 
@@ -104,7 +101,7 @@ const allItems = [
     key: "/",
     icon: <HomeOutlined />,
     label: <Link to="/">{t("navbar.inicio")}</Link>,
-    roles: ["*"], // siempre visible
+    roles: ["*"],
   },
   {
     key: "/buscar",
@@ -125,12 +122,6 @@ const allItems = [
     roles: ["medico"],
   },
   {
-    key: "/mis-sedes",
-    icon: <EnvironmentOutlined />,
-    label: <Link to="/mis-sedes">{t("navbar.misSedes")}</Link>,
-    roles: ["medico"],
-  },
-  {
     key: "/disponibilidades",
     icon: <ClockCircleOutlined />,
     label: <Link to="/disponibilidades">{t("navbar.disponibilidades")}</Link>,
@@ -141,25 +132,17 @@ const allItems = [
     icon: <ClockCircleOutlined />,
     label: <Link to="/mis-servicios">{t("navbar.misServicios")}</Link>,
     roles: ["medico"],
-  },
-  {
-    key: "/admin",
-    icon: <SettingOutlined />,
-    label: <Link to="/admin">{t("navbar.admin")}</Link>,
-    roles: ["admin"],
   }
 ];
 
 const rol = user?.role ?? "guest";
-
-const items = allItems.filter(({ roles }) =>
-  roles.includes("*") || roles.includes(rol)
-);
+const items = allItems.filter(({ roles }) => 
+  roles.includes("*") || roles.includes(rol));
 
   return (
     <Header
       style={{
-        background: "#fff",
+        background: "#fff", 
         borderBottom: "1px solid #f0f0f0",
         padding: "0 clamp(12px, 4vw, 32px)",
         display: "flex",

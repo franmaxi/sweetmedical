@@ -11,16 +11,16 @@ export const pacienteBodySchema = z.object({
         required_error: "El nombre es requerido.",
         invalid_type_error: "El nombre debe ser un texto."
     }).trim().min(1, "El nombre no puede estar vacío."),
-    obraSocialId: z.string({
-        required_error: "La obra social es requerida.",
-        invalid_type_error: "La obra social debe ser un texto."
-    }).refine(val => Types.ObjectId.isValid(val), {
+    obraSocialId: z.string().optional().nullable().refine(val => {
+        if (!val) return true;
+        return Types.ObjectId.isValid(val);
+    }, {
         message: "Debe ser un ID de obra social válido de Mongoose."
     }),
-    planId: z.string({
-        required_error: "El plan es requerido.",
-        invalid_type_error: "El plan debe ser un texto."
-    }).refine(val => Types.ObjectId.isValid(val), {
+    planId: z.string().optional().nullable().refine(val => {
+        if (!val) return true;
+        return Types.ObjectId.isValid(val);
+    }, {
         message: "Debe ser un ID de plan válido de Mongoose."
     }),
     nombreUsuario: z.string({
@@ -45,12 +45,8 @@ export const pacienteDomainSchema = z.object({
         required_error: "El nombre es requerido.",
         invalid_type_error: "El nombre debe ser un texto."
     }).trim().min(1, "El nombre no puede estar vacío."),
-    obraSocial: z.any({
-        required_error: "La obra social es requerida."
-    }),
-    plan: z.any({
-        required_error: "El plan es requerido."
-    })
+    obraSocial: z.any().optional().nullable(),
+    plan: z.any().optional().nullable()
 })
 
 

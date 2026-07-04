@@ -47,29 +47,37 @@ export class PacienteService {
     }
 
     async crear(datosPaciente) {
-        // Buscamos la obra social para validar que existe
-        const obraSocial = await this.obraSocialRepository.findById(datosPaciente.obraSocialId)
-        if(!obraSocial) throw new NotFoundError(`No se encontró una obraSocial con el id ${datosPaciente.obraSocialId}`)
+        // obraSocial y plan son opcionales
+        let obraSocialId = null;
+        let planId = null;
 
-        // El plan es un subdocumento embebido dentro de la obra social
-        const plan = await this.obraSocialRepository.findPlanById(datosPaciente.planId)
-        if(!plan) throw new NotFoundError(`No se encontró un plan con el id ${datosPaciente.planId}`)
+        if (datosPaciente.obraSocialId) {
+            const obraSocial = await this.obraSocialRepository.findById(datosPaciente.obraSocialId);
+            if (!obraSocial) throw new NotFoundError(`No se encontró una obraSocial con el id ${datosPaciente.obraSocialId}`);
+            obraSocialId = obraSocial._id;
+        }
+
+        if (datosPaciente.planId) {
+            const plan = await this.obraSocialRepository.findPlanById(datosPaciente.planId);
+            if (!plan) throw new NotFoundError(`No se encontró un plan con el id ${datosPaciente.planId}`);
+            planId = plan._id;
+        }
 
         const usuarioGuardado = await this.usuarioService.crear({
             nombreUsuario: datosPaciente.nombreUsuario,
             password: datosPaciente.password,
             TipoUsuario: TipoUsuario.PACIENTE
-        })
+        });
         const paciente = new Paciente({
             dni: datosPaciente.dni,
             nombre: datosPaciente.nombre,
             usuario: usuarioGuardado._id,
-            obraSocial: obraSocial._id,
-            plan: plan._id,
-        })
-        paciente._id = usuarioGuardado._id   // pacienteId === userId
+            obraSocial: obraSocialId,
+            plan: planId,
+        });
+        paciente._id = usuarioGuardado._id;   // pacienteId === userId
         
-        return await this.pacienteRepository.save(paciente)
+        return await this.pacienteRepository.save(paciente);
     }
 
     async actualizar(id, datosPaciente) {

@@ -20,9 +20,9 @@ import {
   registrarMedicoApi,
   getObrasSocialesApi,
   getPlanesPorObraSocialApi,
-  getEspecialidadesGenericas,
   getSedes,
 } from "../api/api";
+import { extraerMensajeError } from "../api/errorUtils";
 
 const { Title, Text } = Typography;
 
@@ -82,6 +82,7 @@ function FormularioPaciente() {
   const [planes, setPlanes] = useState([]);
   const [obraSocialId, setObraSocialId] = useState(null);
   const [cargando, setCargando] = useState(false);
+  const [form] = Form.useForm();
 
   useEffect(() => {
     getObrasSocialesApi()
@@ -111,18 +112,16 @@ function FormularioPaciente() {
         obraSocialId: values.obraSocialId,
         planId: values.planId,
       });
-      message.success(t("registro.successPaciente"));
-      navigate("/login");
-    } catch (error) {
-      const msg = error.response?.data?.message ?? t("registro.errorGenerico");
-      message.error(msg);
+      navigate("/login", { state: { successMessage: t("registro.successPaciente") } });
+    } catch (err) {
+      message.error(extraerMensajeError(err, t("registro.errorGenerico")));
     } finally {
       setCargando(false);
     }
   };
 
   return (
-    <Form layout="vertical" onFinish={onFinish}>
+    <Form form={form} layout="vertical" onFinish={onFinish}>
       <Form.Item name="nombre" label={t("registro.paciente.nombreLabel")} rules={[{ required: true, message: t("registro.paciente.errorNombre") }]}>
         <Input placeholder={t("registro.paciente.placeholderNombre")} />
       </Form.Item>
@@ -142,18 +141,38 @@ function FormularioPaciente() {
       >
         <Input.Password autoComplete="new-password" placeholder={t("registro.paciente.placeholderPassword")} />
       </Form.Item>
-      <Form.Item name="obraSocialId" label={t("registro.paciente.obraSocialLabel")} rules={[{ required: true, message: t("registro.paciente.errorObraSocial") }]}>
+      <Form.Item
+        name="confirmarPassword"
+        label={t("registro.confirmarPasswordLabel")}
+        dependencies={["password"]}
+        rules={[
+          { required: true, message: t("registro.errorConfirmarPassword") },
+          ({ getFieldValue }) => ({
+            validator(_, value) {
+              if (!value || getFieldValue("password") === value) {
+                return Promise.resolve();
+              }
+              return Promise.reject(new Error(t("registro.errorPasswordNoCoincide")));
+            },
+          }),
+        ]}
+      >
+        <Input.Password autoComplete="new-password" placeholder={t("registro.placeholderConfirmarPassword")} />
+      </Form.Item>
+      <Form.Item name="obraSocialId" label={t("registro.paciente.obraSocialLabel")}>
         <Select
           placeholder={t("registro.paciente.placeholderObraSocial")}
           options={obrasSociales.map((o) => ({ value: o._id, label: o.nombre }))}
-          onChange={(v) => setObraSocialId(v)}
+          onChange={(v) => { setObraSocialId(v ?? null); }}
+          allowClear
         />
       </Form.Item>
-      <Form.Item name="planId" label={t("registro.paciente.planLabel")} rules={[{ required: true, message: t("registro.paciente.errorPlan") }]}>
+      <Form.Item name="planId" label={t("registro.paciente.planLabel")}>
         <Select
           placeholder={planes.length ? t("registro.paciente.placeholderPlan") : t("registro.paciente.placeholderPlanFirst")}
           disabled={!planes.length}
           options={planes.map((p) => ({ value: p._id, label: p.nombre }))}
+          allowClear
         />
       </Form.Item>
       <Button type="primary" htmlType="submit" block loading={cargando}>
@@ -169,9 +188,9 @@ function FormularioMedico() {
   const { message } = AntApp.useApp();
   const [sedes, setSedes] = useState([]);
   const [cargando, setCargando] = useState(false);
+  const [form] = Form.useForm();
 
   useEffect(() => {
-    // Las sedes se siguen cargando desde la API existente en api.js
     getSedes()
       .then((res) => setSedes(res.data ?? []))
       .catch(() => message.error(t("registro.errorCargarSedes")));
@@ -187,18 +206,16 @@ function FormularioMedico() {
         nombreUsuario: values.nombreUsuario,
         password: values.password,
       });
-      message.success(t("registro.successMedico"));
-      navigate("/login");
-    } catch (error) {
-      const msg = error.response?.data?.message ?? t("registro.errorGenerico");
-      message.error(msg);
+      navigate("/login", { state: { successMessage: t("registro.successMedico") } });
+    } catch (err) {
+      message.error(extraerMensajeError(err, t("registro.errorGenerico")));
     } finally {
       setCargando(false);
     }
   };
 
   return (
-    <Form layout="vertical" onFinish={onFinish}>
+    <Form form={form} layout="vertical" onFinish={onFinish}>
       <Form.Item name="nombre" label={t("registro.medico.nombreLabel")} rules={[{ required: true, message: t("registro.medico.errorNombre") }]}>
         <Input placeholder={t("registro.medico.placeholderNombre")} />
       </Form.Item>
@@ -217,6 +234,24 @@ function FormularioMedico() {
         ]}
       >
         <Input.Password autoComplete="new-password" placeholder={t("registro.medico.placeholderPassword")} />
+      </Form.Item>
+      <Form.Item
+        name="confirmarPassword"
+        label={t("registro.confirmarPasswordLabel")}
+        dependencies={["password"]}
+        rules={[
+          { required: true, message: t("registro.errorConfirmarPassword") },
+          ({ getFieldValue }) => ({
+            validator(_, value) {
+              if (!value || getFieldValue("password") === value) {
+                return Promise.resolve();
+              }
+              return Promise.reject(new Error(t("registro.errorPasswordNoCoincide")));
+            },
+          }),
+        ]}
+      >
+        <Input.Password autoComplete="new-password" placeholder={t("registro.placeholderConfirmarPassword")} />
       </Form.Item>
       {/* Sedes: el back no las acepta en el create — se asignan luego desde el perfil */}
       {sedes.length > 0 && (

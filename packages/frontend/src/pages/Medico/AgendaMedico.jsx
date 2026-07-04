@@ -25,6 +25,7 @@ import {
   EstadoTurno,
   nombreEstado,
 } from "../../mocks";
+import { extraerMensajeError } from "../../api/errorUtils";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 
@@ -88,6 +89,9 @@ function AgendaMedicoInner() {
       setEspById(new Map(esps.map((e) => [e.id, e])));
       setTurnos(turnosData);
       setCargando(false);
+    }).catch((err) => {
+      message.error(extraerMensajeError(err, "Error al cargar la agenda"));
+      setCargando(false);
     });
   };
 
@@ -118,21 +122,33 @@ function AgendaMedicoInner() {
   }, [hidratados, filtro]);
 
   const onConfirmar = async (turno) => {
-    await confirmarTurno(turno.id, { usuarioId: MEDICO_ACTIVO.usuarioId });
-    message.success(t("agenda.confirmadoOk"));
-    recargar();
+    try {
+      await confirmarTurno(turno.id, { usuarioId: MEDICO_ACTIVO.usuarioId });
+      message.success(t("agenda.confirmadoOk"));
+      recargar();
+    } catch (err) {
+      message.error(extraerMensajeError(err, "Error al confirmar el turno"));
+    }
   };
   
   const onRechazar = async (turno) => {
-    await rechazarTurno(turno.id, { usuarioId: MEDICO_ACTIVO.usuarioId });
-    message.success(t("agenda.rechazadoOk"));
-    recargar();
+    try {
+      await rechazarTurno(turno.id, { usuarioId: MEDICO_ACTIVO.usuarioId });
+      message.success(t("agenda.rechazadoOk"));
+      recargar();
+    } catch (err) {
+      message.error(extraerMensajeError(err, "Error al rechazar el turno"));
+    }
   };
 
   const onRealizado = async (turno) => {
-    await marcarRealizado(turno.id, { usuarioId: MEDICO_ACTIVO.usuarioId });
-    message.success(t("agenda.realizadoOk"));
-    recargar();
+    try {
+      await marcarRealizado(turno.id, { usuarioId: MEDICO_ACTIVO.usuarioId });
+      message.success(t("agenda.realizadoOk"));
+      recargar();
+    } catch (err) {
+      message.error(extraerMensajeError(err, "Error al marcar el turno como realizado"));
+    }
   };
 
   const onCancelar = (turno) => {
@@ -157,9 +173,13 @@ function AgendaMedicoInner() {
           message.error(t("agenda.cancelarErrorMotivo"));
           throw new Error("falta motivo");
         }
-        await cancelarTurno(turno.id, { usuarioId: MEDICO_ACTIVO.usuarioId, motivo: motivo.trim() });
-        message.success(t("agenda.canceladoOk"));
-        recargar();
+        try {
+          await cancelarTurno(turno.id, { usuarioId: MEDICO_ACTIVO.usuarioId, motivo: motivo.trim() });
+          message.success(t("agenda.canceladoOk"));
+          recargar();
+        } catch (err) {
+          message.error(extraerMensajeError(err, "Error al cancelar el turno"));
+        }
       },
     });
   };

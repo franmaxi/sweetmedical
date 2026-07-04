@@ -10,21 +10,23 @@ const pacienteSchema = new mongoose.Schema({
     dni:{
         type: Number,
         required: true,
-        trim:true
+        trim: true
     },
     nombre:{
         type: String,
         required: true,
-        trim:true
+        trim: true
     },
     obraSocial:{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'ObraSocial',
-        required: true
+        required: false,
+        default: null
     },
     plan:{
         type: mongoose.Schema.Types.ObjectId,
-        required: true
+        required: false,
+        default: null
     },
     
     eliminado: {

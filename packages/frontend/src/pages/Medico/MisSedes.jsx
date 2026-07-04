@@ -16,12 +16,14 @@ import { DeleteOutlined, PlusOutlined } from "@ant-design/icons";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import { useAuth } from "../../context/AuthContext";
+import { useTranslation } from "react-i18next";
 import {
   getMedicoById,
   getSedes,
   agregarSedesMedico,
   quitarSedesMedico,
 } from "../../api/api";
+import { extraerMensajeError } from "../../api/errorUtils";
 
 const { Title, Text } = Typography;
 
@@ -36,6 +38,7 @@ export default function MisSedes() {
 }
 
 function MisSedesInner() {
+  const { t } = useTranslation();
   const { message, modal } = AntApp.useApp();
   const { user } = useAuth();
   const medicoId = user?.userId;
@@ -59,7 +62,7 @@ function MisSedesInner() {
         const sedes = Array.isArray(res?.data?.sedes) ? res.data.sedes : [];
         setSedesMedico(sedes);
       })
-      .catch(() => message.error("No se pudieron cargar tus sedes"))
+      .catch((err) => message.error(extraerMensajeError(err, "No se pudieron cargar tus sedes")))
       .finally(() => setCargando(false));
   };
 
@@ -72,7 +75,7 @@ function MisSedesInner() {
         const sedes = Array.isArray(res?.data) ? res.data : [];
         setCatalogo(sedes);
       })
-      .catch(() => message.error("No se pudo cargar el catálogo de sedes"))
+      .catch((err) => message.error(extraerMensajeError(err, "No se pudo cargar el catálogo de sedes")))
       .finally(() => setCargandoCatalogo(false));
   }, [medicoId]);
 
@@ -96,14 +99,13 @@ function MisSedesInner() {
     try {
       await agregarSedesMedico({ medicoId, sedesId: values.sedesId });
       message.success(
-        values.sedesId.length > 1 ? "Sedes agregadas con éxito" : "Sede agregada con éxito"
+        values.sedesId.length > 1 ? t("misSedes.sedesAgregadas") : t("misSedes.sedeAgregada")
       );
       setModalAbierto(false);
       form.resetFields();
       recargarSedesMedico();
-    } catch (error) {
-      const detalle = error?.response?.data?.message;
-      message.error(detalle || "No se pudieron agregar las sedes");
+    } catch (err) {
+      message.error(extraerMensajeError(err, "No se pudieron agregar las sedes"));
     } finally {
       setGuardando(false);
     }
@@ -126,11 +128,10 @@ function MisSedesInner() {
       onOk: async () => {
         try {
           await quitarSedesMedico({ medicoId, sedesId: [idDe(sede)] });
-          message.success("Sede quitada de tu perfil");
+          message.success(t("misSedes.sedeQuitada"));
           recargarSedesMedico();
-        } catch (error) {
-          const detalle = error?.response?.data?.message;
-          message.error(detalle || "No se pudo quitar la sede");
+        } catch (err) {
+          message.error(extraerMensajeError(err, "No se pudo quitar la sede"));
         }
       },
     });
