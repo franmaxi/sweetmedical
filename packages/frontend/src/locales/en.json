@@ -33,7 +33,16 @@
     "success": "Profile updated successfully.",
     "passwordPlaceholder": "Leave blank to keep current password",
     "errorPassword": "Enter a password",
-    "loginRequired": "You must be logged in to view your profile."
+    "loginRequired": "You must be logged in to view your profile.",
+    "editar": "Edit profile",
+    "editarTitulo": "Edit my profile",
+    "guardar": "Save",
+    "cancelar": "Cancel",
+    "nuevaPassword": "New password",
+    "passwordActual": "Current password",
+    "passwordActualPlaceholder": "Enter your current password",
+    "errorPasswordActualRequerida": "Enter your current password",
+    "sinCambios": "You didn't fill in any field to update"
   },
   "language": {
     "spanish": "Español",

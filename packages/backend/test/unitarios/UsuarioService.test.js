@@ -1,5 +1,6 @@
 import { describe, expect, test, beforeEach, jest } from '@jest/globals';
 import { Types } from 'mongoose';
+import bcrypt from 'bcrypt';
 
 import { UsuarioService } from '../../services/UsuarioService.js';
 import { BadRequestError, NotFoundError } from '../../errors/AppErrors.js';
@@ -85,24 +86,51 @@ describe('UsuarioService', () => {
       usuarioRepository.findById.mockResolvedValue(null);
 
       await expect(
-        service.actualizar(VALID_ID, { nombreUsuario: 'juan', password: 'pass123' })
+        service.actualizar(VALID_ID, { nombreUsuario: 'juan' })
       ).rejects.toThrow(NotFoundError);
     });
 
-    test('actualiza y retorna el usuario cuando existe', async () => {
-      usuarioRepository.findById.mockResolvedValue({ _id: VALID_ID });
-      usuarioRepository.update.mockResolvedValue({ _id: VALID_ID, nombreUsuario: 'juanX' });
+    test('actualiza el nombre de usuario sin tocar la contraseña si no se pide cambiarla', async () => {
+      usuarioRepository.findById.mockResolvedValue({ _id: VALID_ID, nombreUsuario: 'juan', password: 'hash-vieja' });
+      usuarioRepository.update.mockImplementation((id, usuario) => Promise.resolve(usuario));
 
-      const resultado = await service.actualizar(VALID_ID, {
-        nombreUsuario: 'juanX',
-        password: 'nueva123'
+      const resultado = await service.actualizar(VALID_ID, { nombreUsuario: 'juanX' });
+
+      expect(resultado.nombreUsuario).toBe('juanX');
+      expect(resultado.password).toBe('hash-vieja');
+    });
+
+    test('lanza BadRequestError si se pide una contraseña nueva sin enviar la actual', async () => {
+      usuarioRepository.findById.mockResolvedValue({ _id: VALID_ID, nombreUsuario: 'juan', password: 'hash-vieja' });
+
+      await expect(
+        service.actualizar(VALID_ID, { passwordNueva: 'nueva123' })
+      ).rejects.toThrow(BadRequestError);
+    });
+
+    test('lanza BadRequestError si la contraseña actual no coincide', async () => {
+      const hashViejo = await bcrypt.hash('vieja123', 4);
+      usuarioRepository.findById.mockResolvedValue({ _id: VALID_ID, nombreUsuario: 'juan', password: hashViejo });
+
+      await expect(
+        service.actualizar(VALID_ID, { passwordActual: 'incorrecta', passwordNueva: 'nueva123' })
+      ).rejects.toThrow(BadRequestError);
+    });
+
+    test('hashea y guarda la nueva contraseña cuando la actual es correcta', async () => {
+      const hashViejo = await bcrypt.hash('vieja123', 4);
+      usuarioRepository.findById.mockResolvedValue({ _id: VALID_ID, nombreUsuario: 'juan', password: hashViejo });
+      usuarioRepository.update.mockImplementation((id, usuario) => Promise.resolve(usuario));
+
+      await service.actualizar(VALID_ID, {
+        passwordActual: 'vieja123',
+        passwordNueva: 'nueva123'
       });
 
-      expect(resultado).toEqual({ _id: VALID_ID, nombreUsuario: 'juanX' });
-      expect(usuarioRepository.update).toHaveBeenCalledWith(VALID_ID, {
-        nombreUsuario: 'juanX',
-        password: 'nueva123'
-      });
+      const passwordGuardada = usuarioRepository.update.mock.calls[0][1].password;
+      expect(passwordGuardada).not.toBe('vieja123');
+      expect(passwordGuardada).not.toBe('nueva123');
+      await expect(bcrypt.compare('nueva123', passwordGuardada)).resolves.toBe(true);
     });
   });
 });

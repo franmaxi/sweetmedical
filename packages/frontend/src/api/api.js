@@ -155,6 +155,26 @@ export const getSedes = async ({
         throw error;
     }
 };
+export const crearSede = async ({ nombre, direccion } = {}) => {
+    try {
+        const response = await apiClient.post('/sedes/', { nombre, direccion });
+        return response.data;
+    } catch (error) {
+        console.error("Error creando sede", error);
+        throw error;
+    }
+};
+
+export const actualizarSede = async ({ id, nombre, direccion } = {}) => {
+    try {
+        const response = await apiClient.put(`/sedes/${id}`, { nombre, direccion });
+        return response.data;
+    } catch (error) {
+        console.error("Error actualizando sede", error);
+        throw error;
+    }
+};
+
 export const getMedicos = async ({
 
 } = {}) => {
@@ -210,6 +230,28 @@ export const updateMedico = async ({ medicoId, payload }) => {
         throw error;
     }
 };
+export const agregarSedesMedico = async ({ medicoId, sedesId } = {}) => {
+    try {
+        const response = await apiClient.post(`/medicos/${medicoId}/sedes`, { sedesId });
+        return response.data;
+    } catch (error) {
+        console.error("Error agregando sedes al médico", error);
+        throw error;
+    }
+};
+
+export const quitarSedesMedico = async ({ medicoId, sedesId } = {}) => {
+    try {
+        const response = await apiClient.delete(`/medicos/${medicoId}/sedes`, {
+            data: { sedesId }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error quitando sedes del médico", error);
+        throw error;
+    }
+};
+
 export const getEspecialidadesGenericas = async ({
     page = 1,
     limit = 100,
@@ -237,6 +279,46 @@ export const getPracticasGenericas = async ({
         return response.data;
     } catch (error) {
         console.error("Error al obtener practicas genericas ", error);
+        throw error;
+    }
+};
+
+export const crearPracticaGenerica = async ({ nombre, codigo, emoji } = {}) => {
+    try {
+        const response = await apiClient.post('/practicas/genericas', { nombre, codigo, emoji });
+        return response.data;
+    } catch (error) {
+        console.error("Error creando práctica genérica", error);
+        throw error;
+    }
+};
+
+export const actualizarPracticaGenerica = async ({ id, nombre, codigo, emoji } = {}) => {
+    try {
+        const response = await apiClient.put(`/practicas/genericas/${id}`, { nombre, codigo, emoji });
+        return response.data;
+    } catch (error) {
+        console.error("Error actualizando práctica genérica", error);
+        throw error;
+    }
+};
+
+export const crearEspecialidadGenerica = async ({ nombre, emoji } = {}) => {
+    try {
+        const response = await apiClient.post('/especialidades/genericas', { nombre, emoji });
+        return response.data;
+    } catch (error) {
+        console.error("Error creando especialidad genérica", error);
+        throw error;
+    }
+};
+
+export const actualizarEspecialidadGenerica = async ({ id, nombre, emoji } = {}) => {
+    try {
+        const response = await apiClient.put(`/especialidades/genericas/${id}`, { nombre, emoji });
+        return response.data;
+    } catch (error) {
+        console.error("Error actualizando especialidad genérica", error);
         throw error;
     }
 };

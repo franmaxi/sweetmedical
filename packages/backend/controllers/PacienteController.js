@@ -1,6 +1,6 @@
 import { PacienteService } from "../services/PacienteService.js";
 import { paginacionSchema, paramsIdSchema, tokenSchema } from "../validations/commonValidations.js";
-import { pacienteBodySchema } from "../validations/pacienteValidation.js";
+import { pacienteBodySchema, pacienteBodyUpdateSchema } from "../validations/pacienteValidation.js";
 import { ForbiddenError } from "../errors/AppErrors.js";
 
 export class PacienteController {
@@ -60,7 +60,7 @@ export class PacienteController {
     update = async (req, res, next) => {
         try {
             const { id } = paramsIdSchema.parse(req.params);
-            const datosPaciente = pacienteBodySchema.parse(req.body);
+            const datosPaciente = pacienteBodyUpdateSchema.parse(req.body);
             const { userId } = tokenSchema.parse(req.usuario)
             if (userId !== id) throw new ForbiddenError("No se tienen los permisos necesarios para modificar este recurso")
 

@@ -7,19 +7,22 @@ const createMocks = () => ({
   pacienteRepository: {
     findPaginados: jest.fn(),
     findById: jest.fn(),
+    findByUserId: jest.fn(),
     save: jest.fn(),
     update: jest.fn(),
     delete: jest.fn()
   },
   usuarioService: {
     save: jest.fn(),
-    crear: jest.fn()
+    crear: jest.fn(),
+    actualizar: jest.fn()
   },
   planRepository: {
     findById: jest.fn()
   },
   obraSocialRepository: {
-    findById: jest.fn()
+    findById: jest.fn(),
+    findPlanById: jest.fn()
   }
 });
 
@@ -121,19 +124,39 @@ describe('PacienteService', () => {
 
   describe('actualizar', () => {
     test('lanza NotFoundError si el paciente no existe', async () => {
-      mocks.pacienteRepository.findById.mockResolvedValue(null);
+      mocks.pacienteRepository.findByUserId.mockResolvedValue(null);
 
       await expect(service.actualizar('p1', {})).rejects.toThrow(NotFoundError);
     });
 
-    test('delega en pacienteRepository.update cuando existe', async () => {
-      mocks.pacienteRepository.findById.mockResolvedValue({ _id: 'p1' });
+    test('delega en pacienteRepository.update solo con los campos propios del paciente', async () => {
+      mocks.pacienteRepository.findByUserId.mockResolvedValue({ _id: 'p1' });
       mocks.pacienteRepository.update.mockResolvedValue({ _id: 'p1', nombre: 'Nuevo' });
 
       const resultado = await service.actualizar('p1', { nombre: 'Nuevo' });
 
       expect(resultado).toEqual({ _id: 'p1', nombre: 'Nuevo' });
       expect(mocks.pacienteRepository.update).toHaveBeenCalledWith('p1', { nombre: 'Nuevo' });
+      expect(mocks.usuarioService.actualizar).not.toHaveBeenCalled();
+    });
+
+    test('delega nombreUsuario y passwordActual/passwordNueva en usuarioService.actualizar en vez de en el Paciente', async () => {
+      mocks.pacienteRepository.findByUserId.mockResolvedValue({ _id: 'p1' });
+      mocks.pacienteRepository.update.mockResolvedValue({ _id: 'p1' });
+
+      await service.actualizar('p1', {
+        nombreUsuario: 'nuevoUsuario',
+        passwordActual: 'viejaPass123',
+        passwordNueva: 'nuevaPass123'
+      });
+
+      expect(mocks.usuarioService.actualizar).toHaveBeenCalledWith('p1', {
+        nombreUsuario: 'nuevoUsuario',
+        passwordActual: 'viejaPass123',
+        passwordNueva: 'nuevaPass123'
+      });
+      // nombreUsuario/password no son campos del schema de Paciente: no hay nada más para actualizar ahí
+      expect(mocks.pacienteRepository.update).not.toHaveBeenCalled();
     });
   });
 

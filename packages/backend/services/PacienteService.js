@@ -85,9 +85,39 @@ export class PacienteService {
         if (!pacienteExistente) {
             throw new NotFoundError(`No se encontró un paciente con el id de usuario ${id}`)
         }
-        
-        const pacienteActualizado = await this.pacienteRepository.update(id,datosPaciente)
-        return pacienteActualizado
+
+        // nombreUsuario y password viven en el Usuario, no en el Paciente
+        const datosUsuario = {};
+        if (datosPaciente.nombreUsuario !== undefined) datosUsuario.nombreUsuario = datosPaciente.nombreUsuario;
+        if (datosPaciente.passwordNueva) {
+            datosUsuario.passwordNueva = datosPaciente.passwordNueva;
+            datosUsuario.passwordActual = datosPaciente.passwordActual;
+        }
+        if (Object.keys(datosUsuario).length > 0) {
+            await this.usuarioService.actualizar(id, datosUsuario);
+        }
+
+        const datosPacienteParaActualizar = {};
+        if (datosPaciente.dni !== undefined) datosPacienteParaActualizar.dni = datosPaciente.dni;
+        if (datosPaciente.nombre !== undefined) datosPacienteParaActualizar.nombre = datosPaciente.nombre;
+
+        if (datosPaciente.obraSocialId) {
+            const obraSocial = await this.obraSocialRepository.findById(datosPaciente.obraSocialId);
+            if (!obraSocial) throw new NotFoundError(`No se encontró una obraSocial con el id ${datosPaciente.obraSocialId}`);
+            datosPacienteParaActualizar.obraSocial = obraSocial._id;
+        }
+
+        if (datosPaciente.planId) {
+            const plan = await this.obraSocialRepository.findPlanById(datosPaciente.planId);
+            if (!plan) throw new NotFoundError(`No se encontró un plan con el id ${datosPaciente.planId}`);
+            datosPacienteParaActualizar.plan = plan._id;
+        }
+
+        if (Object.keys(datosPacienteParaActualizar).length === 0) {
+            return await this.pacienteRepository.findByUserId(id);
+        }
+
+        return await this.pacienteRepository.update(id, datosPacienteParaActualizar)
     }
 
     async eliminar(id){

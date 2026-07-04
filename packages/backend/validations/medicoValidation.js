@@ -26,13 +26,11 @@ export const medicoBodySchema = z.object({
 
 export const medicoBodyUpdateSchema = z.object({
     nombre: z.string({
-        required_error: "El nombre es requerido.",
         invalid_type_error: "El nombre debe ser un texto."
-    }).trim().min(1, "El nombre no puede estar vacío."),
+    }).trim().min(1, "El nombre no puede estar vacío.").optional(),
     matricula: z.string({
-        required_error: "La matrícula es requerida.",
         invalid_type_error: "La matrícula debe ser un texto."
-    }).trim().min(1, "La matrícula no puede estar vacía."),
+    }).trim().min(1, "La matrícula no puede estar vacía.").optional(),
     especialidades: z.array(especialidadBodySchema, {
         invalid_type_error: "especialidades debe ser una lista de objetos de especialidad."
     }).default([]),
@@ -44,12 +42,15 @@ export const medicoBodyUpdateSchema = z.object({
     }).default([]),
     disponibilidades: z.array(z.any()).default([]),
     nombreUsuario: z.string({
-        required_error: "El nombre de usuario es requerido.",
         invalid_type_error: "El nombre de usuario debe ser un texto."
-    }).trim().min(1, "El nombre de usuario no puede estar vacío."),
-    password: z.string({
-        invalid_type_error: "La contraseña debe ser un texto."
-    }).min(6, "La contraseña debe tener al menos 6 caracteres.").optional()
+    }).trim().min(1, "El nombre de usuario no puede estar vacío.").optional(),
+    // Contraseña actual: se exige y se verifica antes de permitir el cambio.
+    passwordActual: z.string({
+        invalid_type_error: "La contraseña actual debe ser un texto."
+    }).min(1, "La contraseña actual no puede estar vacía.").optional(),
+    passwordNueva: z.string({
+        invalid_type_error: "La nueva contraseña debe ser un texto."
+    }).min(6, "La nueva contraseña debe tener al menos 6 caracteres.").optional()
 }).strict("No se permiten campos adicionales en la solicitud.");
 
 export const disponibilidadBodySchema = z.object({

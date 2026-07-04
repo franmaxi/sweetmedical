@@ -86,24 +86,35 @@ export class MedicoService {
     async actualizar(id, datosMedico) {
         const validId = objectIdSchema.parse(String(id));
         const medicoExistente = await this.obtenerPorId(validId);
-        
-        if (medicoExistente.matricula !== datosMedico.matricula && await this.existeMatricula(datosMedico.matricula)) {
+
+        if (
+            datosMedico.matricula !== undefined &&
+            medicoExistente.matricula !== datosMedico.matricula &&
+            await this.existeMatricula(datosMedico.matricula)
+        ) {
             throw new ConflictError("Ya existe un médico con esa matrícula");
         }
 
-        const datosUsuario = {
-            nombreUsuario: datosMedico.nombreUsuario,
-            // Solo se actualiza la contraseña si se provee una nueva
-            ...(datosMedico.password ? { password: datosMedico.password } : {}) //TODO, rehicimos el actualizar de usuario
-        };
-        await this.usuarioService.actualizar(medicoExistente.usuario._id,datosUsuario);
+        const datosUsuario = {};
+        if (datosMedico.nombreUsuario !== undefined) datosUsuario.nombreUsuario = datosMedico.nombreUsuario;
+        // Solo se actualiza la contraseña si se provee una nueva (junto con la actual, para verificarla)
+        if (datosMedico.passwordNueva) {
+            datosUsuario.passwordNueva = datosMedico.passwordNueva;
+            datosUsuario.passwordActual = datosMedico.passwordActual;
+        }
+        if (Object.keys(datosUsuario).length > 0) {
+            await this.usuarioService.actualizar(medicoExistente.usuario._id, datosUsuario);
+        }
 
-        const datosMedicoParaActualizar = {
-            matricula: datosMedico.matricula,
-            nombre: datosMedico.nombre
-        };
+        const datosMedicoParaActualizar = {};
+        if (datosMedico.matricula !== undefined) datosMedicoParaActualizar.matricula = datosMedico.matricula;
+        if (datosMedico.nombre !== undefined) datosMedicoParaActualizar.nombre = datosMedico.nombre;
 
-        return await this.medicoRepository.update(validId,datosMedicoParaActualizar);
+        if (Object.keys(datosMedicoParaActualizar).length === 0) {
+            return await this.obtenerPorId(validId);
+        }
+
+        return await this.medicoRepository.update(validId, datosMedicoParaActualizar);
     }
 
     async eliminar(id) {

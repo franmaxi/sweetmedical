@@ -11,6 +11,8 @@ import {
   SearchOutlined,
   MenuOutlined,
   LogoutOutlined,
+  PushpinOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import NotificacionesDropdown from "./NotificacionesDropdown";
 import SelectorIdioma from "./SelectorIdioma";
@@ -132,7 +134,19 @@ const allItems = [
     icon: <ClockCircleOutlined />,
     label: <Link to="/mis-servicios">{t("navbar.misServicios")}</Link>,
     roles: ["medico"],
-  }
+  },
+  {
+    key: "/mis-sedes",
+    icon: <PushpinOutlined />,
+    label: <Link to="/mis-sedes">{t("navbar.misSedes")}</Link>,
+    roles: ["medico"],
+  },    
+  {
+    key: "/admin",
+    icon: <SettingOutlined />,
+    label: <Link to="/admin">{t("navbar.admin")}</Link>,
+    roles: ["admin"],
+  },
 ];
 
 const rol = user?.role ?? "guest";

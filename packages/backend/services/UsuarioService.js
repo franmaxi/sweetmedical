@@ -45,9 +45,9 @@ export class UsuarioService{
     }
 
     async actualizar(id, datosUsuario) {
-        // Lo unico modificable es la contraseña, el nombre 
+        // Lo unico modificable es la contraseña, el nombre
         const validId = objectIdSchema.parse(id);
-        const validUserData = usuarioUpdateSchema.parse(datosUsuario) // no seria asi totalmente
+        const validUserData = usuarioUpdateSchema.parse(datosUsuario)
 
         const usuario = await this.obtenerPorId(validId)
 
@@ -59,16 +59,22 @@ export class UsuarioService{
             usuario.nombreUsuario = validUserData.nombreUsuario
         }
 
-        if (validUserData.newPassword){
-            if(!validUserData.password) throw new BadRequestError("Para completar la peticion enviar la contraseña anterior")
-            
-            const passValida = await bcrypt.compare(validUserData.password, usuario.password)
-            if (!passValida) throw new UnauthorizedError("Credenciales Invalidas")
-        
-            const nuevaPasswordHasheada = await bcrypt.hash(validUserData.newPassword, this.saltRounds);
-            usuario.password = nuevaPasswordHasheada
+        if (validUserData.passwordNueva){
+            if (!validUserData.passwordActual) {
+                throw new BadRequestError("Para cambiar la contraseña debés ingresar la contraseña actual")
+            }
+
+            const passwordActualValida = await bcrypt.compare(validUserData.passwordActual, usuario.password)
+            if (!passwordActualValida) {
+                // BadRequestError (400), no UnauthorizedError: esto es una validación de negocio dentro
+                // de una sesión ya autenticada, no un fallo de auth — un 401 acá dispararía el logout
+                // automático del interceptor de axios del front.
+                throw new BadRequestError("La contraseña actual ingresada es incorrecta")
+            }
+
+            usuario.password = await bcrypt.hash(validUserData.passwordNueva, this.saltRounds);
         }
-        
+
         return this.usuarioRepository.update(validId, usuario)
     }
 

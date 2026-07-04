@@ -32,7 +32,16 @@
     "success": "Perfil actualizado correctamente.",
     "passwordPlaceholder": "Dejar vacío para no cambiarla",
     "errorPassword": "Ingresá una contraseña",
-    "loginRequired": "Debes iniciar sesión para ver tu perfil."
+    "loginRequired": "Debes iniciar sesión para ver tu perfil.",
+    "editar": "Editar perfil",
+    "editarTitulo": "Editar mi perfil",
+    "guardar": "Guardar",
+    "cancelar": "Cancelar",
+    "nuevaPassword": "Nueva contraseña",
+    "passwordActual": "Contraseña actual",
+    "passwordActualPlaceholder": "Ingresá tu contraseña actual",
+    "errorPasswordActualRequerida": "Ingresá tu contraseña actual",
+    "sinCambios": "No completaste ningún campo para actualizar"
   },
   "language": {
     "spanish": "Español",
