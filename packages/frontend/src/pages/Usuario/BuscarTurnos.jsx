@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
 import {
   App as AntApp,
@@ -24,7 +25,7 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import FiltrosTurnos from "../../components/FiltrosTurnos";
 import ModalReservaTurno from "../../components/ModalReservaTurno";
-import { getTurnos,getSedes, getMedicos, getPracticasGenericas,getEspecialidadesGenericas, reservarTurno } from "../../api/api.js"; 
+import { getTurnos, getSedes, getMedicos, getPracticasGenericas, getEspecialidadesGenericas, reservarTurno } from "../../api/api.js";
 
 
 const { Title, Text, Paragraph } = Typography;
@@ -49,6 +50,43 @@ const fmtHora = (iso) => {
 const mesAbrev = (iso) => MESES[getUTC3Date(iso).getUTCMonth()] ?? "";
 const dia = (iso) => getUTC3Date(iso).getUTCDate().toString().padStart(2, '0');
 
+const FILTROS_DEFAULT = {
+  especialidadGenericaId: undefined,
+  sedeId: undefined,
+  medicoId: undefined,
+  fechaDesde: undefined,
+  fechaHasta: undefined,
+  practicaGenericaId: undefined,
+  ordenarPor: "fechaHora",
+  direccion: "asc",
+};
+
+function filtrosAParams(filtros) {
+  const params = {};
+  if (filtros.especialidadGenericaId) params.especialidadGenericaId = filtros.especialidadGenericaId;
+  if (filtros.practicaGenericaId) params.practicaGenericaId = filtros.practicaGenericaId;
+  if (filtros.medicoId) params.medicoId = filtros.medicoId;
+  if (filtros.sedeId) params.sedeId = filtros.sedeId;
+  if (filtros.fechaDesde) params.fechaDesde = filtros.fechaDesde.format("YYYY-MM-DD");
+  if (filtros.fechaHasta) params.fechaHasta = filtros.fechaHasta.format("YYYY-MM-DD");
+  if (filtros.ordenarPor && filtros.ordenarPor !== "fechaHora") params.ordenarPor = filtros.ordenarPor;
+  if (filtros.direccion && filtros.direccion !== "asc") params.direccion = filtros.direccion;
+  return params;
+}
+
+function paramsFiltros(searchParams) {
+  return {
+    especialidadGenericaId: searchParams.get("especialidadGenericaId") ?? undefined,
+    practicaGenericaId: searchParams.get("practicaGenericaId") ?? undefined,
+    medicoId: searchParams.get("medicoId") ?? undefined,
+    sedeId: searchParams.get("sedeId") ?? undefined,
+    fechaDesde: searchParams.get("fechaDesde") ? dayjs(searchParams.get("fechaDesde")) : undefined,
+    fechaHasta: searchParams.get("fechaHasta") ? dayjs(searchParams.get("fechaHasta")) : undefined,
+    ordenarPor: searchParams.get("ordenarPor") ?? "fechaHora",
+    direccion: searchParams.get("direccion") ?? "asc",
+  };
+}
+
 export default function BuscarTurnos() {
   return (
     <AntApp>
@@ -59,58 +97,38 @@ export default function BuscarTurnos() {
 
 function BuscarTurnosInner() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { t } = useTranslation();
   const { message } = AntApp.useApp();
 
-  // Filtros.
-  const [filtrosBorrador, setFiltrosBorrador] = useState({
-    especialidadGenericaId: undefined,
-    sedeId: undefined,
-    medicoQuery: "",
-    fechaDesde: undefined,
-    fechaHasta: undefined,
-    practicaGenericaId: undefined,
-    ordenarPor: "fechaHora",
-    direccion : "asc"
-  });
+  const [filtrosBorrador, setFiltrosBorrador] = useState(() => paramsFiltros(searchParams));
+  const [filtrosAplicados, setFiltrosAplicados] = useState(() => paramsFiltros(searchParams));
 
   // Catálogos.
   const [especialidadesGenericas, setEspecialidadesGenericas] = useState([]);
   const [practicasGenericas, setPracticasGenericas] = useState([]);
 
   const [sedes, setSedes] = useState([]);
+  const [medicos, setMedicos] = useState([]);
   const [medicosById, setMedicosById] = useState(new Map());
   const [sedesById, setSedesById] = useState(new Map());
   const [espPersonalizadasById, setEspPersonalizadasById] = useState(new Map());
   const [practicasById, setPracticasById] = useState(new Map());
   const [especialidesById, setEspecialidadesById] = useState(new Map());
 
-  const [medicos, setMedicos] = useState([]);
-
   // Resultados y modal de reserva.
   const [resultados, setResultados] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [turnoSeleccionado, setTurnoSeleccionado] = useState(null);
   const [reservando, setReservando] = useState(false);
-  const aplicarFiltros = () => {
-    setFiltrosAplicados({ ...filtrosBorrador });
-    setPaginaActual(1);
-  };
-
   const [paginaActual, setPaginaActual] = useState(1);
   const [paginasTotales, setPaginasTotales] = useState(1);
 
-  const [filtrosAplicados, setFiltrosAplicados] = useState(filtrosBorrador);
-
-  const FILTROS_DEFAULT = {
-    especialidadGenericaId: undefined,
-    sedeId: undefined,
-    medicoId: undefined,
-    fechaDesde: undefined,
-    fechaHasta: undefined,
-    practicaGenericaId: undefined,
-    ordenarPor: "fechaHora",
-    direccion: "asc",
+  const aplicarFiltros = () => {
+    const nuevosFiltros = { ...filtrosBorrador };
+    setFiltrosAplicados(nuevosFiltros);
+    setPaginaActual(1);
+    setSearchParams(filtrosAParams(nuevosFiltros));
   };
 
   // Carga inicial de catálogos.
@@ -136,8 +154,6 @@ function BuscarTurnosInner() {
       setMedicosById(new Map(listaMedicos.map((s) => [s._id ?? s.id, s])));
       setEspecialidadesById(new Map(listaEspecialidades.map((s) => [s._id ?? s.id, s])));
       setPracticasById(new Map(listaPracticas.map((s) => [s._id ?? s.id, s])));
-
-     
     });
   }, []);
 
@@ -166,9 +182,8 @@ function BuscarTurnosInner() {
         message.error(t("buscarTurnos.errorCarga"));
         setCargando(false);
       });
-  }, [filtrosAplicados, paginaActual]); 
+  }, [filtrosAplicados, paginaActual]);
 
-  
   const medicoSeleccionado = turnoSeleccionado ? medicosById.get(turnoSeleccionado.medicoId) : null;
   const espSeleccionada = medicoSeleccionado
     ? espPersonalizadasById.get(medicoSeleccionado.especialidadId)
@@ -195,6 +210,7 @@ function BuscarTurnosInner() {
     setFiltrosBorrador(FILTROS_DEFAULT);
     setFiltrosAplicados(FILTROS_DEFAULT);
     setPaginaActual(1);
+    setSearchParams({});
   };
 
   return (
@@ -211,15 +227,15 @@ function BuscarTurnosInner() {
           <Row gutter={[24, 24]} style={{ marginTop: 24 }}>
             <Col xs={24} lg={8}>
               <FiltrosTurnos
-              especialidadesGenericas={especialidadesGenericas}
-              sedes={sedes}
-              practicasGenericas={practicasGenericas}
-              medicos={medicos}
-              filtros={filtrosBorrador}
-              setFiltros={setFiltrosBorrador}
-              onAplicar={aplicarFiltros}
-              onLimpiar={limpiar}
-            />
+                especialidadesGenericas={especialidadesGenericas}
+                sedes={sedes}
+                practicasGenericas={practicasGenericas}
+                medicos={medicos}
+                filtros={filtrosBorrador}
+                setFiltros={setFiltrosBorrador}
+                onAplicar={aplicarFiltros}
+                onLimpiar={limpiar}
+              />
             </Col>
 
             <Col xs={24} lg={16}>
@@ -232,7 +248,6 @@ function BuscarTurnosInner() {
                     })}
                   </Text>
                 </Space>
-
 
                 {resultados.length === 0 && !cargando ? (
                   <Empty description={t("buscarTurnos.noResults")} style={{ padding: "40px 0" }} />
@@ -288,10 +303,10 @@ function BuscarTurnosInner() {
                   />
                 )}
               </Card>
-              <Pagination  align="center" defaultCurrent={1} current={paginaActual} pageSize={10} total={paginasTotales*10}
-                style={{ marginTop: '16px' }} 
-                onChange={(page) => setPaginaActual(page)} 
-                showSizeChanger = {false}/>
+              <Pagination align="center" defaultCurrent={1} current={paginaActual} pageSize={10} total={paginasTotales * 10}
+                style={{ marginTop: '16px' }}
+                onChange={(page) => setPaginaActual(page)}
+                showSizeChanger={false} />
             </Col>
           </Row>
         </div>
