@@ -52,7 +52,7 @@ export default function MisTurnos() {
 function MisTurnosInner() {
   const { t } = useTranslation();
   const navigate = useNavigate();
-  const { message } = AntApp.useApp();
+  const { message, modal } = AntApp.useApp();
   const [historialTurnos, setHistorialTurnos] = useState([]);
   const [proximosTurnos, setProximosTurnos] = useState([]);
   
@@ -68,7 +68,6 @@ function MisTurnosInner() {
 
   const [modalCancelarVisible, setModalCancelarVisible] = useState(false);
   const [turnoACancelar, setTurnoACancelar] = useState(null);
-  const [motivoCancelacion, setMotivoCancelacion] = useState("");
 
   const fetchHistorial = () => {
     setCargandoHistorial(true);
@@ -138,23 +137,7 @@ function MisTurnosInner() {
 
   const onCancelar = (turno) => {
     setTurnoACancelar(turno);
-    setMotivoCancelacion("");
     setModalCancelarVisible(true);
-  };
-
-  const confirmarCancelacion = async () => {
-    if (!motivoCancelacion.trim()) {
-      message.error(t("misTurnos.errorFaltaMotivo"));
-      return;
-    }
-    try {
-      await cancelarTurnoApi(turnoACancelar.id, motivoCancelacion.trim());
-      message.success(t("misTurnos.canceladoOk"));
-      setModalCancelarVisible(false);
-      recargar();
-    } catch (error) {
-      // Error handled by interceptor or api
-    }
   };
 
   const renderTurno = (turno) => (
@@ -232,30 +215,80 @@ function MisTurnosInner() {
         />
       </Layout.Content>
       <Footer />
-      <Modal
-        title={t("misTurnos.cancelarTitle")}
-        open={modalCancelarVisible}
+      <ModalCancelacion 
+        visible={modalCancelarVisible}
+        turno={turnoACancelar}
         onCancel={() => setModalCancelarVisible(false)}
-        onOk={confirmarCancelacion}
-        okText={t("misTurnos.cancelarOk")}
-        cancelText={t("misTurnos.cancelarCancel")}
-        okButtonProps={{ 
-          danger: true, 
-          disabled: !motivoCancelacion.trim() 
+        onSuccess={() => {
+          setModalCancelarVisible(false);
+          recargar();
         }}
-      >
-        {turnoACancelar && (
-          <div>
-            <p>{turnoACancelar.medicoNombre} · {fmt(turnoACancelar.fechaHora)}</p>
-            <Input.TextArea
-              rows={3}
-              placeholder={t("misTurnos.cancelarPlaceholder")}
-              value={motivoCancelacion}
-              onChange={(e) => setMotivoCancelacion(e.target.value)}
-            />
-          </div>
-        )}
-      </Modal>
+      />
     </Layout>
+  );
+}
+
+function ModalCancelacion({ visible, turno, onCancel, onSuccess }) {
+  const { t } = useTranslation();
+  const { message, modal } = AntApp.useApp();
+  const [motivo, setMotivo] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (visible) setMotivo("");
+  }, [visible]);
+
+  const handleOk = async () => {
+    if (!motivo.trim()) {
+      message.error(t("misTurnos.errorFaltaMotivo"));
+      return;
+    }
+    setLoading(true);
+    try {
+      await cancelarTurnoApi(turno.id, motivo.trim());
+      message.success(t("misTurnos.canceladoOk"));
+      onSuccess();
+    } catch (error) {
+      if (error.response?.status === 422) {
+        onCancel();
+        modal.error({
+          title: t("misTurnos.errorCancelarTitle"),
+          content: t("misTurnos.errorCancelarContent"),
+          centered: true,
+        });
+      } else {
+        message.error(error.response?.data?.message || t("misTurnos.errorCancelacionGen"));
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Modal
+      title={t("misTurnos.cancelarTitle")}
+      open={visible}
+      onCancel={onCancel}
+      onOk={handleOk}
+      okText={t("misTurnos.cancelarOk")}
+      cancelText={t("misTurnos.cancelarCancel")}
+      confirmLoading={loading}
+      okButtonProps={{ 
+        danger: true, 
+        disabled: !motivo.trim() 
+      }}
+    >
+      {turno && (
+        <div>
+          <p>{turno.medicoNombre} · {fmt(turno.fechaHora)}</p>
+          <Input.TextArea
+            rows={3}
+            placeholder={t("misTurnos.cancelarPlaceholder")}
+            value={motivo}
+            onChange={(e) => setMotivo(e.target.value)}
+          />
+        </div>
+      )}
+    </Modal>
   );
 }

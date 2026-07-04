@@ -130,8 +130,21 @@
       "cancel": "Volver"
     },
     "successReservado": "¡Turno reservado!",
+    "errorCarga": "Error al cargar los turnos",
+    "errorTurnoNoDisponible": "El turno ya no se encuentra disponible. Por favor elegí otro.",
+    "errorGenericoReserva": "Ocurrió un error al intentar reservar el turno",
     "errorFechaRango": "La fecha desde no puede ser posterior a la fecha hasta",
-    "ayudaOrdenarPorPrecio": "Seleccioná una especialidad o práctica para ordenar por precio"
+    "ayudaOrdenarPorPrecio": "Seleccioná una especialidad o práctica para ordenar por precio",
+    "ayudaEspecialidadBloqueada": "Ya filtraste por práctica. Limpiá ese filtro para buscar por especialidad.",
+    "ayudaPracticaBloqueada": "Ya filtraste por especialidad. Limpiá ese filtro para buscar por práctica.",
+    "cobertura": {
+      "total": "Total",
+      "totalTooltip": "Tu plan cubre el 100% del costo",
+      "parcial": "Parcial",
+      "parcialTooltip": "Tu plan cubre una parte del costo",
+      "noCubierta": "No cubierto",
+      "noCubiertaTooltip": "Este servicio no está incluido en tu plan o no tenés plan asignado"
+    }
   },
   "agenda": {
     "titulo": "Mi agenda",
@@ -184,6 +197,9 @@
     "cancelarCancel": "Volver",
     "errorFaltaMotivo": "Tenés que indicar un motivo",
     "canceladoOk": "Turno cancelado",
+    "errorCancelarTitle": "No es posible cancelar",
+    "errorCancelarContent": "El turno debe cancelarse con al menos 1 hora de anticipación.",
+    "errorCancelacionGen": "Ocurrió un error al intentar cancelar el turno",
     "proximos": "Próximos",
     "historial": "Historial"
   },

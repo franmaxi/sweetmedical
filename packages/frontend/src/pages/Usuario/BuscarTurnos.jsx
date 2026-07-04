@@ -99,7 +99,7 @@ function BuscarTurnosInner() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const { t } = useTranslation();
-  const { message } = AntApp.useApp();
+  const { message, modal } = AntApp.useApp();
 
   const [filtrosBorrador, setFiltrosBorrador] = useState(() => paramsFiltros(searchParams));
   const [filtrosAplicados, setFiltrosAplicados] = useState(() => paramsFiltros(searchParams));
@@ -198,12 +198,28 @@ function BuscarTurnosInner() {
     let params = { turnoId: turnoSeleccionado.id || turnoSeleccionado._id };
     if (motivo.tipo === "esp") params.especialidadId = motivo.id;
     if (motivo.tipo === "prac") params.practicaId = motivo.id;
-    await reservarTurno(params);
-    setReservando(false);
-    message.success(t("buscarTurnos.successReservado"));
-    setResultados((r) => r.filter((t) => (t.id || t._id) !== (turnoSeleccionado.id || turnoSeleccionado._id)));
-    setTurnoSeleccionado(null);
-    navigate("/mis-turnos");
+    try {
+      await reservarTurno(params);
+      message.success(t("buscarTurnos.successReservado"));
+      setResultados((r) => r.filter((t) => (t.id || t._id) !== (turnoSeleccionado.id || turnoSeleccionado._id)));
+      setTurnoSeleccionado(null);
+      navigate("/mis-turnos");
+    } catch (error) {
+      if (error.response?.status === 422) {
+        modal.error({
+          title: "Turno no disponible",
+          content: t("buscarTurnos.errorTurnoNoDisponible"),
+          centered: true,
+        });
+        // El turno ya no está disponible, lo sacamos de la lista
+        setResultados((r) => r.filter((t) => (t.id || t._id) !== (turnoSeleccionado.id || turnoSeleccionado._id)));
+        setTurnoSeleccionado(null);
+      } else {
+        message.error(error.response?.data?.message || t("buscarTurnos.errorGenericoReserva"));
+      }
+    } finally {
+      setReservando(false);
+    }
   };
 
   const limpiar = () => {

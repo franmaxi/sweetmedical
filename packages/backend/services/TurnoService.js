@@ -15,7 +15,7 @@ import { EspecialidadRepository } from "../repositories/EspecialidadRepository.j
 
 import { UsuarioService } from "./UsuarioService.js"
 import { NotificacionService } from "./NotificacionService.js"
-
+import { NivelCobertura } from "../domain/Enumerados/NivelCobertura.js"
 import { objectIdSchema } from "../validations/commonValidations.js";
 import { SolicitudCambio } from "../domain/Turno/SolicitudCambio.js"
 
@@ -102,9 +102,9 @@ export class TurnoService {
         }
 
         // Obtener el plan ANTES de llamar al repo, porque puede ser necesario para el ordenamiento
-        const plan = paciente.obraSocial.planes.find(
+        const plan = paciente.obraSocial?.planes?.find(
             p => p._id.toString() === paciente.plan.toString()
-        );
+        ) ?? null;
 
         // Cuando se ordena por costoFinal, buscamos el objeto de cobertura completo
         // (con pocentajeDescuento) para que el aggregation calcule el costo real post-cobertura
@@ -142,13 +142,13 @@ export class TurnoService {
             const especialidadesConCosto = especialidades.map(e => {
                 const cobertura = plan ? plan.obtenerCoberturaEspecialidad(e) : null;
                 const costo = e.calcularCostoSegunCobertura(cobertura);
-                return { id: e._id, nombre: e.nombre, cobertura: cobertura?.nivel ?? null, costo };
+                return { id: e._id, nombre: e.nombre, cobertura: cobertura?.nivel ?? NivelCobertura.NO_CUBIERTO, costo };
             });
 
             const practicasConCosto = practicas.map(p => {
                 const cobertura = plan ? plan.obtenerCoberturaPractica(p) : null;
                 const costo = p.calcularCostoSegunCobertura(cobertura);
-                return { id: p._id, nombre: p.nombre, cobertura: cobertura?.nivel ?? null, costo };
+                return { id: p._id, nombre: p.nombre, cobertura: cobertura?.nivel ?? NivelCobertura.NO_CUBIERTO, costo };
             });
 
             return {
@@ -515,7 +515,7 @@ export class TurnoService {
 
                 // guardar el turno nuevo y updateamos los combinados
                 await this.turnoRepository.save(respuesta.turno);
-                if (respuesta.turnosCombinados.length >= 1) {
+                if (respuesta.turnosCombinados && respuesta.turnosCombinados.length >= 1) {
                     for (const t of respuesta.turnosCombinados) {
                         await this.turnoRepository.update(t._id, t)
                     }

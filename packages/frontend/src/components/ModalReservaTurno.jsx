@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Modal, Space, Typography, Radio, Divider } from "antd";
-import { CalendarOutlined, ClockCircleOutlined, EnvironmentOutlined } from "@ant-design/icons";
+import { Modal, Space, Typography, Radio, Divider, Tag, Tooltip } from "antd";
+import { CalendarOutlined, ClockCircleOutlined, EnvironmentOutlined, SafetyCertificateOutlined } from "@ant-design/icons";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -11,6 +11,26 @@ const fmtMoneda = (n) => {
   if (n === 0 || n === "Sin costo" || !n) return "Sin costo";
   return new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(n);
 };
+
+const COBERTURA_CONFIG = {
+  TOTAL: { color: "success", labelKey: "buscarTurnos.cobertura.total" },
+  PARCIAL: { color: "warning", labelKey: "buscarTurnos.cobertura.parcial" },
+  "NO CUBIERTA": { color: "error", labelKey: "buscarTurnos.cobertura.noCubierta" },
+};
+
+function CoberturaTag({ nivel, t }) {
+  const config = nivel ? COBERTURA_CONFIG[nivel] : null;
+  const label = config ? t(config.labelKey) : t("buscarTurnos.cobertura.noCubierta");
+  const tooltip = config ? t(`${config.labelKey}Tooltip`) : t("buscarTurnos.cobertura.noCubiertaTooltip");
+  const color = config ? config.color : "error";
+  return (
+    <Tooltip title={tooltip}>
+      <Tag color={color} icon={<SafetyCertificateOutlined />}>
+        {label}
+      </Tag>
+    </Tooltip>
+  );
+}
 
 /* Modal para reservar un turno. Recibe el turno, el médico (con sus prácticas
  y especialidad personalizada resuelta) y dispara onReservar(motivoElegido)
@@ -42,6 +62,7 @@ export default function ModalReservaTurno({
         id: especialidad.id || especialidad._id,
         nombre: `Consulta · ${especialidad.nombre}`,
         precio: especialidad.costo || 0,
+        cobertura: especialidad.cobertura ?? null,
       });
     }
     const practicasTurno = Array.isArray(turno.practica) ? turno.practica : [];
@@ -51,6 +72,7 @@ export default function ModalReservaTurno({
         id: practica.id || practica._id,
         nombre: `Práctica · ${practica.nombre}`,
         precio: practica.costo || 0,
+        cobertura: practica.cobertura ?? null,
       });
     }
     return arr;
@@ -98,10 +120,13 @@ export default function ModalReservaTurno({
               <Space direction="vertical" size="small" style={{ width: "100%" }}>
                 {opciones.map((o, idx) => (
                   <Radio key={idx} value={idx} style={{ width: "100%" }}>
-                    <Space style={{ justifyContent: "space-between", width: "100%" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", gap: 8, flexWrap: "wrap" }}>
                       <span>{o.nombre}</span>
-                      <Text type="secondary">{fmtMoneda(o.precio)}</Text>
-                    </Space>
+                      <Space size={6}>
+                        <CoberturaTag nivel={o.cobertura} t={t} />
+                        <Text type="secondary" style={{ minWidth: 70, textAlign: "right" }}>{fmtMoneda(o.precio)}</Text>
+                      </Space>
+                    </div>
                   </Radio>
                 ))}
               </Space>

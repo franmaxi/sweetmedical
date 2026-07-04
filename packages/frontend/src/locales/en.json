@@ -132,8 +132,21 @@
       "cancel": "Back"
     },
     "successReservado": "Appointment booked!",
+    "errorCarga": "Error loading appointments",
+    "errorTurnoNoDisponible": "The appointment is no longer available. Please choose another one.",
+    "errorGenericoReserva": "An error occurred while trying to book the appointment",
     "errorFechaRango": "The from date cannot be later than the to date",
-    "ayudaOrdenarPorPrecio": "Select a specialty or procedure to sort by price"
+    "ayudaOrdenarPorPrecio": "Select a specialty or procedure to sort by price",
+    "ayudaEspecialidadBloqueada": "You already filtered by practice. Clear that filter to search by specialty.",
+    "ayudaPracticaBloqueada": "You already filtered by specialty. Clear that filter to search by practice.",
+    "cobertura": {
+      "total": "Full coverage",
+      "totalTooltip": "Your plan covers 100% of the cost",
+      "parcial": "Partial",
+      "parcialTooltip": "Your plan covers part of the cost",
+      "noCubierta": "Not covered",
+      "noCubiertaTooltip": "This service is not included in your plan or you have no plan assigned"
+    }
   },
   "agenda": {
     "titulo": "My schedule",
@@ -185,6 +198,9 @@
     "cancelarCancel": "Back",
     "errorFaltaMotivo": "You must provide a reason",
     "canceladoOk": "Appointment cancelled",
+    "errorCancelarTitle": "Cannot cancel appointment",
+    "errorCancelarContent": "The appointment must be cancelled at least 1 hour in advance.",
+    "errorCancelacionGen": "An error occurred while trying to cancel the appointment",
     "proximos": "Upcoming",
     "historial": "History"
   },
