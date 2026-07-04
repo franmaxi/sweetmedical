@@ -18,6 +18,7 @@ router.route('/genericas')
 router.route('/genericas/:id')
 	.get((req, res, next) => practicaController.findByIdGenerica(req, res, next))
 	.put(verificarToken, (req, res, next) => practicaController.updateGenerica(req, res, next))
+	.delete(verificarToken, (req, res, next) => practicaController.deleteGenerica(req, res, next))
 
 router.route('/:id')
 	.get((req, res, next) => practicaController.findById(req, res, next))

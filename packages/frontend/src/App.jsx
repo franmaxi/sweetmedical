@@ -12,6 +12,9 @@ import Disponibilidades from "./pages/Medico/Disponibilidades";
 import Login from "./pages/Login";
 import Registro from "./pages/Registro";
 import MisServicios from "./pages/Medico/MisServicios";
+import MisSedes from "./pages/Medico/MisSedes";
+import AdminPanel from "./pages/Admin/AdminPanel";
+import MiPerfil from "./pages/MiPerfil";
 
 const theme = {
   token: {
@@ -43,6 +46,7 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/registro" element={<Registro />} />
+              <Route path="/mi-perfil" element={<MiPerfil />} />
 
               <Route element={<RequireRole role="usuario" />}>
                 <Route path="/buscar" element={<BuscarTurnos />} />
@@ -52,7 +56,12 @@ function App() {
               <Route element={<RequireRole role="medico" />}>
                 <Route path="/agenda" element={<AgendaMedico />} />
                 <Route path="/disponibilidades" element={<Disponibilidades />} />
+                <Route path="/mis-sedes" element={<MisSedes />} />
                 <Route path="mis-servicios" element={<MisServicios />} />
+              </Route>
+
+              <Route element={<RequireRole role="admin" />}>
+                <Route path="/admin" element={<AdminPanel />} />
               </Route>
 
               <Route path="*" element={<Navigate to="/" replace />} />

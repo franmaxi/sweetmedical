@@ -84,19 +84,6 @@ function LoginInner() {
             >
               <Input.Password prefix={<LockOutlined />} placeholder={t("login.placeholderPassword")} autoComplete="current-password" />
             </Form.Item>
-            <Form.Item
-              name="role"
-              label={t("login.labelRol")}
-              initialValue="usuario"
-            >
-              <Select
-                options={[
-                  { value: "usuario", label: t("login.rolePaciente") },
-                  { value: "medico", label: t("login.roleMedico") },
-                  { value: "admin", label: t("login.roleAdmin") },
-                ]}
-              />
-            </Form.Item>
             <Button type="primary" htmlType="submit" block loading={cargando}>
               {t("login.botonIngresar")}
             </Button>

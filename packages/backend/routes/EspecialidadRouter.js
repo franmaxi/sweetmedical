@@ -17,6 +17,7 @@ router.route('/genericas')
 router.route('/genericas/:id')
 	.get((req, res, next) => especialidadController.findByIdGenerica(req, res, next))
 	.put(verificarToken, (req, res, next) => especialidadController.updateGenerica(req, res, next))
+	.delete(verificarToken, (req, res, next) => especialidadController.deleteGenerica(req, res, next))
 	
 router.route('/:id')
 	.get((req, res, next) => especialidadController.findById(req, res, next))

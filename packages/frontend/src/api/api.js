@@ -155,6 +155,60 @@ export const getSedes = async ({
         throw error;
     }
 };
+// ---------------------------------------------------------------------------
+// ADMIN — CRUD de Sedes (requieren token de admin)
+// ---------------------------------------------------------------------------
+export const crearSede = async ({ nombre, direccion } = {}) => {
+    const response = await apiClient.post('/sedes/', { nombre, direccion });
+    return response.data;
+};
+
+export const actualizarSede = async ({ id, nombre, direccion } = {}) => {
+    const response = await apiClient.put(`/sedes/${id}`, { nombre, direccion });
+    return response.data;
+};
+
+export const eliminarSede = async ({ id } = {}) => {
+    const response = await apiClient.delete(`/sedes/${id}`);
+    return response.data;
+};
+
+// ---------------------------------------------------------------------------
+// ADMIN — CRUD de Prácticas genéricas (requieren token de admin)
+// ---------------------------------------------------------------------------
+export const crearPracticaGenerica = async ({ codigo, nombre, emoji } = {}) => {
+    const response = await apiClient.post('/practicas/genericas', { codigo, nombre, emoji });
+    return response.data;
+};
+
+export const actualizarPracticaGenerica = async ({ id, codigo, nombre, emoji } = {}) => {
+    const response = await apiClient.put(`/practicas/genericas/${id}`, { codigo, nombre, emoji });
+    return response.data;
+};
+
+export const eliminarPracticaGenerica = async ({ id } = {}) => {
+    const response = await apiClient.delete(`/practicas/genericas/${id}`);
+    return response.data;
+};
+
+// ---------------------------------------------------------------------------
+// ADMIN — CRUD de Especialidades genéricas (requieren token de admin)
+// ---------------------------------------------------------------------------
+export const crearEspecialidadGenerica = async ({ nombre, emoji } = {}) => {
+    const response = await apiClient.post('/especialidades/genericas', { nombre, emoji });
+    return response.data;
+};
+
+export const actualizarEspecialidadGenerica = async ({ id, nombre, emoji } = {}) => {
+    const response = await apiClient.put(`/especialidades/genericas/${id}`, { nombre, emoji });
+    return response.data;
+};
+
+export const eliminarEspecialidadGenerica = async ({ id } = {}) => {
+    const response = await apiClient.delete(`/especialidades/genericas/${id}`);
+    return response.data;
+};
+
 export const getMedicos = async ({
 
 } = {}) => {
@@ -370,6 +424,28 @@ export const eliminarDisponibilidad = async ({
         return response.data;
     } catch (error) {
         console.error("Error eliminando disponibilidad", error);
+        throw error;
+    }
+};
+
+export const agregarSedesMedico = async ({ medicoId, sedesId } = {}) => {
+    try {
+        const response = await apiClient.post(`/medicos/${medicoId}/sedes`, { sedesId });
+        return response.data;
+    } catch (error) {
+        console.error("Error al agregar sedes al médico", error);
+        throw error;
+    }
+};
+
+export const quitarSedesMedico = async ({ medicoId, sedesId } = {}) => {
+    try {
+        const response = await apiClient.delete(`/medicos/${medicoId}/sedes`, {
+            data: { sedesId }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error al quitar sedes del médico", error);
         throw error;
     }
 };
