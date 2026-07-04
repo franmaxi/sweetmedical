@@ -6,11 +6,21 @@
     "misTurnos": "My appointments",
     "agenda": "My schedule",
     "disponibilidades": "Availabilities",
+    "misSedes": "My locations",
     "misEspecialidades": "My specialties",
+    "misServicios": "My services",
+    "admin": "Administration",
     "menu": "Menu",
     "ingresar": "Log in",
     "registrarse": "Sign up",
     "logout": "Log out"
+  },
+    "perfil": {
+    "titulo": "My profile",
+    "descripcion": "Manage your account and session details.",
+    "nombre": "Name",
+    "usuario": "Username",
+    "rol": "Role"
   },
   "language": {
     "spanish": "Español",
@@ -272,5 +282,64 @@
     "viernes": "Friday",
     "sabado": "Saturday",
     "domingo": "Sunday"
+  },
+  "admin": {
+    "titulo": "Administration panel",
+    "subtitulo": "Manage the platform's locations, generic procedures and specialties.",
+    "tabs": {
+      "sedes": "Locations",
+      "practicas": "Generic procedures",
+      "especialidades": "Generic specialties"
+    },
+    "acciones": {
+      "nuevo": "New",
+      "editar": "Edit",
+      "eliminar": "Delete",
+      "guardar": "Save",
+      "cancelar": "Cancel",
+      "acciones": "Actions"
+    },
+    "campos": {
+      "nombre": "Name",
+      "direccion": "Address",
+      "codigo": "Code",
+      "emoji": "Emoji"
+    },
+    "hints": {
+      "emoji": "Must be a single valid emoji (e.g. 🩺)."
+    },
+    "validacion": {
+      "nombreRequerido": "Enter a name",
+      "direccionRequerida": "Enter an address",
+      "codigoRequerido": "Enter a code",
+      "emojiRequerido": "Enter an emoji"
+    },
+    "modal": {
+      "crear": {
+        "sedes": "New location",
+        "practicas": "New generic procedure",
+        "especialidades": "New generic specialty"
+      },
+      "editar": {
+        "sedes": "Edit location",
+        "practicas": "Edit generic procedure",
+        "especialidades": "Edit generic specialty"
+      },
+      "eliminarTitle": "Delete",
+      "eliminarContenido": "Are you sure you want to delete \"{{nombre}}\"? This action cannot be undone."
+    },
+    "mensajes": {
+      "creado": "Created successfully",
+      "actualizado": "Updated successfully",
+      "eliminado": "Deleted successfully",
+      "errorCargar": "Could not load the data",
+      "errorGuardar": "Could not save",
+      "errorEliminar": "Could not delete"
+    },
+    "vacio": {
+      "sedes": "No locations yet",
+      "practicas": "No generic procedures yet",
+      "especialidades": "No generic specialties yet"
+    }
   }
 }

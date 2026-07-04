@@ -51,6 +51,30 @@ export class SedeService{
         }
         return sede
     }
+
+    async actualizar(id, datosSede) {
+        const sede = await this.obtenerPorId(id);
+
+        const sedePorNombre = await this.sedeRepository.findByNombre(datosSede.nombre);
+        if (sedePorNombre && sedePorNombre._id.toString() !== String(id)) {
+            throw new BadRequestError("Ya existe una sede con ese nombre " + datosSede.nombre);
+        }
+
+        const sedePorDireccion = await this.sedeRepository.findByDireccion(datosSede.direccion);
+        if (sedePorDireccion && sedePorDireccion._id.toString() !== String(id)) {
+            throw new BadRequestError("Ya existe una sede con la direccion " + datosSede.direccion);
+        }
+
+        sede.nombre = datosSede.nombre;
+        sede.direccion = datosSede.direccion;
+
+        return await this.sedeRepository.update(id, sede);
+    }
+
+    async eliminar(id) {
+        await this.obtenerPorId(id);
+        return await this.sedeRepository.delete(id);
+    }
     async existeDireccionSede(direccionSede) {
         const sede = await this.sedeRepository.findByDireccion(direccionSede);
         return !!sede;

@@ -63,6 +63,41 @@ export class SedeController{
         }
     }
 
+    update = async (req, res, next) => {
+        try {
+            const { userRol } = tokenSchema.parse(req.usuario)
+            this.validarAdmin(userRol)
+
+            const { id } = paramsIdSchema.parse(req.params);
+            const datos = sedeBodySchema.parse(req.body);
+            const sede = await this.sedeService.actualizar(id, datos);
+
+            return res.status(200).json({
+                status: "success",
+                data: sede
+            });
+        } catch (error) {
+            return next(error)
+        }
+    }
+
+    delete = async (req, res, next) => {
+        try {
+            const { userRol } = tokenSchema.parse(req.usuario)
+            this.validarAdmin(userRol)
+
+            const { id } = paramsIdSchema.parse(req.params);
+            const sede = await this.sedeService.eliminar(id);
+
+            return res.status(200).json({
+                status: "success",
+                data: sede
+            });
+        } catch (error) {
+            return next(error)
+        }
+    }
+
     validarAdmin(rolUsuario) {
         if (rolUsuario != TipoUsuario.ADMIN) 
             throw new ForbiddenError("No cuenta con los permisos necesarios para realizar dicha accion")

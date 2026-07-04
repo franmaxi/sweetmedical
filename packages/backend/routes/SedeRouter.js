@@ -12,5 +12,7 @@ router.route('/')
 
     router.route('/:id')
     .get((req, res, next) => sedeController.findById(req, res, next))
+    .put(verificarToken, (req, res, next) => sedeController.update(req, res, next))
+    .delete(verificarToken, (req, res, next) => sedeController.delete(req, res, next))
 
 export default router

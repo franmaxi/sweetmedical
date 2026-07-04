@@ -55,6 +55,22 @@ export class EspecialidadService {
         return especialidadGenerica;
     }
 
+    async eliminarGenerica(id) {
+        const validId = objectIdSchema.parse(id);
+
+        // Valida existencia (lanza NotFoundError si no existe)
+        await this.obtenerPorIdGenerica(validId);
+
+        // Baja lógica en cascada de las especialidades hijas
+        const especialidadesHijas = await this.obtenerPorIdPadre(validId);
+        if (especialidadesHijas.length > 0) {
+            const idsHijas = especialidadesHijas.map(e => e._id);
+            await this.especialidadRepository.deleteMany(idsHijas);
+        }
+
+        return await this.especialidadGenericaRepository.delete(validId);
+    }
+
     
     async crear(datosEspecialidad,idGenerica, session = null) {
         if (datosEspecialidad.duracionTurnoEnMins % 15 !== 0) {

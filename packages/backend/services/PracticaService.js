@@ -188,11 +188,26 @@ export class PracticaService {
     async obtenerPorIdGenerica(id) {
         const validId = objectIdSchema.parse(id);
         const practicaGenerica = await this.practicaGenericaRepository.findById(validId);
-    
         if (!practicaGenerica) {
             throw new NotFoundError("practica no encontrado");
         }
         return practicaGenerica;
+    }
+
+    async eliminarGenerica(id) {
+        const validId = objectIdSchema.parse(id);
+
+        // Valida existencia (lanza NotFoundError si no existe)
+        await this.obtenerPorIdGenerica(validId);
+
+        // Baja lógica en cascada de las prácticas hijas
+        const practicasHijas = await this.obtenerPorIdPadre(validId);
+        if (practicasHijas.length > 0) {
+            const idsHijas = practicasHijas.map(p => p._id);
+            await this.practicaRepository.deleteMany(idsHijas);
+        }
+
+        return await this.practicaGenericaRepository.delete(validId);
     }
 
     // Metodos Auxiliares

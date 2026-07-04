@@ -6,11 +6,20 @@
     "misTurnos": "Mis turnos",
     "agenda": "Mi agenda",
     "disponibilidades": "Disponibilidades",
+    "misSedes": "Mis sedes",
     "misServicios": "Mis servicios",
+    "admin": "Administración",
     "menu": "Menú",
     "ingresar": "Ingresar",
     "registrarse": "Registrarse",
     "logout": "Cerrar sesión"
+  },
+  "perfil": {
+    "titulo": "Mi perfil",
+    "descripcion": "Administrá tus datos de cuenta y sesión.",
+    "nombre": "Nombre",
+    "usuario": "Usuario",
+    "rol": "Rol"
   },
   "language": {
     "spanish": "Español",
@@ -274,5 +283,64 @@
     "viernes": "Viernes",
     "sabado": "Sábado",
     "domingo": "Domingo"
+  },
+  "admin": {
+    "titulo": "Panel de administración",
+    "subtitulo": "Gestioná las sedes, prácticas y especialidades genéricas de la plataforma.",
+    "tabs": {
+      "sedes": "Sedes",
+      "practicas": "Prácticas genéricas",
+      "especialidades": "Especialidades genéricas"
+    },
+    "acciones": {
+      "nuevo": "Nuevo",
+      "editar": "Editar",
+      "eliminar": "Eliminar",
+      "guardar": "Guardar",
+      "cancelar": "Cancelar",
+      "acciones": "Acciones"
+    },
+    "campos": {
+      "nombre": "Nombre",
+      "direccion": "Dirección",
+      "codigo": "Código",
+      "emoji": "Emoji"
+    },
+    "hints": {
+      "emoji": "Debe ser un único emoji válido (ej: 🩺)."
+    },
+    "validacion": {
+      "nombreRequerido": "Ingresá un nombre",
+      "direccionRequerida": "Ingresá una dirección",
+      "codigoRequerido": "Ingresá un código",
+      "emojiRequerido": "Ingresá un emoji"
+    },
+    "modal": {
+      "crear": {
+        "sedes": "Nueva sede",
+        "practicas": "Nueva práctica genérica",
+        "especialidades": "Nueva especialidad genérica"
+      },
+      "editar": {
+        "sedes": "Editar sede",
+        "practicas": "Editar práctica genérica",
+        "especialidades": "Editar especialidad genérica"
+      },
+      "eliminarTitle": "Eliminar",
+      "eliminarContenido": "¿Seguro que querés eliminar \"{{nombre}}\"? Esta acción no se puede deshacer."
+    },
+    "mensajes": {
+      "creado": "Creado con éxito",
+      "actualizado": "Actualizado con éxito",
+      "eliminado": "Eliminado con éxito",
+      "errorCargar": "No se pudieron cargar los datos",
+      "errorGuardar": "No se pudo guardar",
+      "errorEliminar": "No se pudo eliminar"
+    },
+    "vacio": {
+      "sedes": "Todavía no hay sedes",
+      "practicas": "Todavía no hay prácticas genéricas",
+      "especialidades": "Todavía no hay especialidades genéricas"
+    }
   }
 }

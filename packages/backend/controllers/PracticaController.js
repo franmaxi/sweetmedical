@@ -92,8 +92,25 @@ export class PracticaController {
         }
     }
     
+    deleteGenerica = async (req, res, next) => {
+        try {
+            const { id } = paramsIdSchema.parse(req.params);
+
+            const { userRol } = tokenSchema.parse(req.usuario)
+            this.validarAdmin(userRol)
+
+            const practicaEliminada = await this.practicaService.eliminarGenerica(id);
+            return res.status(200).json({
+                status: "success",
+                data: practicaEliminada
+            });
+        } catch (error) {
+            return next(error);
+        }
+    }
+
     validarAdmin(rolUsuario) {
-        if (rolUsuario != TipoUsuario.ADMIN) 
+        if (rolUsuario != TipoUsuario.ADMIN)
             throw new ForbiddenError("No cuenta con los permisos necesarios para realizar dicha accion")
     }
 }

@@ -11,6 +11,8 @@ import {
   SearchOutlined,
   MenuOutlined,
   LogoutOutlined,
+  EnvironmentOutlined,
+  SettingOutlined,
 } from "@ant-design/icons";
 import NotificacionesDropdown from "./NotificacionesDropdown";
 import SelectorIdioma from "./SelectorIdioma";
@@ -45,7 +47,9 @@ const AuthButtons = ({ user, onLogout }) => {
   if (user) {
     return (
       <>
-        <span style={{ marginRight: 16 }}>{user.displayName}</span>
+        <Button type="text" onClick={() => navigate("/mi-perfil")} style={{ padding: 0, color: "#111827", fontWeight: 600 }}>
+          {user.displayName}
+        </Button>
         <Button onClick={onLogout}><LogoutOutlined />{t("navbar.logout")}</Button>
       </>
     );
@@ -121,6 +125,12 @@ const allItems = [
     roles: ["medico"],
   },
   {
+    key: "/mis-sedes",
+    icon: <EnvironmentOutlined />,
+    label: <Link to="/mis-sedes">{t("navbar.misSedes")}</Link>,
+    roles: ["medico"],
+  },
+  {
     key: "/disponibilidades",
     icon: <ClockCircleOutlined />,
     label: <Link to="/disponibilidades">{t("navbar.disponibilidades")}</Link>,
@@ -131,6 +141,12 @@ const allItems = [
     icon: <ClockCircleOutlined />,
     label: <Link to="/mis-servicios">{t("navbar.misServicios")}</Link>,
     roles: ["medico"],
+  },
+  {
+    key: "/admin",
+    icon: <SettingOutlined />,
+    label: <Link to="/admin">{t("navbar.admin")}</Link>,
+    roles: ["admin"],
   }
 ];
 
