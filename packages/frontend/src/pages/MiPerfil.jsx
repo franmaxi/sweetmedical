@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { App as AntApp, Button, Card, Descriptions, Form, Input, Layout, Modal, Select, Space, Typography } from "antd";
-import { CheckOutlined, CloseOutlined, EditOutlined } from "@ant-design/icons";
+import { EditOutlined, KeyOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
@@ -20,39 +20,14 @@ export default function MiPerfil() {
   );
 }
 
-function FilaTexto({ value, editing, editingValue, onChangeValue, onEdit, onCancel, onSave, saving, inputType = "text", disabled }) {
-  if (editing) {
-    return (
-      <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-        <Input
-          type={inputType}
-          value={editingValue}
-          onChange={(e) => onChangeValue(e.target.value)}
-          autoFocus
-          style={{ maxWidth: 260 }}
-        />
-        <Space size={4}>
-          <Button type="text" icon={<CheckOutlined />} onClick={onSave} loading={saving} />
-          <Button type="text" icon={<CloseOutlined />} onClick={onCancel} />
-        </Space>
-      </div>
-    );
-  }
-
-  return (
-    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
-      <Text>{value !== undefined && value !== null && value !== "" ? value : "—"}</Text>
-      <Button type="text" icon={<EditOutlined />} onClick={onEdit} disabled={disabled} />
-    </div>
-  );
-}
-
 function MiPerfilInner() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { message } = AntApp.useApp();
-  const [form] = Form.useForm();
+  
+  const [formDatos] = Form.useForm();
+  const [formPassword] = Form.useForm();
 
   const [loading, setLoading] = useState(true);
   const [guardando, setGuardando] = useState(false);
@@ -60,13 +35,9 @@ function MiPerfilInner() {
   const [obrasSociales, setObrasSociales] = useState([]);
   const [planes, setPlanes] = useState([]);
   const [obraSocialIdSeleccionada, setObraSocialIdSeleccionada] = useState(null);
-  const [modalAbierto, setModalAbierto] = useState(false);
-
-  const [editingField, setEditingField] = useState(null);
-  const [editingValue, setEditingValue] = useState("");
-  const [editingPasswordActual, setEditingPasswordActual] = useState("");
-  const [editingPasswordConfirm, setEditingPasswordConfirm] = useState("");
-  const [guardandoCampo, setGuardandoCampo] = useState(false);
+  
+  const [modalDatosAbierto, setModalDatosAbierto] = useState(false);
+  const [modalPasswordAbierto, setModalPasswordAbierto] = useState(false);
 
   const isMedico = useMemo(() => user?.role === "medico", [user]);
   const isPaciente = useMemo(() => user?.role === "usuario" || user?.role === "paciente", [user]);
@@ -131,27 +102,10 @@ function MiPerfilInner() {
     navigate("/");
   };
 
-  const passwordEditError = useMemo(() => {
-    if (editingField !== "password") return null;
-
-    const actual = editingPasswordActual;
-    const nueva = editingValue;
-    const confirmacion = editingPasswordConfirm;
-
-    if (!actual && !nueva && !confirmacion) return null;
-    if (!actual) return t("perfil.errorPasswordActualRequerida");
-    if (!nueva && confirmacion) return t("perfil.errorPassword");
-    if (nueva && nueva.length < 6) return t("login.errorPasswordLength");
-    if (nueva && confirmacion && nueva !== confirmacion) return t("registro.errorPasswordNoCoincide");
-    return null;
-  }, [editingField, editingValue, editingPasswordActual, editingPasswordConfirm, t]);
-
   const roleKey = user?.role === "usuario" ? "paciente" : user?.role;
   const planLabel = profile?.plan?.nombre || (typeof profile?.plan === "string" ? planes.find((p) => p._id === profile.plan)?.nombre : undefined) || profile?.plan;
   const obraSocialLabel = profile?.obraSocial?.nombre || (typeof profile?.obraSocial === "string" ? obrasSociales.find((o) => o._id === profile.obraSocial)?.nombre : undefined) || profile?.obraSocial;
 
-  // Aplica los cambios al backend (o al estado local para admin) y refresca el perfil.
-  // Devuelve true si se guardó algo, false si no había nada para actualizar o falló.
   const persistirPerfil = async (payload) => {
     if (Object.keys(payload).length === 0) {
       message.info(t("perfil.sinCambios"));
@@ -190,13 +144,11 @@ function MiPerfilInner() {
     }
   };
 
-  const abrirEdicion = () => {
-    cancelarEdicionCampo();
-
+  const abrirEdicionDatos = () => {
     const obraSocialId = profile?.obraSocial?._id || profile?.obraSocial || undefined;
 
-    form.resetFields();
-    form.setFieldsValue({
+    formDatos.resetFields();
+    formDatos.setFieldsValue({
       nombre: profile?.nombre || "",
       nombreUsuario: profile?.usuario?.nombreUsuario || user.username || "",
       ...(isPaciente
@@ -213,36 +165,33 @@ function MiPerfilInner() {
       setObraSocialIdSeleccionada(obraSocialId);
     }
 
-    setModalAbierto(true);
+    setModalDatosAbierto(true);
   };
 
-  const cerrarModal = () => {
-    setModalAbierto(false);
-    form.resetFields();
+  const cerrarModalDatos = () => {
+    setModalDatosAbierto(false);
+    formDatos.resetFields();
   };
 
-  const guardarEdicion = async () => {
+  const guardarEdicionDatos = async () => {
     let values;
     try {
-      values = await form.validateFields();
+      values = await formDatos.validateFields();
     } catch {
       return;
     }
 
     const payload = {};
-    if (values.nombre?.trim()) payload.nombre = values.nombre.trim();
-    if (values.nombreUsuario?.trim()) payload.nombreUsuario = values.nombreUsuario.trim();
-    if (values.passwordNueva) {
-      payload.passwordNueva = values.passwordNueva;
-      payload.passwordActual = values.passwordActual;
-    }
+    if (values.nombre?.trim() !== undefined) payload.nombre = values.nombre.trim();
+    if (values.nombreUsuario?.trim() !== undefined) payload.nombreUsuario = values.nombreUsuario.trim();
+    
     if (isPaciente) {
       if (values.dni !== undefined && values.dni !== "") payload.dni = Number(values.dni);
-      if (values.obraSocialId) payload.obraSocialId = values.obraSocialId;
-      if (values.planId) payload.planId = values.planId;
+      payload.obraSocialId = values.obraSocialId || null;
+      payload.planId = values.planId || null;
     }
-    if (isMedico && values.matricula?.trim()) {
-      payload.matricula = values.matricula.trim();
+    if (isMedico) {
+      payload.matricula = values.matricula?.trim() || "";
     }
 
     setGuardando(true);
@@ -250,69 +199,42 @@ function MiPerfilInner() {
     setGuardando(false);
 
     if (guardo) {
-      setModalAbierto(false);
-      form.resetFields();
+      setModalDatosAbierto(false);
+      formDatos.resetFields();
     }
   };
 
-  const iniciarEdicionCampo = (field, valorInicial) => {
-    setEditingField(field);
-    setEditingValue(valorInicial ?? "");
-    setEditingPasswordActual("");
-    setEditingPasswordConfirm("");
+  const abrirEdicionPassword = () => {
+    formPassword.resetFields();
+    setModalPasswordAbierto(true);
   };
 
-  const cancelarEdicionCampo = () => {
-    setEditingField(null);
-    setEditingValue("");
-    setEditingPasswordActual("");
-    setEditingPasswordConfirm("");
+  const cerrarModalPassword = () => {
+    setModalPasswordAbierto(false);
+    formPassword.resetFields();
   };
 
-  const guardarCampo = async (field) => {
-    const payload = {};
-
-    if (field === "password") {
-      const actual = editingPasswordActual;
-      const nueva = editingValue;
-      const confirmacion = editingPasswordConfirm;
-
-      if (!actual && !nueva && !confirmacion) {
-        // nada para cambiar
-      } else if (!actual) {
-        message.error(t("perfil.errorPasswordActualRequerida"));
-        return;
-      } else if (!nueva) {
-        message.error(t("perfil.errorPassword"));
-        return;
-      } else if (nueva.length < 6) {
-        message.error(t("login.errorPasswordLength"));
-        return;
-      } else if (!confirmacion) {
-        message.error(t("registro.errorConfirmarPassword"));
-        return;
-      } else if (nueva !== confirmacion) {
-        message.error(t("registro.errorPasswordNoCoincide"));
-        return;
-      } else {
-        payload.passwordActual = actual;
-        payload.passwordNueva = nueva;
-      }
-    } else if (field === "dni") {
-      if (editingValue !== "" && editingValue !== undefined && editingValue !== null) {
-        payload.dni = Number(editingValue);
-      }
-    } else if (field === "obraSocialId" || field === "planId") {
-      if (editingValue) payload[field] = editingValue;
-    } else if (editingValue?.trim()) {
-      payload[field] = editingValue.trim();
+  const guardarEdicionPassword = async () => {
+    let values;
+    try {
+      values = await formPassword.validateFields();
+    } catch {
+      return;
     }
 
-    setGuardandoCampo(true);
+    const payload = {
+      passwordActual: values.passwordActual,
+      passwordNueva: values.passwordNueva,
+    };
+
+    setGuardando(true);
     const guardo = await persistirPerfil(payload);
-    setGuardandoCampo(false);
+    setGuardando(false);
 
-    if (guardo) cancelarEdicionCampo();
+    if (guardo) {
+      setModalPasswordAbierto(false);
+      formPassword.resetFields();
+    }
   };
 
   if (!user) {
@@ -360,10 +282,15 @@ function MiPerfilInner() {
             </Title>
             <Text type="secondary">{t("perfil.descripcion")}</Text>
           </div>
-          <Space>
-            <Button type="primary" icon={<EditOutlined />} onClick={abrirEdicion} disabled={!!editingField}>
+          <Space wrap>
+            <Button type="primary" icon={<EditOutlined />} onClick={abrirEdicionDatos}>
               {t("perfil.editar")}
             </Button>
+            {!isAdmin && (
+              <Button icon={<KeyOutlined />} onClick={abrirEdicionPassword}>
+                Cambiar contraseña
+              </Button>
+            )}
             <Button danger onClick={handleLogout}>
               {t("navbar.logout")}
             </Button>
@@ -377,208 +304,98 @@ function MiPerfilInner() {
             </Descriptions.Item>
 
             <Descriptions.Item label={t("perfil.nombre")}>
-              <FilaTexto
-                value={profile?.nombre || profile?.usuario?.nombreUsuario || user.username}
-                editing={editingField === "nombre"}
-                editingValue={editingValue}
-                onChangeValue={setEditingValue}
-                onEdit={() => iniciarEdicionCampo("nombre", profile?.nombre || "")}
-                onCancel={cancelarEdicionCampo}
-                onSave={() => guardarCampo("nombre")}
-                saving={guardandoCampo}
-                disabled={modalAbierto}
-              />
+              {profile?.nombre || profile?.usuario?.nombreUsuario || user.username}
             </Descriptions.Item>
 
             <Descriptions.Item label={t("perfil.usuario")}>
-              <FilaTexto
-                value={profile?.usuario?.nombreUsuario || user.username}
-                editing={editingField === "nombreUsuario"}
-                editingValue={editingValue}
-                onChangeValue={setEditingValue}
-                onEdit={() => iniciarEdicionCampo("nombreUsuario", profile?.usuario?.nombreUsuario || "")}
-                onCancel={cancelarEdicionCampo}
-                onSave={() => guardarCampo("nombreUsuario")}
-                saving={guardandoCampo}
-                disabled={modalAbierto}
-              />
+              {profile?.usuario?.nombreUsuario || user.username}
             </Descriptions.Item>
 
-            <Descriptions.Item label={t("perfil.password")}>
-              {editingField === "password" ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: 8, maxWidth: 260 }}>
-                  <Input.Password
-                    placeholder={t("perfil.passwordActualPlaceholder")}
-                    value={editingPasswordActual}
-                    onChange={(e) => setEditingPasswordActual(e.target.value)}
-                    autoComplete="current-password"
-                    status={passwordEditError ? "error" : ""}
-                  />
-                  <Input.Password
-                    placeholder={t("perfil.nuevaPassword")}
-                    value={editingValue}
-                    onChange={(e) => setEditingValue(e.target.value)}
-                    autoComplete="new-password"
-                    status={passwordEditError ? "error" : ""}
-                  />
-                  <Input.Password
-                    placeholder={t("registro.confirmarPasswordLabel")}
-                    value={editingPasswordConfirm}
-                    onChange={(e) => setEditingPasswordConfirm(e.target.value)}
-                    autoComplete="new-password"
-                    status={passwordEditError ? "error" : ""}
-                  />
-                  {passwordEditError && (
-                    <Text type="danger" style={{ fontSize: 12 }}>
-                      {passwordEditError}
-                    </Text>
-                  )}
-                  <Space size={4}>
-                    <Button
-                      type="text"
-                      icon={<CheckOutlined />}
-                      onClick={() => guardarCampo("password")}
-                      loading={guardandoCampo}
-                      disabled={!!passwordEditError}
-                    />
-                    <Button type="text" icon={<CloseOutlined />} onClick={cancelarEdicionCampo} />
-                  </Space>
-                </div>
-              ) : (
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
-                  <Text>••••••••</Text>
-                  <Button type="text" icon={<EditOutlined />} onClick={() => iniciarEdicionCampo("password", "")} disabled={modalAbierto} />
-                </div>
-              )}
-            </Descriptions.Item>
+            {!isAdmin && (
+              <Descriptions.Item label={t("perfil.password")}>
+                ••••••••
+              </Descriptions.Item>
+            )}
 
             {isPaciente && (
               <>
                 <Descriptions.Item label={t("registro.paciente.dniLabel")}>
-                  <FilaTexto
-                    value={profile?.dni}
-                    editing={editingField === "dni"}
-                    editingValue={editingValue}
-                    onChangeValue={setEditingValue}
-                    onEdit={() => iniciarEdicionCampo("dni", profile?.dni ?? "")}
-                    onCancel={cancelarEdicionCampo}
-                    onSave={() => guardarCampo("dni")}
-                    saving={guardandoCampo}
-                    inputType="number"
-                    disabled={modalAbierto}
-                  />
+                  {profile?.dni ?? "—"}
                 </Descriptions.Item>
 
                 <Descriptions.Item label={t("registro.paciente.obraSocialLabel")}>
-                  {editingField === "obraSocialId" ? (
-                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                      <Select
-                        value={editingValue || undefined}
-                        placeholder={t("registro.paciente.placeholderObraSocial")}
-                        options={obrasSociales.map((o) => ({ value: o._id, label: o.nombre }))}
-                        onChange={(v) => {
-                          setEditingValue(v ?? "");
-                          setObraSocialIdSeleccionada(v ?? null);
-                        }}
-                        allowClear
-                        style={{ minWidth: 220 }}
-                      />
-                      <Space size={4}>
-                        <Button type="text" icon={<CheckOutlined />} onClick={() => guardarCampo("obraSocialId")} loading={guardandoCampo} />
-                        <Button type="text" icon={<CloseOutlined />} onClick={cancelarEdicionCampo} />
-                      </Space>
-                    </div>
-                  ) : (
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
-                      <Text>{obraSocialLabel || "—"}</Text>
-                      <Button
-                        type="text"
-                        icon={<EditOutlined />}
-                        onClick={() => iniciarEdicionCampo("obraSocialId", profile?.obraSocial?._id || profile?.obraSocial || undefined)}
-                        disabled={modalAbierto}
-                      />
-                    </div>
-                  )}
+                  {obraSocialLabel || "—"}
                 </Descriptions.Item>
 
                 <Descriptions.Item label={t("registro.paciente.planLabel")}>
-                  {editingField === "planId" ? (
-                    <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                      <Select
-                        value={editingValue || undefined}
-                        placeholder={planes.length ? t("registro.paciente.placeholderPlan") : t("registro.paciente.placeholderPlanFirst")}
-                        disabled={!planes.length}
-                        options={planes.map((p) => ({ value: p._id, label: p.nombre }))}
-                        onChange={(v) => setEditingValue(v ?? "")}
-                        allowClear
-                        style={{ minWidth: 220 }}
-                      />
-                      <Space size={4}>
-                        <Button type="text" icon={<CheckOutlined />} onClick={() => guardarCampo("planId")} loading={guardandoCampo} />
-                        <Button type="text" icon={<CloseOutlined />} onClick={cancelarEdicionCampo} />
-                      </Space>
-                    </div>
-                  ) : (
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
-                      <Text>{planLabel || "—"}</Text>
-                      <Button
-                        type="text"
-                        icon={<EditOutlined />}
-                        onClick={() => iniciarEdicionCampo("planId", profile?.plan?._id || profile?.plan || undefined)}
-                        disabled={modalAbierto}
-                      />
-                    </div>
-                  )}
+                  {planLabel || "—"}
                 </Descriptions.Item>
               </>
             )}
 
             {isMedico && (
               <Descriptions.Item label={t("registro.medico.matriculaLabel")}>
-                <FilaTexto
-                  value={profile?.matricula}
-                  editing={editingField === "matricula"}
-                  editingValue={editingValue}
-                  onChangeValue={setEditingValue}
-                  onEdit={() => iniciarEdicionCampo("matricula", profile?.matricula || "")}
-                  onCancel={cancelarEdicionCampo}
-                  onSave={() => guardarCampo("matricula")}
-                  saving={guardandoCampo}
-                  disabled={modalAbierto}
-                />
+                {profile?.matricula || "—"}
               </Descriptions.Item>
             )}
           </Descriptions>
         </Card>
 
+        {/* Modal 1: Editar Datos Personales */}
         <Modal
           title={t("perfil.editarTitulo")}
-          open={modalAbierto}
-          onOk={guardarEdicion}
-          onCancel={cerrarModal}
+          open={modalDatosAbierto}
+          onOk={guardarEdicionDatos}
+          onCancel={cerrarModalDatos}
           okText={t("perfil.guardar")}
           cancelText={t("perfil.cancelar")}
           confirmLoading={guardando}
           maskClosable={!guardando}
           destroyOnClose
         >
-          <Form form={form} layout="vertical" preserve={false}>
-            <Form.Item name="nombre" label={t("perfil.nombre")}>
+          <Form form={formDatos} layout="vertical" preserve={false}>
+            <Form.Item
+              name="nombre"
+              label={t("perfil.nombre")}
+              rules={[{ required: true, message: "Por favor ingresá tu nombre" }]}
+            >
               <Input />
             </Form.Item>
 
-            <Form.Item name="nombreUsuario" label={t("perfil.usuario")}>
+            <Form.Item
+              name="nombreUsuario"
+              label={t("perfil.usuario")}
+              rules={[{ required: true, message: "Por favor ingresá tu nombre de usuario" }]}
+            >
               <Input autoComplete="username" />
             </Form.Item>
 
             {isPaciente && (
-              <Form.Item name="dni" label={t("registro.paciente.dniLabel")}>
+              <Form.Item
+                name="dni"
+                label={t("registro.paciente.dniLabel")}
+                rules={[
+                  { required: true, message: "Por favor ingresá tu DNI" },
+                  {
+                    validator(_, val) {
+                      if (val !== undefined && val !== "" && Number(val) <= 0) {
+                        return Promise.reject(new Error("El DNI debe ser un número mayor a 0"));
+                      }
+                      return Promise.resolve();
+                    }
+                  }
+                ]}
+              >
                 <Input type="number" />
               </Form.Item>
             )}
 
             {isMedico && (
-              <Form.Item name="matricula" label={t("registro.medico.matriculaLabel")}>
+              <Form.Item
+                name="matricula"
+                label={t("registro.medico.matriculaLabel")}
+                rules={[{ required: true, message: "Por favor ingresá tu matrícula" }]}
+              >
                 <Input />
               </Form.Item>
             )}
@@ -591,7 +408,7 @@ function MiPerfilInner() {
                     options={obrasSociales.map((o) => ({ value: o._id, label: o.nombre }))}
                     onChange={(v) => {
                       setObraSocialIdSeleccionada(v ?? null);
-                      form.setFieldValue("planId", undefined);
+                      formDatos.setFieldValue("planId", undefined);
                     }}
                     allowClear
                   />
@@ -606,73 +423,63 @@ function MiPerfilInner() {
                 </Form.Item>
               </>
             )}
-
-            {!isAdmin && (
-              <>
-                <Form.Item
-                  name="passwordActual"
-                  label={t("perfil.passwordActual")}
-                  extra={t("perfil.passwordPlaceholder")}
-                  dependencies={["passwordNueva"]}
-                  rules={[
-                    ({ getFieldValue }) => ({
-                      validator(_, value) {
-                        if (!value && getFieldValue("passwordNueva")) {
-                          return Promise.reject(new Error(t("perfil.errorPasswordActualRequerida")));
-                        }
-                        return Promise.resolve();
-                      },
-                    }),
-                  ]}
-                >
-                  <Input.Password autoComplete="current-password" placeholder={t("perfil.passwordActualPlaceholder")} />
-                </Form.Item>
-
-                <Form.Item
-                  name="passwordNueva"
-                  label={t("perfil.nuevaPassword")}
-                  dependencies={["passwordActual"]}
-                  rules={[
-                    { min: 6, message: t("login.errorPasswordLength") },
-                    ({ getFieldValue }) => ({
-                      validator(_, value) {
-                        if (!value && getFieldValue("passwordActual")) {
-                          return Promise.reject(new Error(t("perfil.errorPassword")));
-                        }
-                        return Promise.resolve();
-                      },
-                    }),
-                  ]}
-                >
-                  <Input.Password autoComplete="new-password" />
-                </Form.Item>
-
-                <Form.Item
-                  name="confirmarPassword"
-                  label={t("registro.confirmarPasswordLabel")}
-                  dependencies={["passwordNueva"]}
-                  rules={[
-                    ({ getFieldValue }) => ({
-                      validator(_, value) {
-                        const passwordNueva = getFieldValue("passwordNueva");
-                        if (!passwordNueva && !value) return Promise.resolve();
-                        if (passwordNueva && !value) {
-                          return Promise.reject(new Error(t("registro.errorConfirmarPassword")));
-                        }
-                        if (passwordNueva !== value) {
-                          return Promise.reject(new Error(t("registro.errorPasswordNoCoincide")));
-                        }
-                        return Promise.resolve();
-                      },
-                    }),
-                  ]}
-                >
-                  <Input.Password autoComplete="new-password" placeholder={t("registro.placeholderConfirmarPassword")} />
-                </Form.Item>
-              </>
-            )}
           </Form>
         </Modal>
+
+        {/* Modal 2: Cambiar Contraseña */}
+        {!isAdmin && (
+          <Modal
+            title="Cambiar contraseña"
+            open={modalPasswordAbierto}
+            onOk={guardarEdicionPassword}
+            onCancel={cerrarModalPassword}
+            okText={t("perfil.guardar")}
+            cancelText={t("perfil.cancelar")}
+            confirmLoading={guardando}
+            maskClosable={!guardando}
+            destroyOnClose
+          >
+            <Form form={formPassword} layout="vertical" preserve={false}>
+              <Form.Item
+                name="passwordActual"
+                label={t("perfil.passwordActual")}
+                rules={[{ required: true, message: t("perfil.errorPasswordActualRequerida") }]}
+              >
+                <Input.Password autoComplete="current-password" placeholder={t("perfil.passwordActualPlaceholder")} />
+              </Form.Item>
+
+              <Form.Item
+                name="passwordNueva"
+                label={t("perfil.nuevaPassword")}
+                rules={[
+                  { required: true, message: "Por favor ingresá tu nueva contraseña" },
+                  { min: 6, message: t("login.errorPasswordLength") }
+                ]}
+              >
+                <Input.Password autoComplete="new-password" />
+              </Form.Item>
+
+              <Form.Item
+                name="confirmarPassword"
+                label={t("registro.confirmarPasswordLabel")}
+                dependencies={["passwordNueva"]}
+                rules={[
+                  { required: true, message: t("registro.errorConfirmarPassword") },
+                  ({ getFieldValue }) => ({
+                    validator(_, value) {
+                      if (!value || getFieldValue("passwordNueva") === value) {
+                        return Promise.resolve();
+                      }
+                      return Promise.reject(new Error(t("registro.errorPasswordNoCoincide")));
+                    },
+                  }),
+                ]}
+              >
+                <Input.Password autoComplete="new-password" placeholder={t("registro.placeholderConfirmarPassword")} />
+              </Form.Item>
+            </Form>
+          </Modal>
+        )}
       </Layout.Content>
       <Footer />
     </Layout>
