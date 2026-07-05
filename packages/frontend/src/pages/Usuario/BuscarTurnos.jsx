@@ -26,6 +26,7 @@ import FiltrosTurnos from "../../components/FiltrosTurnos";
 import ModalReservaTurno from "../../components/ModalReservaTurno";
 import { getTurnos, getSedes, getMedicos, getPracticasGenericas, getEspecialidadesGenericas, reservarTurno } from "../../api/api.js";
 import { extraerMensajeError } from "../../api/errorUtils.js";
+import { useCart } from "../../context/CartContext";
 
 
 const { Title, Text, Paragraph } = Typography;
@@ -105,6 +106,7 @@ function BuscarTurnosInner() {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const { message } = AntApp.useApp();
+  const { agregar, estaEnCarrito } = useCart();
 
   // ─── URL como fuente de verdad de filtros y página ──────────────────────────
   const [searchParams, setSearchParams] = useSearchParams();
@@ -217,6 +219,28 @@ function BuscarTurnosInner() {
   const espSeleccionada    = medicoSeleccionado
     ? espPersonalizadasById.get(medicoSeleccionado.especialidadId)
     : null;
+
+  const agregarAlCarrito = (motivo) => {
+    if (!motivo) { message.warning(t("buscarTurnos.warningMotivo")); return; }
+    const turnoId = turnoSeleccionado.id || turnoSeleccionado._id;
+    if (estaEnCarrito(turnoId)) {
+      message.info(t("carrito.yaEnCarrito"));
+      setTurnoSeleccionado(null);
+      return;
+    }
+    agregar({
+      turnoId,
+      medicoNombre: turnoSeleccionado.medico?.nombre || turnoSeleccionado.medicoNombre || "Médico",
+      fechaHora: turnoSeleccionado.fechaHora,
+      sedeNombre: turnoSeleccionado.sede?.nombre || "",
+      motivoTipo: motivo.tipo,
+      motivoId: motivo.id,
+      motivoNombre: motivo.nombre,
+      precio: motivo.precio || 0,
+    });
+    message.success(t("carrito.agregado"));
+    setTurnoSeleccionado(null);
+  };
 
   const confirmarReserva = async (motivo) => {
     if (!motivo) { message.warning(t("buscarTurnos.warningMotivo")); return; }
@@ -350,6 +374,7 @@ function BuscarTurnosInner() {
         practicasById={practicasById}
         onCancel={() => setTurnoSeleccionado(null)}
         onReservar={confirmarReserva}
+        onAgregarCarrito={agregarAlCarrito}
         reservando={reservando}
       />
     </Layout>

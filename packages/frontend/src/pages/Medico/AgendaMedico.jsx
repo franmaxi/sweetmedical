@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   App as AntApp,
   Button,
@@ -13,6 +13,7 @@ import {
   Typography,
 } from "antd";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../../context/AuthContext";
 import {
   getTurnos,
   confirmarTurno,
@@ -22,17 +23,15 @@ import {
   getPacientes,
   getSedes,
   getEspecialidades,
-  EstadoTurno,
-  nombreEstado,
-} from "../../mocks";
+} from "../../api/api";
+import { EstadoTurno, nombreEstado } from "../../utils/turnos";
 import { extraerMensajeError } from "../../api/errorUtils";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 
 const { Title, Text } = Typography;
 
-// Sin login, simulamos que la médica activa es Rebecca Rose (id 5).
-const MEDICO_ACTIVO = { medicoId: 5, usuarioId: 105 };
+
 
 const COLOR_ESTADO = {
   [EstadoTurno.DISPONIBLE]: "default",
@@ -66,6 +65,10 @@ export default function AgendaMedico() {
 
 function AgendaMedicoInner() {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const medicoId = user?.userId;
+  const usuarioId = user?.userId;
+
   const { message, modal } = AntApp.useApp();
   const [turnos, setTurnos] = useState([]);
   const [pacientesById, setPacientesById] = useState(new Map());
@@ -76,37 +79,56 @@ function AgendaMedicoInner() {
   const filtros = getFiltros(t);
   const estadoLabel = (e) => t(`estados.${nombreEstado(e).toLowerCase()}`, { defaultValue: nombreEstado(e) });
 
-  const recargar = () => {
+  const recargar = useCallback(() => {
+    if (!medicoId) {
+      setCargando(false);
+      return;
+    }
     setCargando(true);
     Promise.all([
-      getTurnos({ medicoId: MEDICO_ACTIVO.medicoId }),
+      getTurnos({ medicoId }),
       getPacientes(),
       getSedes(),
       getEspecialidades(),
-    ]).then(([turnosData, pacientes, sedes, esps]) => {
-      setPacientesById(new Map(pacientes.map((p) => [p.id, p])));
-      setSedesById(new Map(sedes.map((s) => [s.id, s])));
-      setEspById(new Map(esps.map((e) => [e.id, e])));
-      setTurnos(turnosData);
+    ]).then(([turnosData, pacientesRes, sedesRes, espsRes]) => {
+      const pacientes = pacientesRes?.data || pacientesRes || [];
+      const sedes = sedesRes?.data || sedesRes || [];
+      const esps = espsRes?.data || espsRes || [];
+      const turnosLista = turnosData?.data || turnosData || [];
+
+      setPacientesById(new Map(pacientes.map((p) => [p._id || p.id, p])));
+      setSedesById(new Map(sedes.map((s) => [s._id || s.id, s])));
+      setEspById(new Map(esps.map((e) => [e._id || e.id, e])));
+      setTurnos(Array.isArray(turnosLista) ? turnosLista : []);
       setCargando(false);
     }).catch((err) => {
       message.error(extraerMensajeError(err, "Error al cargar la agenda"));
       setCargando(false);
     });
-  };
+  }, [medicoId, message]);
 
-  useEffect(recargar, []);
+  useEffect(() => {
+    recargar();
+  }, [recargar]);
 
   const hidratados = useMemo(
     () =>
-      turnos.map((turno) => ({
-        ...turno,
-        key: turno.id,
-        pacienteNombre: turno.pacienteId ? pacientesById.get(turno.pacienteId)?.nombre ?? "—" : t("agenda.disponible"),
-        sedeNombre: sedesById.get(turno.sedeId)?.nombre ?? "—",
-        especialidadNombre: espById.get(turno.especialidadId)?.nombre ?? "—",
-      })),
-    [turnos, pacientesById, sedesById, espById],
+      turnos.map((turno) => {
+        const pacId = turno.paciente?._id || turno.paciente;
+        const sdId = turno.sede?._id || turno.sede;
+        const espId = Array.isArray(turno.especialidad)
+          ? (turno.especialidad[0]?._id || turno.especialidad[0])
+          : (turno.especialidad?._id || turno.especialidad);
+
+        return {
+          ...turno,
+          key: turno._id || turno.id,
+          pacienteNombre: pacId ? pacientesById.get(pacId)?.nombre ?? "—" : t("agenda.disponible"),
+          sedeNombre: sedesById.get(sdId)?.nombre ?? "—",
+          especialidadNombre: espId ? espById.get(espId)?.nombre ?? "—" : "—",
+        };
+      }),
+    [turnos, pacientesById, sedesById, espById, t],
   );
 
   const visibles = useMemo(() => {
@@ -123,7 +145,7 @@ function AgendaMedicoInner() {
 
   const onConfirmar = async (turno) => {
     try {
-      await confirmarTurno(turno.id, { usuarioId: MEDICO_ACTIVO.usuarioId });
+      await confirmarTurno(turno._id || turno.id, { usuarioId });
       message.success(t("agenda.confirmadoOk"));
       recargar();
     } catch (err) {
@@ -133,7 +155,7 @@ function AgendaMedicoInner() {
   
   const onRechazar = async (turno) => {
     try {
-      await rechazarTurno(turno.id, { usuarioId: MEDICO_ACTIVO.usuarioId });
+      await rechazarTurno(turno._id || turno.id, { usuarioId });
       message.success(t("agenda.rechazadoOk"));
       recargar();
     } catch (err) {
@@ -143,7 +165,7 @@ function AgendaMedicoInner() {
 
   const onRealizado = async (turno) => {
     try {
-      await marcarRealizado(turno.id, { usuarioId: MEDICO_ACTIVO.usuarioId });
+      await marcarRealizado(turno._id || turno.id, { usuarioId });
       message.success(t("agenda.realizadoOk"));
       recargar();
     } catch (err) {
@@ -174,7 +196,7 @@ function AgendaMedicoInner() {
           throw new Error("falta motivo");
         }
         try {
-          await cancelarTurno(turno.id, { usuarioId: MEDICO_ACTIVO.usuarioId, motivo: motivo.trim() });
+          await cancelarTurno(turno._id || turno.id, { usuarioId, motivo: motivo.trim() });
           message.success(t("agenda.canceladoOk"));
           recargar();
         } catch (err) {

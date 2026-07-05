@@ -1,8 +1,9 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Row, Col, Card, Avatar, Typography, Button, Space, Tag } from "antd";
-import { EnvironmentOutlined, IdcardOutlined } from "@ant-design/icons";
-import { getMedicos, getEspecialidades, getSedes } from "../mocks";
+import { Card, Avatar, Typography, Button, Space, Tag, Carousel, Empty, Input } from "antd";
+import { IdcardOutlined, LeftOutlined, RightOutlined, SearchOutlined } from "@ant-design/icons";
+import { getMedicosFull } from "../api/api";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -22,24 +23,59 @@ const iniciales = (nombre) => {
 
 const colorAvatar = (m) => AVATAR_COLORS[hashName(m.nombre) % AVATAR_COLORS.length];
 
+// Cuántas tarjetas se muestran a la vez según el ancho (breakpoints max-width de slick).
+const CAROUSEL_RESPONSIVE = [
+  { breakpoint: 1200, settings: { slidesToShow: 3 } },
+  { breakpoint: 768, settings: { slidesToShow: 2 } },
+  { breakpoint: 576, settings: { slidesToShow: 1 } },
+];
+
+const flechaStyle = (lado) => ({
+  position: "absolute",
+  top: "50%",
+  transform: "translateY(-50%)",
+  [lado]: -8,
+  zIndex: 2,
+  boxShadow: "0 4px 12px rgba(15, 23, 42, 0.12)",
+});
+
 export default function Medicos() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [medicos, setMedicos] = useState([]);
+  const [query, setQuery] = useState("");
+  const carouselRef = useRef(null);
+
+  const filtrados = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return medicos;
+    return medicos.filter(
+      (m) =>
+        m.nombre?.toLowerCase().includes(q) ||
+        m.especialidadNombre?.toLowerCase().includes(q),
+    );
+  }, [query, medicos]);
+
+  const verAgenda = (medico) => {
+    const id = medico._id || medico.id;
+    if (!id) return;
+    navigate(`/buscar?medicoId=${encodeURIComponent(id)}`);
+  };
 
   useEffect(() => {
-    Promise.all([getMedicos(), getEspecialidades(), getSedes()]).then(
-      ([listaMedicos, especialidades, sedes]) => {
-        const espById = new Map(especialidades.map((e) => [e.id, e]));
-        const sedeById = new Map(sedes.map((s) => [s.id, s]));
+    getMedicosFull()
+      .then((res) => {
+        const listaMedicos = res?.data || [];
         setMedicos(
           listaMedicos.map((m) => ({
             ...m,
-            especialidadNombre: espById.get(m.especialidadId)?.nombre ?? "—",
-            sedeNombre: sedeById.get(m.sedes[0])?.nombre ?? "—",
+            especialidadNombre: m.especialidades?.map((e) => e.nombre).join(", ") || "—",
           })),
         );
-      },
-    );
+      })
+      .catch((err) => {
+        console.error("Error al obtener médicos desde el backend", err);
+      });
   }, []);
 
   return (
@@ -53,36 +89,74 @@ export default function Medicos() {
           </Paragraph>
         </div>
 
-        <Row gutter={[20, 20]}>
-          {medicos.map((m) => (
-            <Col xs={24} sm={12} lg={6} key={m.id}>
-              <Card style={{ height: "100%", borderRadius: 16 }} hoverable>
-                <Space direction="vertical" size={8} style={{ width: "100%", alignItems: "flex-start" }}>
-                  <Avatar size={56} style={{ background: colorAvatar(m), fontWeight: 700 }}>
-                    {iniciales(m.nombre)}
-                  </Avatar>
-                  <Title level={5} style={{ margin: 0 }}>{m.nombre}</Title>
-                  <Tag color="pink">{m.especialidadNombre}</Tag>
-                  <Space size={6}>
-                    <EnvironmentOutlined style={{ color: "#94a3b8" }} />
-                    <Text type="secondary" style={{ fontSize: 13 }}>{m.sedeNombre}</Text>
-                  </Space>
-                  <Space size={6}>
-                    <IdcardOutlined style={{ color: "#94a3b8" }} />
-                    <Text type="secondary" style={{ fontSize: 13 }}>{m.matricula}</Text>
-                  </Space>
-                  <Button type="primary" block style={{ marginTop: 12 }}>
-                    {t("doctor.verAgenda")}
-                  </Button>
-                </Space>
-              </Card>
-            </Col>
-          ))}
-        </Row>
+        {medicos.length > 0 && (
+          <div style={{ display: "flex", justifyContent: "center", marginBottom: 32 }}>
+            <Input
+              size="large"
+              allowClear
+              prefix={<SearchOutlined style={{ color: "#94a3b8" }} />}
+              placeholder={t("doctor.buscarPlaceholder")}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              style={{ maxWidth: 480, width: "100%" }}
+            />
+          </div>
+        )}
 
-        <div style={{ textAlign: "center", marginTop: 32 }}>
-          <Button size="large">{t("doctor.verTodosDoctores")}</Button>
-        </div>
+        {filtrados.length === 0 ? (
+          <Empty description={query ? t("doctor.noResultados", { query }) : t("doctor.subtitulo")} />
+        ) : (
+          <div style={{ position: "relative", padding: "0 8px" }}>
+            <Button
+              shape="circle"
+              icon={<LeftOutlined />}
+              onClick={() => carouselRef.current?.prev()}
+              style={flechaStyle("left")}
+              aria-label="Anterior"
+            />
+            <Button
+              shape="circle"
+              icon={<RightOutlined />}
+              onClick={() => carouselRef.current?.next()}
+              style={flechaStyle("right")}
+              aria-label="Siguiente"
+            />
+            <Carousel
+              key={filtrados.length}
+              ref={carouselRef}
+              draggable
+              dots
+              infinite={filtrados.length > 4}
+              slidesToShow={4}
+              slidesToScroll={1}
+              responsive={CAROUSEL_RESPONSIVE}
+              style={{ paddingBottom: 32 }}
+            >
+            {filtrados.map((m) => (
+              <div key={m._id || m.id}>
+                <div style={{ padding: "0 10px" }}>
+                  <Card style={{ height: "100%", borderRadius: 16 }} hoverable>
+                    <Space direction="vertical" size={8} style={{ width: "100%", alignItems: "flex-start" }}>
+                      <Avatar size={56} style={{ background: colorAvatar(m), fontWeight: 700 }}>
+                        {iniciales(m.nombre)}
+                      </Avatar>
+                      <Title level={5} style={{ margin: 0 }}>{m.nombre}</Title>
+                      <Tag color="pink">{m.especialidadNombre}</Tag>
+                      <Space size={6}>
+                        <IdcardOutlined style={{ color: "#94a3b8" }} />
+                        <Text type="secondary" style={{ fontSize: 13 }}>{m.matricula}</Text>
+                      </Space>
+                      <Button type="primary" block style={{ marginTop: 12 }} onClick={() => verAgenda(m)}>
+                        {t("doctor.verAgenda")}
+                      </Button>
+                    </Space>
+                  </Card>
+                </div>
+              </div>
+            ))}
+            </Carousel>
+          </div>
+        )}
       </div>
     </section>
   );

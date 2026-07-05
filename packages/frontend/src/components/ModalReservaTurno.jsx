@@ -1,7 +1,7 @@
 import { useMemo, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import { Modal, Space, Typography, Radio, Divider, Tag, Tooltip } from "antd";
-import { CalendarOutlined, ClockCircleOutlined, EnvironmentOutlined, SafetyCertificateOutlined } from "@ant-design/icons";
+import { Modal, Space, Typography, Radio, Divider, Tag, Tooltip, Button } from "antd";
+import { CalendarOutlined, ClockCircleOutlined, EnvironmentOutlined, SafetyCertificateOutlined, ShoppingCartOutlined } from "@ant-design/icons";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -42,6 +42,7 @@ export default function ModalReservaTurno({
   practicasById,
   onCancel,
   onReservar,
+  onAgregarCarrito,
   reservando,
 }) {
   // Guardamos el ÍNDICE de la opción elegida para evitar cualquier problema
@@ -88,11 +89,30 @@ export default function ModalReservaTurno({
       title={t("buscarTurnos.confirm.title")}
       open={!!turno}
       onCancel={onCancel}
-      onOk={() => onReservar(motivoElegido)}
-      okText={t("buscarTurnos.confirm.ok")}
-      cancelText={t("buscarTurnos.confirm.cancel")}
-      confirmLoading={reservando}
-      okButtonProps={{ disabled: !motivoElegido }}
+      footer={[
+        <Button key="cancel" onClick={onCancel} disabled={reservando}>
+          {t("buscarTurnos.confirm.cancel")}
+        </Button>,
+        onAgregarCarrito && (
+          <Button
+            key="cart"
+            icon={<ShoppingCartOutlined />}
+            disabled={!motivoElegido || reservando}
+            onClick={() => onAgregarCarrito(motivoElegido)}
+          >
+            {t("carrito.agregar")}
+          </Button>
+        ),
+        <Button
+          key="ok"
+          type="primary"
+          loading={reservando}
+          disabled={!motivoElegido}
+          onClick={() => onReservar(motivoElegido)}
+        >
+          {t("buscarTurnos.confirm.ok")}
+        </Button>,
+      ].filter(Boolean)}
     >
       {turno && (
         <Space direction="vertical" size="middle" style={{ width: "100%" }}>

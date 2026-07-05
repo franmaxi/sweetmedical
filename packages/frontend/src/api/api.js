@@ -5,6 +5,17 @@ const API_BASE_URL = process.env.REACT_APP_API_URL
 const STORAGE_KEY = 'sweetmedical_auth';
 const TOKEN_KEY = 'sweetmedical_token';
 
+// Id del médico/usuario logueado, leído del storage. Se usa como default
+// en los endpoints "propios" del médico cuando el llamador no pasa uno.
+const medicoIdActual = () => {
+    try {
+        const raw = storage.get(STORAGE_KEY);
+        return raw ? JSON.parse(raw).userId : undefined;
+    } catch {
+        return undefined;
+    }
+};
+
 // ---------------------------------------------------------------------------
 // Instancia centralizada de Axios
 // ---------------------------------------------------------------------------
@@ -39,11 +50,17 @@ apiClient.interceptors.response.use(
         // El 401 del propio login son credenciales incorrectas: no redirigimos,
         // lo maneja la pantalla de login mostrando el mensaje de error.
         const requestUrl = error.config?.url ?? '';
+        const metodo = (error.config?.method ?? '').toUpperCase();
+        const status = error.response?.status;
+
+        // Log centralizado: deja claro qué request falló y con qué código.
+        console.error(`[API] ${metodo} ${requestUrl} → ${status ?? 'sin respuesta'}`);
+
         const esIntentoDeLogin =
             error.config?.method === 'post' && requestUrl.endsWith('/auth');
 
         // 401 en una sesión existente → token expirado o inválido: limpiar y redirigir al login
-        if (error.response?.status === 401 && !esIntentoDeLogin) {
+        if (status === 401 && !esIntentoDeLogin) {
             storage.remove(TOKEN_KEY);
             storage.remove(STORAGE_KEY);
             window.location.href = '/login';
@@ -101,6 +118,51 @@ export const getObrasSocialesApi = async () => {
     return response.data;
 };
 
+export const getObrasSociales = async () => {
+    try {
+        const response = await apiClient.get('/obras-sociales');
+        return response.data;
+    } catch (error) {
+        console.error("Error al obtener obras sociales", error);
+        throw error;
+    }
+};
+
+export const crearObraSocial = async ({ nombre }) => {
+    try {
+        const response = await apiClient.post('/obras-sociales', { nombre });
+        return response.data;
+    } catch (error) {
+        console.error("Error al crear obra social", error);
+        throw error;
+    }
+};
+
+export const getPlanes = async () => {
+    try {
+        const response = await apiClient.get('/obras-sociales/planes');
+        return response.data;
+    } catch (error) {
+        console.error("Error al obtener planes", error);
+        throw error;
+    }
+};
+
+export const crearPlan = async ({ idObraSocial, nombre, coberturasEspecialidades = [], coberturasPracticas = [] }) => {
+    try {
+        const response = await apiClient.post('/obras-sociales/planes', {
+            idObraSocial,
+            nombre,
+            coberturasEspecialidades,
+            coberturasPracticas
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error al crear plan", error);
+        throw error;
+    }
+};
+
 export const getPlanesPorObraSocialApi = async (obraSocialId) => {
     const response = await apiClient.get(`/obras-sociales/${obraSocialId}/plan`);
     return response.data;
@@ -142,6 +204,69 @@ export const getTurnos = async ({
         return response.data;
     } catch (error) {
         console.error("Error obteniendo los turnos", error);
+        throw error;
+    }
+};
+
+export const confirmarTurno = async (id) => {
+    try {
+        const response = await apiClient.patch(`/turnos/${id}/responder-reserva`, { reservaAceptada: true });
+        return response.data;
+    } catch (error) {
+        console.error("Error al confirmar turno", error);
+        throw error;
+    }
+};
+
+export const rechazarTurno = async (id, body = {}) => {
+    try {
+        const response = await apiClient.patch(`/turnos/${id}/responder-reserva`, {
+            reservaAceptada: false,
+            motivo: body.motivo || "Reserva rechazada por el médico."
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error al rechazar turno", error);
+        throw error;
+    }
+};
+
+export const cancelarTurno = async (id, body = {}) => {
+    try {
+        const response = await apiClient.patch(`/turnos/${id}`, { estado: "CANCELADO", motivo: body.motivo });
+        return response.data;
+    } catch (error) {
+        console.error("Error al cancelar turno", error);
+        throw error;
+    }
+};
+
+export const marcarRealizado = async (id) => {
+    try {
+        const response = await apiClient.patch(`/turnos/${id}`, { estado: "REALIZADO" });
+        return response.data;
+    } catch (error) {
+        console.error("Error al marcar turno como realizado", error);
+        throw error;
+    }
+};
+
+export const getPacientes = async () => {
+    try {
+        const response = await apiClient.get('/pacientes');
+        return response.data;
+    } catch (error) {
+        console.error("Error al obtener pacientes", error);
+        throw error;
+    }
+};
+
+export const getEspecialidades = async () => {
+    try {
+        const response = await apiClient.get('/especialidades/genericas');
+        return response.data;
+    } catch (error) {
+        console.error("Error al obtener especialidades", error);
         throw error;
     }
 };
@@ -190,6 +315,20 @@ export const getMedicos = async ({
         return response.data;
     } catch (error) {
         console.error("Error obteniendo los medicos", error);
+        throw error;
+    }
+};
+export const getMedicosFull = async ({
+    page = 1,
+    limit = 100,
+} = {}) => {
+    try {
+        const response = await apiClient.get('/medicos', {
+            params: { page, limit }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error obteniendo los medicos completos", error);
         throw error;
     }
 };
@@ -360,7 +499,7 @@ export const cancelarTurnoApi = async (turnoId, motivo) => {
 };
 
 export const getServicios = async ({
-    medicoId = "6a14c252688165715658e489"
+    medicoId = medicoIdActual()
 } = {}) => {
     try {
         const response = await apiClient.get(`/medicos/${medicoId}/servicios`);
@@ -373,7 +512,7 @@ export const getServicios = async ({
 };
 
 export const crearEspecialidad = async ({
-    medicoId = "6a14c252688165715658e489",
+    medicoId = medicoIdActual(),
     especialidadGenericaId,
     duracionTurnoEnMins,
     costo,
@@ -391,7 +530,7 @@ export const crearEspecialidad = async ({
 };
 
 export const crearPractica = async ({
-    medicoId = "6a14c252688165715658e489",
+    medicoId = medicoIdActual(),
     practicaGenericaId,
     duracionTurnoEnMins,
     costo,
@@ -409,7 +548,7 @@ export const crearPractica = async ({
 };
 
 export const editarServicio = async ({
-    medicoId = "6a14c252688165715658e489",
+    medicoId = medicoIdActual(),
     especialidadId = null,
     practicaId = null,
     duracionTurnoEnMins,
@@ -430,7 +569,7 @@ export const editarServicio = async ({
 };
 
 export const eliminarServicio = async ({
-    medicoId = "6a14c252688165715658e489",
+    medicoId = medicoIdActual(),
     especialidadId = null,
     practicaId = null,
 } = {}) => {
@@ -445,7 +584,7 @@ export const eliminarServicio = async ({
     }
 };
 export const crearDisponibilidad = async ({
-    medicoId = "6a14c252688165715658e489",
+    medicoId = medicoIdActual(),
     especialidades = null,
     practicas = null,
     sedeId,
@@ -470,7 +609,7 @@ export const crearDisponibilidad = async ({
 };
 
 export const getDisponibilidades = async ({
-    medicoId = "6a14c252688165715658e489",
+    medicoId = medicoIdActual(),
 } = {}) => {
     try {
         const response = await apiClient.get(`/medicos/${medicoId}/disponibilidades`);
@@ -482,7 +621,7 @@ export const getDisponibilidades = async ({
 };
 
 export const eliminarDisponibilidad = async ({
-    medicoId = "6a14c252688165715658e489",
+    medicoId = medicoIdActual(),
     disponibilidadId
 } = {}) => {
     try {
@@ -495,7 +634,7 @@ export const eliminarDisponibilidad = async ({
 };
 
 export const modificarDisponibilidad = async ({
-    medicoId = "6a14c252688165715658e489",
+    medicoId = medicoIdActual(),
     disponibilidadId,
     especialidades,
     practicas,
@@ -510,6 +649,39 @@ export const modificarDisponibilidad = async ({
         return response.data;
     } catch (error) {
         console.error("Error modificando disponibilidad", error);
+        throw error;
+    }
+};
+
+export const getNotificaciones = async ({ destinatarioId, leida, page = 1, limit = 100 } = {}) => {
+    try {
+        const response = await apiClient.get('/notificaciones', {
+            params: { usuarioId: destinatarioId, leida, page, limit }
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Error obteniendo notificaciones", error);
+        throw error;
+    }
+};
+
+export const marcarComoLeida = async (id) => {
+    try {
+        const response = await apiClient.patch(`/notificaciones/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error al marcar notificación como leída", error);
+        throw error;
+    }
+};
+
+export const marcarTodasComoLeidas = async (destinatarioId) => {
+    try {
+        const res = await getNotificaciones({ destinatarioId, leida: "false" });
+        const unread = res?.data || [];
+        await Promise.all(unread.map(n => marcarComoLeida(n._id || n.id)));
+    } catch (error) {
+        console.error("Error al marcar todas como leídas", error);
         throw error;
     }
 };

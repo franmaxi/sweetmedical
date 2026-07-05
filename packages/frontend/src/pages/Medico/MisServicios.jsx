@@ -18,12 +18,13 @@ import { DeleteOutlined, EditOutlined, LoadingOutlined, PlusOutlined } from "@an
 import { useTranslation } from "react-i18next";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
+import { useAuth } from "../../context/AuthContext";
 import { getEspecialidadesGenericas, getPracticasGenericas, getServicios, crearEspecialidad, crearPractica, editarServicio, eliminarServicio } from "../../api/api";
 import { extraerMensajeError } from "../../api/errorUtils";
 
 const { Title, Text } = Typography;
 
-const MEDICO_ID = 1; //todo: sacar cuando se integre con el login real
+
 
 const precio = (n) => `$${Number(n).toLocaleString("es-AR")}`; //casteo el precio que llega como string y le doy el formato de moneda de argentina ej: 1500 => $1.500
 
@@ -38,6 +39,8 @@ export default function MisEspecialidades() {
 function MisServiciosInner() {
   const { t } = useTranslation();
   const { message, modal } = AntApp.useApp();
+  const { user } = useAuth();
+  const medicoId = user?.userId;
 
   const [especialidades, setEspecialidades] = useState([]);
   const [practicas, setPracticas] = useState([]);
@@ -74,12 +77,15 @@ function MisServiciosInner() {
 
   const recargar = () => {
     setCargando(true);
-    getServicios()
+    getServicios({ medicoId })
       .then((res) => {
         const esp = Array.isArray(res?.data?.especialidades) ? res.data.especialidades : [];
         const prac = Array.isArray(res?.data?.practicas) ? res.data.practicas : [];
         setEspecialidades(esp);
         setPracticas(prac);
+      })
+      .catch((err) => {
+        console.error("Error al cargar los servicios del médico", err);
       })
       .finally(() => setCargando(false));
   };
@@ -125,10 +131,10 @@ function MisServiciosInner() {
     try {
       if (especialidadEnModal) {
         const id = especialidadEnModal._id || especialidadEnModal.id;
-        await editarServicio({ especialidadId: id, duracionTurnoEnMins: values.duracionTurnoEnMins, costo: values.costo });
+        await editarServicio({ medicoId, especialidadId: id, duracionTurnoEnMins: values.duracionTurnoEnMins, costo: values.costo });
         message.success(t("misServicios.especialidadActualizada"));
       } else {
-        await crearEspecialidad({ especialidadGenericaId: values.especialidadGenericaId, duracionTurnoEnMins: values.duracionTurnoEnMins, costo: values.costoConsulta ?? values.costo });
+        await crearEspecialidad({ medicoId, especialidadGenericaId: values.especialidadGenericaId, duracionTurnoEnMins: values.duracionTurnoEnMins, costo: values.costoConsulta ?? values.costo });
         message.success(t("misServicios.especialidadAgregada"));
       }
       setEspecialidadEnModal(false);
@@ -150,7 +156,7 @@ function MisServiciosInner() {
       cancelText: "Cancelar",
       onOk: async () => {
         try {
-          await eliminarServicio({ especialidadId: item._id || item.id });
+          await eliminarServicio({ medicoId, especialidadId: item._id || item.id });
           message.success(t("misServicios.especialidadEliminada"));
           recargar();
         } catch (err) {
@@ -184,10 +190,10 @@ function MisServiciosInner() {
     try {
       if (practicaEnModal) {
         const id = practicaEnModal._id || practicaEnModal.id;
-        await editarServicio({ practicaId: id, duracionTurnoEnMins: values.duracionTurnoEnMins, costo: values.costo });
+        await editarServicio({ medicoId, practicaId: id, duracionTurnoEnMins: values.duracionTurnoEnMins, costo: values.costo });
         message.success(t("misServicios.practicaActualizada"));
       } else {
-        await crearPractica({ practicaGenericaId: values.practicaGenericaId, duracionTurnoEnMins: values.duracionTurnoEnMins, costo: values.costo });
+        await crearPractica({ medicoId, practicaGenericaId: values.practicaGenericaId, duracionTurnoEnMins: values.duracionTurnoEnMins, costo: values.costo });
         message.success(t("misServicios.practicaAgregada"));
       }
       setPracticaEnModal(false);
@@ -209,7 +215,7 @@ function MisServiciosInner() {
       cancelText: "Cancelar",
       onOk: async () => {
         try {
-          await eliminarServicio({ practicaId: item._id || item.id });
+          await eliminarServicio({ medicoId, practicaId: item._id || item.id });
           message.success(t("misServicios.practicaEliminada"));
           recargar();
         } catch (err) {

@@ -57,7 +57,17 @@ export class ObraSocialService {
 
     async obtenerTodosPlan({ numeroPagina = 1, limitePorPagina = 10 } = {}) {
         const obrasSociales = await this.obraSocialRepository.findAll()
-        const todosLosPlanes = obrasSociales.flatMap(os => os.planes)
+        const todosLosPlanes = obrasSociales.flatMap(os => {
+            const osObj = os.toJSON ? os.toJSON() : os;
+            return (os.planes || []).map(plan => {
+                const planObj = plan.toJSON ? plan.toJSON() : (plan.toObject ? plan.toObject() : plan);
+                return {
+                    ...planObj,
+                    idObraSocial: osObj._id || osObj.id,
+                    obraSocialNombre: osObj.nombre
+                };
+            });
+        });
         const totalPlanes = todosLosPlanes.length
         const totalPaginas = totalPlanes === 0 ? 0 : Math.ceil(totalPlanes / limitePorPagina)
         const salto = (numeroPagina - 1) * limitePorPagina

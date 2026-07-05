@@ -2,13 +2,22 @@
   "notificaciones": {
     "turno": {
       "reservado": {
-        "medico": "Hola {{nombre}}, te informamos que el {{fechaHora}} tenés agendado un turno con {{paciente}}"
+        "medico": "Hola {{nombre}}, te informamos que el paciente {{paciente}} solicito reservar un turno el día {{fechaHora}}"
       },
       "confirmado": {
         "paciente": "Hola {{nombre}}, su turno el {{fechaHora}} ha sido confirmado, con el Dr. {{medico}}"
       },
       "cancelado": {
         "destinatario": "Hola {{nombre}}, su turno el {{fechaHora}} ha sido cancelado. Motivo: {{motivo}}"
+      },
+      "cambioTurno": {
+        "destinatario": "Hola {{nombre}}, se ha solicitado un cambio de fecha para uno de tus turnos"
+      },
+      "rechazarCambioTurno": {
+        "destinatario": "Hola {{nombre}}, tu solicitud de cambio de turno ha sido rechazada. Motivo: {{motivo}}"
+      },
+      "aceptarCambioTurno": {
+        "destinatario": "Hola {{nombre}}, tu solicitud de cambio de turno ha sido aceptada."
       }
     },
     "recordatorio": {

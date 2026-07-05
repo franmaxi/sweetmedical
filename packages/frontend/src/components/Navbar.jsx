@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { Layout, Menu, Space, Button, Drawer, Grid } from "antd";
+import { Layout, Menu, Space, Button, Drawer, Grid, Badge } from "antd";
 import { useAuth } from "../context/AuthContext";
+import { useCart } from "../context/CartContext";
 import {
   ScheduleOutlined,
   ClockCircleOutlined,
@@ -13,7 +14,8 @@ import {
   LogoutOutlined,
   PushpinOutlined,
   SettingOutlined,
-  BellOutlined,
+  ShoppingCartOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
 import NotificacionesDropdown from "./NotificacionesDropdown";
 import SelectorIdioma from "./SelectorIdioma";
@@ -91,6 +93,7 @@ export default function Navbar() {
   const screens = useBreakpoint();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { user, logout } = useAuth();
+  const { cantidad } = useCart();
 
   const esMobile = !screens.md;
 
@@ -143,12 +146,6 @@ const allItems = [
     roles: ["medico"],
   },    
   {
-    key: "/notificaciones",
-    icon: <BellOutlined />,
-    label: <Link to="/notificaciones">{t("navbar.notificaciones")}</Link>,
-    roles: ["usuario", "medico"],
-  },
-  {
     key: "/admin",
     icon: <SettingOutlined />,
     label: <Link to="/admin">{t("navbar.admin")}</Link>,
@@ -160,8 +157,16 @@ const rol = user?.role ?? "guest";
 const items = allItems.filter(({ roles }) =>
   roles.includes("*") || roles.includes(rol));
 
+// En el drawer mobile agregamos "Mi perfil" (en desktop ya está en el dropdown de la esquina).
+const mobileItems = user
+  ? [...items, { key: "/mi-perfil", icon: <UserOutlined />, label: <Link to="/mi-perfil">{t("perfil.titulo")}</Link> }]
+  : items;
+
 // La campana solo aplica a quienes reciben notificaciones.
 const verNotificaciones = rol === "usuario" || rol === "medico";
+
+// El carrito de turnos es solo para pacientes.
+const verCarrito = rol === "usuario";
 
   return (
     <Header
@@ -191,6 +196,17 @@ const verNotificaciones = rol === "usuario" || rol === "medico";
 
       <Space size="small" style={{ marginLeft: "auto" }}>
         <SelectorIdioma />
+        {verCarrito && (
+          <Badge count={cantidad} size="small">
+            <Button
+              type="text"
+              shape="circle"
+              icon={<ShoppingCartOutlined style={{ fontSize: 16 }} />}
+              onClick={() => navigate("/carrito")}
+              aria-label={t("carrito.titulo")}
+            />
+          </Badge>
+        )}
         {verNotificaciones && <NotificacionesDropdown />}
         {esMobile
           ? <Button type="text" icon={<MenuOutlined />} onClick={() => setDrawerOpen(true)} />
@@ -207,7 +223,7 @@ const verNotificaciones = rol === "usuario" || rol === "medico";
       >
         <Menu
           mode="vertical"
-          items={items}
+          items={mobileItems}
           selectedKeys={[location.pathname]}
           onClick={() => setDrawerOpen(false)}
           style={{ borderInlineEnd: "none" }}

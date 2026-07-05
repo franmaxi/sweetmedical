@@ -36,7 +36,9 @@ function LoginInner() {
   const { message } = AntApp.useApp();
   const [cargando, setCargando] = useState(false);
 
-  const from = location.state?.from?.pathname ?? "/";
+  const from = location.state?.from
+    ? location.state.from.pathname + location.state.from.search
+    : "/";
   const successMsgShown = useRef(false);
 
   // Mensaje de éxito proveniente del registro

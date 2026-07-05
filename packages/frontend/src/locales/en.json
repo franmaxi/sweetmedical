@@ -79,14 +79,45 @@
     "resultadosMultiples": "results",
     "noResultados": "No specialties found for \"{{query}}\"",
     "medicosEtiqueta": "doctors",
-    "verMedicos": "View doctors"
+    "verMedicos": "View doctors",
+    "sinMedicos": "No doctors available for this specialty."
   },
   "doctor": {
     "seccionEtiqueta": "Our team",
     "titulo": "Specialist doctors",
     "subtitulo": "Certified professionals with years of experience and dedication to each of our patients.",
     "verAgenda": "View schedule",
-    "verTodosDoctores": "View all doctors"
+    "verTodosDoctores": "View all doctors",
+    "buscarPlaceholder": "Search doctor by name or specialty...",
+    "noResultados": "No doctors found for \"{{query}}\""
+  },
+  "homeMedico": {
+    "etiqueta": "Doctor panel",
+    "saludo": "Hi, {{nombre}}",
+    "subtitulo": "This is your panel. Manage your schedule, availability and services from one place.",
+    "proximosTurnos": "Upcoming appointments",
+    "porConfirmar": "To confirm",
+    "accesosTitulo": "Quick access",
+    "agendaDesc": "Confirm, cancel or mark your appointments as completed.",
+    "disponibilidadesDesc": "Set the hours when you see patients.",
+    "serviciosDesc": "Manage the practices and specialties you offer.",
+    "sedesDesc": "Manage the locations where you work."
+  },
+  "carrito": {
+    "titulo": "My cart",
+    "subtitulo": "Review the appointments you want to book and confirm them all together.",
+    "vacio": "Your cart is empty",
+    "buscarTurnos": "Search appointments",
+    "total": "Total",
+    "vaciar": "Empty cart",
+    "confirmar": "Confirm bookings",
+    "verMisTurnos": "View my appointments",
+    "agregar": "Add to cart",
+    "agregado": "Appointment added to cart",
+    "yaEnCarrito": "That appointment is already in the cart",
+    "resultadoReservados": "{{count}} appointment(s) booked successfully",
+    "resultadoConflictos": "{{count}} appointment(s) were no longer available and were removed from the cart",
+    "resultadoErrores": "{{count}} appointment(s) could not be booked, please try again"
   },
   "turno": {
     "titleLine1": "Book your appointment",
@@ -96,13 +127,6 @@
     "subtitulo": "Filter by specialty, doctor, location and date to find the appointment that suits you best.",
     "botonBuscarDisponibles": "Search available appointments",
     "botonVerMisTurnos": "View my appointments"
-  },
-  "footer": {
-    "descripcion": "Medical appointment management system. Book, manage and receive reminders without lines or waiting.",
-    "encabezadoEspecialidades": "Specialties",
-    "encabezadoEnlaces": "Links",
-    "especialidades": ["Cardiology", "Gynecology", "Traumatology", "Pediatrics", "Ophthalmology"],
-    "enlaces": ["Doctors", "Locations", "Plans and social insurance", "My appointments", "Contact"]
   },
   "login": {
     "titulo": "Log in",
@@ -238,7 +262,8 @@
     "subtitulo": "Here you'll see updates about your appointments and activity.",
     "marcarTodas": "Mark all as read",
     "emptyText": "You have no notifications",
-    "marcarLeida": "Mark as read"
+    "marcarLeida": "Mark as read",
+    "verTodas": "View notifications"
   },
   "registro": {
     "titulo": "Create account",
@@ -353,7 +378,9 @@
     "tabs": {
       "sedes": "Locations",
       "practicas": "Generic procedures",
-      "especialidades": "Generic specialties"
+      "especialidades": "Generic specialties",
+      "obrasSociales": "Health Insurances",
+      "planes": "Plans"
     },
     "acciones": {
       "nuevo": "New",
@@ -367,7 +394,12 @@
       "nombre": "Name",
       "direccion": "Address",
       "codigo": "Code",
-      "emoji": "Emoji"
+      "emoji": "Emoji",
+      "obraSocial": "Health Insurance",
+      "nivel": "Coverage level",
+      "porcentaje": "Discount percentage (%)",
+      "especialidad": "Specialty",
+      "practica": "Procedure"
     },
     "hints": {
       "emoji": "Must be a single valid emoji (e.g. 🩺)."
@@ -376,18 +408,28 @@
       "nombreRequerido": "Enter a name",
       "direccionRequerida": "Enter an address",
       "codigoRequerido": "Enter a code",
-      "emojiRequerido": "Enter an emoji"
+      "emojiRequerido": "Enter an emoji",
+      "obraSocialRequerida": "Select a health insurance",
+      "especialidadRequerida": "Select a specialty",
+      "practicaRequerida": "Select a procedure",
+      "nivelRequerido": "Select a level",
+      "porcentajeInvalido": "Must be between 1 and 99",
+      "alMenosUnaCobertura": "Add at least one coverage (specialty or procedure)"
     },
     "modal": {
       "crear": {
         "sedes": "New location",
         "practicas": "New generic procedure",
-        "especialidades": "New generic specialty"
+        "especialidades": "New generic specialty",
+        "obrasSociales": "New health insurance",
+        "planes": "New plan"
       },
       "editar": {
         "sedes": "Edit location",
         "practicas": "Edit generic procedure",
-        "especialidades": "Edit generic specialty"
+        "especialidades": "Edit generic specialty",
+        "obrasSociales": "Edit health insurance",
+        "planes": "Edit plan"
       },
       "eliminarTitle": "Delete",
       "eliminarContenido": "Are you sure you want to delete \"{{nombre}}\"? This action cannot be undone."
@@ -403,7 +445,16 @@
     "vacio": {
       "sedes": "No locations yet",
       "practicas": "No generic procedures yet",
-      "especialidades": "No generic specialties yet"
+      "especialidades": "No generic specialties yet",
+      "obrasSociales": "No health insurances yet",
+      "planes": "No plans yet"
+    },
+    "planes": {
+      "coberturasEspecialidades": "Specialty coverages",
+      "coberturasPracticas": "Procedure coverages",
+      "sinCoberturas": "No coverages",
+      "agregarEspecialidad": "Add specialty",
+      "agregarPractica": "Add procedure"
     }
   }
 }

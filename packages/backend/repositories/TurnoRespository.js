@@ -102,6 +102,29 @@ export class TurnoRepository {
         return await this.model.findByIdAndUpdate(id, persistenceTurno, { new: true });
     }
 
+    /**
+     * Update ATÓMICO condicionado a que el turno siga DISPONIBLE.
+     * Devuelve el turno actualizado, o null si otro proceso ya lo tomó
+     * (control de concurrencia: la transición DISPONIBLE -> X es atómica en Mongo).
+     */
+    async updateSiDisponible(id, turnoModificado) {
+        const persistenceTurno = this._toPersistence(turnoModificado);
+        return await this.model.findOneAndUpdate(
+            { _id: id, estado: EstadoTurno.DISPONIBLE },
+            persistenceTurno,
+            { new: true }
+        );
+    }
+
+    /** Libera turnos dejándolos DISPONIBLE otra vez (para revertir reservas parciales). */
+    async liberarTurnos(ids) {
+        if (!ids?.length) return;
+        return await this.model.updateMany(
+            { _id: { $in: ids } },
+            { $set: { estado: EstadoTurno.DISPONIBLE, paciente: null, costo: null, modificado: false } }
+        );
+    }
+
     async updateMany(ids, datosAActualizar) {
         return await this.model.updateMany(
             { _id: { $in: ids } },

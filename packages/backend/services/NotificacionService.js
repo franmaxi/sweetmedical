@@ -62,8 +62,8 @@ export class NotificacionService {
         return await this.notificacionRepository.save(notificacion);
     }
 
-    async notificarCambioEstadoTurno(turno) {
-        const notificacion = this.factory.crearSegunEstadoTurno(turno)
+    async notificarCambioEstadoTurno(turno, cambioFecha = false) {
+        const notificacion = this.factory.crearSegunEstadoTurno(turno, cambioFecha)
         if (notificacion) {
             await this.notificacionRepository.crear(notificacion)
         }

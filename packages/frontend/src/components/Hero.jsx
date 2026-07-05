@@ -13,7 +13,7 @@ import {
   getEspecialidadesGenericas,
   getMedicos,
   getSedes,
-} from "../mocks";
+} from "../api/api";
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -23,15 +23,20 @@ export default function Hero() {
   const [stats, setStats] = useState({ especialidades: 0, medicos: 0, sedes: 0 });
 
   useEffect(() => {
-    Promise.all([getEspecialidadesGenericas(), getMedicos(), getSedes()]).then(
-      ([especialidades, medicos, sedes]) => {
+    Promise.all([getEspecialidadesGenericas(), getMedicos(), getSedes()])
+      .then(([espRes, medRes, sedesRes]) => {
+        const listaEsp = espRes?.data || [];
+        const listaMedicos = medRes?.data || [];
+        const listaSedes = sedesRes?.data || [];
         setStats({
-          especialidades: especialidades.length,
-          medicos: medicos.length,
-          sedes: sedes.length,
+          especialidades: listaEsp.length,
+          medicos: listaMedicos.length,
+          sedes: listaSedes.length,
         });
-      },
-    );
+      })
+      .catch((err) => {
+        console.error("Error al obtener estadísticas del Hero desde el backend", err);
+      });
   }, []);
 
   return (
