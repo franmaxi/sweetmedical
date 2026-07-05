@@ -2,7 +2,7 @@
   "notificaciones": {
     "turno": {
       "reservado": {
-        "medico": "Hola {{nombre}}, te informamos que el {{fechaHora}} tenés agendado un turno con {{paciente}}"
+        "medico": "Hola {{nombre}}, te informamos que el paciente {{paciente}} solicito reservar un turno el día {{fechaHora}}"
       },
       "confirmado": {
         "paciente": "Hola {{nombre}}, su turno el {{fechaHora}} ha sido confirmado, con el Dr. {{medico}}"

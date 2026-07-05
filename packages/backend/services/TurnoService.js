@@ -258,6 +258,9 @@ export class TurnoService {
             }
         }
 
+        turno.paciente.nombre = paciente.nombre
+        this.notificacionService.notificarCambioEstadoTurno(turno)
+            .catch(err => console.error('[Notificación] Error al notificar cambio de estado:', err))
         return turno;
     }
     // tecnicamente, como solo pedimos los turnos de la duracion de la especialidad, 
@@ -278,6 +281,7 @@ export class TurnoService {
         turno.actualizarEstado(EstadoTurno.CONFIRMADO, usuario, "Turno confirmado por el medico a cargo")
 
         this.notificacionService.notificarCambioEstadoTurno(turno)
+            .catch(err => console.error('[Notificación] Error al notificar cambio de estado:', err))
         return await this.turnoRepository.update(turnoId, turno)
     }
 
@@ -297,6 +301,7 @@ export class TurnoService {
         await this.setearTurnoDisponible(turno, usuario, motivoRechazo)
 
         this.notificacionService.notificarCambioEstadoTurno(turno)
+            .catch(err => console.error('[Notificación] Error al notificar cambio de estado:', err))
         return turno
     }
 
@@ -404,6 +409,7 @@ export class TurnoService {
         turno.actualizarEstado(EstadoTurno.RESERVADO, usuario, "El turno esta pendiente de confirmacion")
         //Generar una notificación al opuesto
         this.notificacionService.notificarCambioEstadoTurno(turno)
+            .catch(err => console.error('[Notificación] Error al notificar cambio de estado:', err))
         return await this.turnoRepository.update(turnoId, turno)
     }
 
@@ -458,6 +464,7 @@ export class TurnoService {
 
         //Generar una notificación al opuesto
         this.notificacionService.notificarCambioEstadoTurno(turno)
+            .catch(err => console.error('[Notificación] Error al notificar cambio de estado:', err))
         return await this.turnoRepository.update(turnoId, turno)
     }
 
@@ -526,6 +533,7 @@ export class TurnoService {
         turno.actualizarEstado(EstadoTurno.CANCELADO, usuario, motivo)
         if (notificar) {
             this.notificacionService.notificarCambioEstadoTurno(turno) // no hacemos await para que se gestione aparte
+                .catch(err => console.error('[Notificación] Error al notificar cambio de estado:', err))
         }
         
         return await this.turnoRepository.update(turno._id, turno)
