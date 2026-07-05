@@ -36,7 +36,7 @@ export class TurnoController {
                     ordenDireccion, 
                     ...filtros } = turnoQuerySchema.parse(req.query);
             
-            const { userId } = tokenSchema.parse(req.usuario)
+            const { userId, userRol } = tokenSchema.parse(req.usuario)
             
             // Construir el array de ordenamiento para el servicio/repositorio
             const ordenamiento = ordenarPor
@@ -44,9 +44,8 @@ export class TurnoController {
                 : [];
 
             let resultado = null
-            //console.log(userId)
             
-            if (userId) {
+            if (userRol === TipoUsuario.PACIENTE) {
                 resultado = await this.turnoService.obtenerTodosCobertura({
                     userId,
                     numeroPagina,
@@ -55,6 +54,9 @@ export class TurnoController {
                     ordenamiento
                 });
             } else {
+                if (userRol === TipoUsuario.MEDICO) {
+                    filtros.medicoId = userId;
+                }
                 resultado = await this.turnoService.obtenerTodos({
                     numeroPagina,
                     limitePorPagina,
