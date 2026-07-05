@@ -14,7 +14,8 @@ import {
   LogoutOutlined,
   PushpinOutlined,
   SettingOutlined,
-  BellOutlined,
+  ShoppingCartOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
 import NotificacionesDropdown from "./NotificacionesDropdown";
 import SelectorIdioma from "./SelectorIdioma";
