@@ -371,7 +371,11 @@
       "direccion": "Dirección",
       "codigo": "Código",
       "emoji": "Emoji",
-      "obraSocial": "Obra Social"
+      "obraSocial": "Obra Social",
+      "nivel": "Nivel de cobertura",
+      "porcentaje": "Porcentaje de descuento (%)",
+      "especialidad": "Especialidad",
+      "practica": "Práctica"
     },
     "hints": {
       "emoji": "Debe ser un único emoji válido (ej: 🩺)."
@@ -381,7 +385,12 @@
       "direccionRequerida": "Ingresá una dirección",
       "codigoRequerido": "Ingresá un código",
       "emojiRequerido": "Ingresá un emoji",
-      "obraSocialRequerida": "Seleccioná una obra social"
+      "obraSocialRequerida": "Seleccioná una obra social",
+      "especialidadRequerida": "Seleccioná una especialidad",
+      "practicaRequerida": "Seleccioná una práctica",
+      "nivelRequerido": "Seleccioná un nivel",
+      "porcentajeInvalido": "Debe ser entre 1 y 99",
+      "alMenosUnaCobertura": "Agregá al menos una cobertura (especialidad o práctica)"
     },
     "modal": {
       "crear": {
@@ -415,6 +424,13 @@
       "especialidades": "Todavía no hay especialidades genéricas",
       "obrasSociales": "Todavía no hay obras sociales",
       "planes": "Todavía no hay planes"
+    },
+    "planes": {
+      "coberturasEspecialidades": "Coberturas de especialidades",
+      "coberturasPracticas": "Coberturas de prácticas",
+      "sinCoberturas": "Sin coberturas",
+      "agregarEspecialidad": "Agregar especialidad",
+      "agregarPractica": "Agregar práctica"
     }
   }
 }

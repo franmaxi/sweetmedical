@@ -370,7 +370,11 @@
       "direccion": "Address",
       "codigo": "Code",
       "emoji": "Emoji",
-      "obraSocial": "Health Insurance"
+      "obraSocial": "Health Insurance",
+      "nivel": "Coverage level",
+      "porcentaje": "Discount percentage (%)",
+      "especialidad": "Specialty",
+      "practica": "Procedure"
     },
     "hints": {
       "emoji": "Must be a single valid emoji (e.g. 🩺)."
@@ -380,7 +384,12 @@
       "direccionRequerida": "Enter an address",
       "codigoRequerido": "Enter a code",
       "emojiRequerido": "Enter an emoji",
-      "obraSocialRequerida": "Select a health insurance"
+      "obraSocialRequerida": "Select a health insurance",
+      "especialidadRequerida": "Select a specialty",
+      "practicaRequerida": "Select a procedure",
+      "nivelRequerido": "Select a level",
+      "porcentajeInvalido": "Must be between 1 and 99",
+      "alMenosUnaCobertura": "Add at least one coverage (specialty or procedure)"
     },
     "modal": {
       "crear": {
@@ -414,6 +423,13 @@
       "especialidades": "No generic specialties yet",
       "obrasSociales": "No health insurances yet",
       "planes": "No plans yet"
+    },
+    "planes": {
+      "coberturasEspecialidades": "Specialty coverages",
+      "coberturasPracticas": "Procedure coverages",
+      "sinCoberturas": "No coverages",
+      "agregarEspecialidad": "Add specialty",
+      "agregarPractica": "Add procedure"
     }
   }
 }
