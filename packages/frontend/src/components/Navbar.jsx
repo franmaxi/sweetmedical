@@ -13,7 +13,6 @@ import {
   LogoutOutlined,
   PushpinOutlined,
   SettingOutlined,
-  BellOutlined,
 } from "@ant-design/icons";
 import NotificacionesDropdown from "./NotificacionesDropdown";
 import SelectorIdioma from "./SelectorIdioma";
@@ -142,12 +141,6 @@ const allItems = [
     label: <Link to="/mis-sedes">{t("navbar.misSedes")}</Link>,
     roles: ["medico"],
   },    
-  {
-    key: "/notificaciones",
-    icon: <BellOutlined />,
-    label: <Link to="/notificaciones">{t("navbar.notificaciones")}</Link>,
-    roles: ["usuario", "medico"],
-  },
   {
     key: "/admin",
     icon: <SettingOutlined />,

@@ -79,14 +79,29 @@
     "resultadosMultiples": "results",
     "noResultados": "No specialties found for \"{{query}}\"",
     "medicosEtiqueta": "doctors",
-    "verMedicos": "View doctors"
+    "verMedicos": "View doctors",
+    "sinMedicos": "No doctors available for this specialty."
   },
   "doctor": {
     "seccionEtiqueta": "Our team",
     "titulo": "Specialist doctors",
     "subtitulo": "Certified professionals with years of experience and dedication to each of our patients.",
     "verAgenda": "View schedule",
-    "verTodosDoctores": "View all doctors"
+    "verTodosDoctores": "View all doctors",
+    "buscarPlaceholder": "Search doctor by name or specialty...",
+    "noResultados": "No doctors found for \"{{query}}\""
+  },
+  "homeMedico": {
+    "etiqueta": "Doctor panel",
+    "saludo": "Hi, {{nombre}}",
+    "subtitulo": "This is your panel. Manage your schedule, availability and services from one place.",
+    "proximosTurnos": "Upcoming appointments",
+    "porConfirmar": "To confirm",
+    "accesosTitulo": "Quick access",
+    "agendaDesc": "Confirm, cancel or mark your appointments as completed.",
+    "disponibilidadesDesc": "Set the hours when you see patients.",
+    "serviciosDesc": "Manage the practices and specialties you offer.",
+    "sedesDesc": "Manage the locations where you work."
   },
   "turno": {
     "titleLine1": "Book your appointment",
@@ -96,13 +111,6 @@
     "subtitulo": "Filter by specialty, doctor, location and date to find the appointment that suits you best.",
     "botonBuscarDisponibles": "Search available appointments",
     "botonVerMisTurnos": "View my appointments"
-  },
-  "footer": {
-    "descripcion": "Medical appointment management system. Book, manage and receive reminders without lines or waiting.",
-    "encabezadoEspecialidades": "Specialties",
-    "encabezadoEnlaces": "Links",
-    "especialidades": ["Cardiology", "Gynecology", "Traumatology", "Pediatrics", "Ophthalmology"],
-    "enlaces": ["Doctors", "Locations", "Plans and social insurance", "My appointments", "Contact"]
   },
   "login": {
     "titulo": "Log in",
@@ -238,7 +246,8 @@
     "subtitulo": "Here you'll see updates about your appointments and activity.",
     "marcarTodas": "Mark all as read",
     "emptyText": "You have no notifications",
-    "marcarLeida": "Mark as read"
+    "marcarLeida": "Mark as read",
+    "verTodas": "View notifications"
   },
   "registro": {
     "titulo": "Create account",

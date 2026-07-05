@@ -78,14 +78,29 @@
     "resultadosMultiples": "resultados",
     "noResultados": "No encontramos especialidades para \"{{query}}\"",
     "medicosEtiqueta": "médicos",
-    "verMedicos": "Ver médicos"
+    "verMedicos": "Ver médicos",
+    "sinMedicos": "No hay médicos disponibles para esta especialidad."
   },
   "doctor": {
     "seccionEtiqueta": "Nuestro equipo",
     "titulo": "Médicos especialistas",
     "subtitulo": "Profesionales certificados, con años de experiencia y dedicación a cada uno de nuestros pacientes.",
     "verAgenda": "Ver agenda",
-    "verTodosDoctores": "Ver todos los médicos"
+    "verTodosDoctores": "Ver todos los médicos",
+    "buscarPlaceholder": "Buscar médico por nombre o especialidad...",
+    "noResultados": "No encontramos médicos para \"{{query}}\""
+  },
+  "homeMedico": {
+    "etiqueta": "Panel del médico",
+    "saludo": "Hola, {{nombre}}",
+    "subtitulo": "Este es tu panel. Gestioná tu agenda, disponibilidad y servicios desde un solo lugar.",
+    "proximosTurnos": "Turnos próximos",
+    "porConfirmar": "Por confirmar",
+    "accesosTitulo": "Accesos rápidos",
+    "agendaDesc": "Confirmá, cancelá o marcá como realizados tus turnos.",
+    "disponibilidadesDesc": "Definí los horarios en los que atendés.",
+    "serviciosDesc": "Gestioná las prácticas y especialidades que ofrecés.",
+    "sedesDesc": "Administrá las sedes donde trabajás."
   },
   "turno": {
     "titleLine1": "Reservá tu turno",
@@ -95,13 +110,6 @@
     "subtitulo": "Filtrá por especialidad, médico, sede y fecha para encontrar el turno que mejor te queda.",
     "botonBuscarDisponibles": "Buscar turnos disponibles",
     "botonVerMisTurnos": "Ver mis turnos"
-  },
-  "footer": {
-    "descripcion": "Sistema de gestión de turnos médicos. Reservá, gestioná y recibí recordatorios sin filas ni esperas.",
-    "encabezadoEspecialidades": "Especialidades",
-    "encabezadoEnlaces": "Enlaces",
-    "especialidades": ["Cardiología", "Ginecología", "Traumatología", "Pediatría", "Oftalmología"],
-    "enlaces": ["Médicos", "Sedes", "Planes y obras sociales", "Mis turnos", "Contacto"]
   },
   "login": {
     "titulo": "Iniciar sesión",
@@ -237,7 +245,8 @@
     "subtitulo": "Acá vas a ver los avisos sobre tus turnos y tu actividad.",
     "marcarTodas": "Marcar todas como leídas",
     "emptyText": "No tenés notificaciones",
-    "marcarLeida": "Marcar leída"
+    "marcarLeida": "Marcar leída",
+    "verTodas": "Ver notificaciones"
   },
   "registro": {
     "titulo": "Crear cuenta",

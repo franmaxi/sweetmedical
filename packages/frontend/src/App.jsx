@@ -16,6 +16,7 @@ import MisSedes from "./pages/Medico/MisSedes";
 import AdminPanel from "./pages/Admin/AdminPanel";
 import MiPerfil from "./pages/MiPerfil";
 import Notificaciones from "./pages/Notificaciones";
+import HomeMedico from "./pages/Medico/HomeMedico";
 
 const theme = {
   token: {
@@ -28,11 +29,17 @@ const theme = {
   },
 };
 
-// El admin no ve la página de inicio: al entrar a "/" va directo al panel.
+// La página de inicio depende del rol:
+// - admin: va directo a su panel.
+// - médico: ve su propio dashboard (no tiene sentido buscar médicos/turnos).
+// - paciente / no logueado: ve la home pública.
 function HomeRoute() {
   const { user } = useAuth();
   if (user?.role === "admin") {
     return <Navigate to="/admin" replace />;
+  }
+  if (user?.role === "medico") {
+    return <HomeMedico />;
   }
   return <Home />;
 }

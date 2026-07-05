@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Badge, Button, Dropdown, Empty, List, Space, Typography } from "antd";
 import { BellOutlined } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
@@ -23,11 +24,13 @@ const fmtFecha = (iso, locale) => {
 
 export default function NotificacionesDropdown() {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const destinatarioId = user?.userId;
   const [notificaciones, setNotificaciones] = useState([]);
+  const [open, setOpen] = useState(false);
 
-  const recargar = () => {
+  const recargar = useCallback(() => {
     if (!destinatarioId) return;
     getNotificaciones({ destinatarioId })
       .then((res) => {
@@ -36,24 +39,37 @@ export default function NotificacionesDropdown() {
       .catch((err) => {
         console.error("Error al cargar notificaciones en dropdown", err);
       });
-  };
+  }, [destinatarioId]);
 
   useEffect(() => {
     recargar();
-  }, [destinatarioId]);
+  }, [recargar]);
+
+  const irANotificaciones = () => {
+    setOpen(false);
+    navigate("/notificaciones");
+  };
 
   const noLeidas = notificaciones.filter((n) => !n.leida).length;
 
   const onMarcar = async (id, e) => {
     e?.stopPropagation();
-    await marcarComoLeida(id);
-    recargar();
+    try {
+      await marcarComoLeida(id);
+      recargar();
+    } catch (err) {
+      console.error("No se pudo marcar la notificación como leída", err);
+    }
   };
 
   const onMarcarTodas = async () => {
     if (!destinatarioId) return;
-    await marcarTodasComoLeidas(destinatarioId);
-    recargar();
+    try {
+      await marcarTodasComoLeidas(destinatarioId);
+      recargar();
+    } catch (err) {
+      console.error("No se pudieron marcar todas como leídas", err);
+    }
   };
 
   const popup = () => (
@@ -73,7 +89,7 @@ export default function NotificacionesDropdown() {
         </div>
       ) : (
         <List
-          style={{ maxHeight: 380, overflow: "auto" }}
+          style={{ maxHeight: 320, overflow: "auto" }}
           dataSource={notificaciones}
           renderItem={(n) => (
             <List.Item
@@ -99,6 +115,12 @@ export default function NotificacionesDropdown() {
           )}
         />
       )}
+
+      <div style={{ padding: "8px 16px", borderTop: "1px solid #f0f0f0", textAlign: "center" }}>
+        <Button type="link" size="small" onClick={irANotificaciones} style={{ padding: 0 }}>
+          {t("notificaciones.verTodas")}
+        </Button>
+      </div>
     </div>
   );
 
@@ -107,7 +129,11 @@ export default function NotificacionesDropdown() {
       trigger={["click"]}
       placement="bottomRight"
       popupRender={popup}
-      onOpenChange={(open) => open && recargar()}
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        if (next) recargar();
+      }}
     >
       <Badge count={noLeidas} size="small">
         <Button type="text" shape="circle" icon={<BellOutlined style={{ fontSize: 16 }} />} />

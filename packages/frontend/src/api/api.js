@@ -5,6 +5,17 @@ const API_BASE_URL = process.env.REACT_APP_API_URL
 const STORAGE_KEY = 'sweetmedical_auth';
 const TOKEN_KEY = 'sweetmedical_token';
 
+// Id del médico/usuario logueado, leído del storage. Se usa como default
+// en los endpoints "propios" del médico cuando el llamador no pasa uno.
+const medicoIdActual = () => {
+    try {
+        const raw = storage.get(STORAGE_KEY);
+        return raw ? JSON.parse(raw).userId : undefined;
+    } catch {
+        return undefined;
+    }
+};
+
 // ---------------------------------------------------------------------------
 // Instancia centralizada de Axios
 // ---------------------------------------------------------------------------
@@ -39,11 +50,17 @@ apiClient.interceptors.response.use(
         // El 401 del propio login son credenciales incorrectas: no redirigimos,
         // lo maneja la pantalla de login mostrando el mensaje de error.
         const requestUrl = error.config?.url ?? '';
+        const metodo = (error.config?.method ?? '').toUpperCase();
+        const status = error.response?.status;
+
+        // Log centralizado: deja claro qué request falló y con qué código.
+        console.error(`[API] ${metodo} ${requestUrl} → ${status ?? 'sin respuesta'}`);
+
         const esIntentoDeLogin =
             error.config?.method === 'post' && requestUrl.endsWith('/auth');
 
         // 401 en una sesión existente → token expirado o inválido: limpiar y redirigir al login
-        if (error.response?.status === 401 && !esIntentoDeLogin) {
+        if (status === 401 && !esIntentoDeLogin) {
             storage.remove(TOKEN_KEY);
             storage.remove(STORAGE_KEY);
             window.location.href = '/login';
@@ -482,7 +499,7 @@ export const cancelarTurnoApi = async (turnoId, motivo) => {
 };
 
 export const getServicios = async ({
-    medicoId = "6a14c252688165715658e489"
+    medicoId = medicoIdActual()
 } = {}) => {
     try {
         const response = await apiClient.get(`/medicos/${medicoId}/servicios`);
@@ -495,7 +512,7 @@ export const getServicios = async ({
 };
 
 export const crearEspecialidad = async ({
-    medicoId = "6a14c252688165715658e489",
+    medicoId = medicoIdActual(),
     especialidadGenericaId,
     duracionTurnoEnMins,
     costo,
@@ -513,7 +530,7 @@ export const crearEspecialidad = async ({
 };
 
 export const crearPractica = async ({
-    medicoId = "6a14c252688165715658e489",
+    medicoId = medicoIdActual(),
     practicaGenericaId,
     duracionTurnoEnMins,
     costo,
@@ -531,7 +548,7 @@ export const crearPractica = async ({
 };
 
 export const editarServicio = async ({
-    medicoId = "6a14c252688165715658e489",
+    medicoId = medicoIdActual(),
     especialidadId = null,
     practicaId = null,
     duracionTurnoEnMins,
@@ -552,7 +569,7 @@ export const editarServicio = async ({
 };
 
 export const eliminarServicio = async ({
-    medicoId = "6a14c252688165715658e489",
+    medicoId = medicoIdActual(),
     especialidadId = null,
     practicaId = null,
 } = {}) => {
@@ -567,7 +584,7 @@ export const eliminarServicio = async ({
     }
 };
 export const crearDisponibilidad = async ({
-    medicoId = "6a14c252688165715658e489",
+    medicoId = medicoIdActual(),
     especialidades = null,
     practicas = null,
     sedeId,
@@ -592,7 +609,7 @@ export const crearDisponibilidad = async ({
 };
 
 export const getDisponibilidades = async ({
-    medicoId = "6a14c252688165715658e489",
+    medicoId = medicoIdActual(),
 } = {}) => {
     try {
         const response = await apiClient.get(`/medicos/${medicoId}/disponibilidades`);
@@ -604,7 +621,7 @@ export const getDisponibilidades = async ({
 };
 
 export const eliminarDisponibilidad = async ({
-    medicoId = "6a14c252688165715658e489",
+    medicoId = medicoIdActual(),
     disponibilidadId
 } = {}) => {
     try {
@@ -617,7 +634,7 @@ export const eliminarDisponibilidad = async ({
 };
 
 export const modificarDisponibilidad = async ({
-    medicoId = "6a14c252688165715658e489",
+    medicoId = medicoIdActual(),
     disponibilidadId,
     especialidades,
     practicas,

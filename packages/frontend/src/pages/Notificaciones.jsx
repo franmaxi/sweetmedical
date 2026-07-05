@@ -71,14 +71,22 @@ function NotificacionesInner() {
   const noLeidas = notificaciones.filter((n) => !n.leida).length;
 
   const onMarcar = async (id) => {
-    await marcarComoLeida(id);
-    recargar();
+    try {
+      await marcarComoLeida(id);
+      recargar();
+    } catch (err) {
+      console.error("No se pudo marcar la notificación como leída", err);
+    }
   };
 
   const onMarcarTodas = async () => {
     if (!destinatarioId) return;
-    await marcarTodasComoLeidas(destinatarioId);
-    recargar();
+    try {
+      await marcarTodasComoLeidas(destinatarioId);
+      recargar();
+    } catch (err) {
+      console.error("No se pudieron marcar todas como leídas", err);
+    }
   };
 
   return (
