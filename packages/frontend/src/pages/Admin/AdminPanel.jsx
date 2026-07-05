@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   App as AntApp,
   Button,
@@ -9,6 +9,7 @@ import {
   Layout,
   Modal,
   Popover,
+  Select,
   Space,
   Table,
   Tabs,
@@ -22,6 +23,7 @@ import {
   PushpinOutlined,
   SettingOutlined,
   SmileOutlined,
+  FileTextOutlined,
 } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
 import Navbar from "../../components/Navbar";
@@ -36,6 +38,10 @@ import {
   getEspecialidadesGenericas,
   crearEspecialidadGenerica,
   actualizarEspecialidadGenerica,
+  getObrasSociales,
+  crearObraSocial,
+  getPlanes,
+  crearPlan,
 } from "../../api/api";
 import { extraerMensajeError } from "../../api/errorUtils";
 import { CATEGORIAS_COMPLETAS, validarUnicoEmoji } from "../../utils/emojis";
@@ -162,6 +168,20 @@ const SECCIONES = [
     accent: "#7d5bd6",
     loadFn: () => getEspecialidadesGenericas({ limit: 100 }),
     render: (props) => <EspecialidadesTab {...props} />,
+  },
+  {
+    key: "obrasSociales",
+    icon: <SmileOutlined />,
+    accent: "#ea580c",
+    loadFn: () => getObrasSociales(),
+    render: (props) => <ObrasSocialesTab {...props} />,
+  },
+  {
+    key: "planes",
+    icon: <FileTextOutlined />,
+    accent: "#0284c7",
+    loadFn: () => getPlanes(),
+    render: (props) => <PlanesTab {...props} />,
   },
 ];
 
@@ -462,8 +482,12 @@ function CrudTab({
       title: f.label,
       dataIndex: f.name,
       width: f.width,
+      render: f.render,
     })),
-    {
+  ];
+
+  if (updateFn) {
+    columns.push({
       title: textos.acciones,
       width: 120,
       render: (_, item) => (
@@ -475,8 +499,8 @@ function CrudTab({
           {textos.editar}
         </Button>
       ),
-    },
-  ];
+    });
+  }
 
   const dataSource = items.map((it) => ({ ...it, key: idDe(it) }));
 
@@ -537,6 +561,8 @@ function CrudTab({
               >
                 {f.type === "emoji" ? (
                   <EmojiInput placeholder={f.placeholder} />
+                ) : f.type === "select" ? (
+                  <Select placeholder={f.placeholder} options={f.options} loading={f.loading} />
                 ) : (
                   <Input placeholder={f.placeholder} maxLength={f.maxLength} />
                 )}
@@ -638,6 +664,78 @@ function EspecialidadesTab({ onChanged }) {
         },
       ]}
       textos={buildTextos(t, "especialidades")}
+    />
+  );
+}
+
+function ObrasSocialesTab({ onChanged }) {
+  const { t } = useTranslation();
+  return (
+    <CrudTab
+      loadFn={getObrasSociales}
+      createFn={crearObraSocial}
+      onChanged={onChanged}
+      fields={[
+        {
+          name: "nombre",
+          label: t("admin.campos.nombre"),
+          rules: [{ required: true, message: t("admin.validacion.nombreRequerido") }],
+        },
+      ]}
+      textos={buildTextos(t, "obrasSociales")}
+    />
+  );
+}
+
+function PlanesTab({ onChanged }) {
+  const { t } = useTranslation();
+  const [obrasSociales, setObrasSociales] = useState([]);
+  const [loadingOS, setLoadingOS] = useState(true);
+
+  useEffect(() => {
+    getObrasSociales()
+      .then((res) => {
+        setObrasSociales(res?.data || []);
+      })
+      .catch((err) => {
+        console.error("Error al cargar obras sociales para planes", err);
+      })
+      .finally(() => {
+        setLoadingOS(false);
+      });
+  }, []);
+
+  const fields = useMemo(
+    () => [
+      {
+        name: "idObraSocial",
+        label: t("admin.campos.obraSocial"),
+        type: "select",
+        placeholder: t("admin.validacion.obraSocialRequerida"),
+        options: obrasSociales.map((os) => ({
+          label: os.nombre,
+          value: os._id || os.id,
+        })),
+        loading: loadingOS,
+        rules: [{ required: true, message: t("admin.validacion.obraSocialRequerida") }],
+        render: (_, record) => record.obraSocialNombre || record.idObraSocial,
+      },
+      {
+        name: "nombre",
+        label: t("admin.campos.nombre"),
+        rules: [{ required: true, message: t("admin.validacion.nombreRequerido") }],
+      },
+    ],
+    [obrasSociales, loadingOS, t]
+  );
+
+  return (
+    <CrudTab
+      loadFn={getPlanes}
+      createFn={crearPlan}
+      onChanged={onChanged}
+      fields={fields}
+      textos={buildTextos(t, "planes")}
     />
   );
 }

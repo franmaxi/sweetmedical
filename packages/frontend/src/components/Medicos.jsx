@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Row, Col, Card, Avatar, Typography, Button, Space, Tag } from "antd";
 import { EnvironmentOutlined, IdcardOutlined } from "@ant-design/icons";
-import { getMedicos, getEspecialidades, getSedes } from "../mocks";
+import { getMedicosFull } from "../api/api";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -27,19 +27,20 @@ export default function Medicos() {
   const [medicos, setMedicos] = useState([]);
 
   useEffect(() => {
-    Promise.all([getMedicos(), getEspecialidades(), getSedes()]).then(
-      ([listaMedicos, especialidades, sedes]) => {
-        const espById = new Map(especialidades.map((e) => [e.id, e]));
-        const sedeById = new Map(sedes.map((s) => [s.id, s]));
+    getMedicosFull()
+      .then((res) => {
+        const listaMedicos = res?.data || [];
         setMedicos(
           listaMedicos.map((m) => ({
             ...m,
-            especialidadNombre: espById.get(m.especialidadId)?.nombre ?? "—",
-            sedeNombre: sedeById.get(m.sedes[0])?.nombre ?? "—",
+            especialidadNombre: m.especialidades?.map((e) => e.nombre).join(", ") || "—",
+            sedeNombre: m.sedes?.[0]?.nombre || "—",
           })),
         );
-      },
-    );
+      })
+      .catch((err) => {
+        console.error("Error al obtener médicos desde el backend", err);
+      });
   }, []);
 
   return (
@@ -55,7 +56,7 @@ export default function Medicos() {
 
         <Row gutter={[20, 20]}>
           {medicos.map((m) => (
-            <Col xs={24} sm={12} lg={6} key={m.id}>
+            <Col xs={24} sm={12} lg={6} key={m._id || m.id}>
               <Card style={{ height: "100%", borderRadius: 16 }} hoverable>
                 <Space direction="vertical" size={8} style={{ width: "100%", alignItems: "flex-start" }}>
                   <Avatar size={56} style={{ background: colorAvatar(m), fontWeight: 700 }}>

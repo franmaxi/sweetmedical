@@ -354,7 +354,9 @@
     "tabs": {
       "sedes": "Sedes",
       "practicas": "Prácticas genéricas",
-      "especialidades": "Especialidades genéricas"
+      "especialidades": "Especialidades genéricas",
+      "obrasSociales": "Obras Sociales",
+      "planes": "Planes"
     },
     "acciones": {
       "nuevo": "Nuevo",
@@ -368,7 +370,8 @@
       "nombre": "Nombre",
       "direccion": "Dirección",
       "codigo": "Código",
-      "emoji": "Emoji"
+      "emoji": "Emoji",
+      "obraSocial": "Obra Social"
     },
     "hints": {
       "emoji": "Debe ser un único emoji válido (ej: 🩺)."
@@ -377,18 +380,23 @@
       "nombreRequerido": "Ingresá un nombre",
       "direccionRequerida": "Ingresá una dirección",
       "codigoRequerido": "Ingresá un código",
-      "emojiRequerido": "Ingresá un emoji"
+      "emojiRequerido": "Ingresá un emoji",
+      "obraSocialRequerida": "Seleccioná una obra social"
     },
     "modal": {
       "crear": {
         "sedes": "Nueva sede",
         "practicas": "Nueva práctica genérica",
-        "especialidades": "Nueva especialidad genérica"
+        "especialidades": "Nueva especialidad genérica",
+        "obrasSociales": "Nueva obra social",
+        "planes": "Nuevo plan"
       },
       "editar": {
         "sedes": "Editar sede",
         "practicas": "Editar práctica genérica",
-        "especialidades": "Editar especialidad genérica"
+        "especialidades": "Editar especialidad genérica",
+        "obrasSociales": "Editar obra social",
+        "planes": "Editar plan"
       },
       "eliminarTitle": "Eliminar",
       "eliminarContenido": "¿Seguro que querés eliminar \"{{nombre}}\"? Esta acción no se puede deshacer."
@@ -404,7 +412,9 @@
     "vacio": {
       "sedes": "Todavía no hay sedes",
       "practicas": "Todavía no hay prácticas genéricas",
-      "especialidades": "Todavía no hay especialidades genéricas"
+      "especialidades": "Todavía no hay especialidades genéricas",
+      "obrasSociales": "Todavía no hay obras sociales",
+      "planes": "Todavía no hay planes"
     }
   }
 }

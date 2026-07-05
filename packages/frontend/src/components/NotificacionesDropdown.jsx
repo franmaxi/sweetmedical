@@ -2,16 +2,14 @@ import { useEffect, useState } from "react";
 import { Badge, Button, Dropdown, Empty, List, Space, Typography } from "antd";
 import { BellOutlined } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../context/AuthContext";
 import {
   getNotificaciones,
   marcarComoLeida,
   marcarTodasComoLeidas,
-} from "../mocks";
+} from "../api/api";
 
 const { Text } = Typography;
-
-// Sin login, mostramos las notificaciones de Ana García (usuarioId 201).
-const USUARIO_ID = 201;
 
 const fmtFecha = (iso, locale) => {
   if (!iso) return "";
@@ -25,13 +23,24 @@ const fmtFecha = (iso, locale) => {
 
 export default function NotificacionesDropdown() {
   const { t, i18n } = useTranslation();
+  const { user } = useAuth();
+  const destinatarioId = user?.userId;
   const [notificaciones, setNotificaciones] = useState([]);
 
   const recargar = () => {
-    getNotificaciones({ destinatarioId: USUARIO_ID }).then(setNotificaciones);
+    if (!destinatarioId) return;
+    getNotificaciones({ destinatarioId })
+      .then((res) => {
+        setNotificaciones(res?.data || []);
+      })
+      .catch((err) => {
+        console.error("Error al cargar notificaciones en dropdown", err);
+      });
   };
 
-  useEffect(recargar, []);
+  useEffect(() => {
+    recargar();
+  }, [destinatarioId]);
 
   const noLeidas = notificaciones.filter((n) => !n.leida).length;
 
@@ -42,7 +51,8 @@ export default function NotificacionesDropdown() {
   };
 
   const onMarcarTodas = async () => {
-    await marcarTodasComoLeidas(USUARIO_ID);
+    if (!destinatarioId) return;
+    await marcarTodasComoLeidas(destinatarioId);
     recargar();
   };
 
@@ -67,7 +77,7 @@ export default function NotificacionesDropdown() {
           dataSource={notificaciones}
           renderItem={(n) => (
             <List.Item
-              key={n.id}
+              key={n._id || n.id}
               style={{
                 padding: "12px 16px",
                 background: n.leida ? "#fff" : "#fff1f0",
@@ -79,7 +89,7 @@ export default function NotificacionesDropdown() {
                 <Space size="small" style={{ width: "100%", justifyContent: "space-between" }}>
                   <Text type="secondary" style={{ fontSize: 11 }}>{fmtFecha(n.fechaHoraCreacion, i18n.language === "en" ? "en-US" : "es-AR")}</Text>
                   {!n.leida && (
-                    <Button type="link" size="small" style={{ padding: 0, fontSize: 11 }} onClick={(e) => onMarcar(n.id, e)}>
+                    <Button type="link" size="small" style={{ padding: 0, fontSize: 11 }} onClick={(e) => onMarcar(n._id || n.id, e)}>
                       {t("notificaciones.marcarLeida")}
                     </Button>
                   )}

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   App as AntApp,
   Button,
@@ -16,16 +16,14 @@ import {
 import { DeleteOutlined, PlusOutlined, EditOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
-import { DiaSemana, nombreDia } from "../../mocks";
+import { useAuth } from "../../context/AuthContext";
+import { DiaSemana, nombreDia } from "../../utils/dias";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import { getServicios, getSedes, crearDisponibilidad, getDisponibilidades, getMedicoById, eliminarDisponibilidad, modificarDisponibilidad } from "../../api/api";
 import { extraerMensajeError } from "../../api/errorUtils";
 
 const { Title, Text } = Typography;
-
-// Sin login, simulamos que el médico activo es el de id fijo en la API
-const MEDICO_ID = "6a14c252688165715658e489";
 
 const getDiasOpciones = (t) =>
   Object.entries(DiaSemana).map(([k, v]) => ({
@@ -43,6 +41,8 @@ export default function Disponibilidades() {
 
 function DisponibilidadesInner() {
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const medicoId = user?.userId;
   const { message } = AntApp.useApp();
 
   const [disponibilidades, setDisponibilidades] = useState([]);
@@ -65,7 +65,11 @@ function DisponibilidadesInner() {
 
   // Carga inicial: servicios y sedes del médico
   useEffect(() => {
-    Promise.all([getServicios({ medicoId: MEDICO_ID }), getMedicoById({ medicoId: MEDICO_ID })])
+    if (!medicoId) {
+      setCargandoSelects(false);
+      return;
+    }
+    Promise.all([getServicios({ medicoId }), getMedicoById({ medicoId })])
       .then(([serviciosRes, medicoRes]) => {
         // --- Servicios (especialidades + prácticas) ---
         const especialidades = Array.isArray(serviciosRes?.data?.especialidades)
@@ -134,9 +138,13 @@ function DisponibilidadesInner() {
       .finally(() => setCargandoSelects(false));
   }, []);
 
-  const recargarDisponibilidades = () => {
+  const recargarDisponibilidades = useCallback(() => {
+    if (!medicoId) {
+      setCargando(false);
+      return;
+    }
     setCargando(true);
-    getDisponibilidades({ medicoId: MEDICO_ID })
+    getDisponibilidades({ medicoId })
       .then((res) => {
         const data = Array.isArray(res?.data) ? res.data : (Array.isArray(res) ? res : []);
         const formateadas = data.map((d) => {
@@ -161,11 +169,11 @@ function DisponibilidadesInner() {
       .finally(() => {
         setCargando(false);
       });
-  };
+  }, [medicoId, message]);
 
   useEffect(() => {
     recargarDisponibilidades();
-  }, []);
+  }, [recargarDisponibilidades]);
 
   const onAgregar = async () => {
     let values;
@@ -188,7 +196,7 @@ function DisponibilidadesInner() {
     try {
       if (disponibilidadEnEdicion) {
         await modificarDisponibilidad({
-          medicoId: MEDICO_ID,
+          medicoId,
           disponibilidadId: disponibilidadEnEdicion._id,
           especialidades: especialidadesIds,
           practicas: practicasIds,
@@ -206,7 +214,7 @@ function DisponibilidadesInner() {
         }
 
         await crearDisponibilidad({
-          medicoId: MEDICO_ID,
+          medicoId,
           especialidades: especialidadesIds,
           practicas: practicasIds,
           sedeId: values.sedeId,
@@ -265,7 +273,7 @@ function DisponibilidadesInner() {
       cancelText: t("disponibilidades.cancelar"),
       onOk: async () => {
         try {
-          await eliminarDisponibilidad({ medicoId: MEDICO_ID, disponibilidadId: d._id });
+          await eliminarDisponibilidad({ medicoId, disponibilidadId: d._id });
           message.success(t("disponibilidades.successEliminada"));
           recargarDisponibilidades();
         } catch (err) {

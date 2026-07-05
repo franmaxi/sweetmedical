@@ -23,7 +23,7 @@ import { extraerMensajeError } from "../../api/errorUtils";
 
 const { Title, Text } = Typography;
 
-const MEDICO_ID = 1; //todo: sacar cuando se integre con el login real
+
 
 const precio = (n) => `$${Number(n).toLocaleString("es-AR")}`; //casteo el precio que llega como string y le doy el formato de moneda de argentina ej: 1500 => $1.500
 

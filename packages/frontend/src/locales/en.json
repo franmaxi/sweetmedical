@@ -353,7 +353,9 @@
     "tabs": {
       "sedes": "Locations",
       "practicas": "Generic procedures",
-      "especialidades": "Generic specialties"
+      "especialidades": "Generic specialties",
+      "obrasSociales": "Health Insurances",
+      "planes": "Plans"
     },
     "acciones": {
       "nuevo": "New",
@@ -367,7 +369,8 @@
       "nombre": "Name",
       "direccion": "Address",
       "codigo": "Code",
-      "emoji": "Emoji"
+      "emoji": "Emoji",
+      "obraSocial": "Health Insurance"
     },
     "hints": {
       "emoji": "Must be a single valid emoji (e.g. 🩺)."
@@ -376,18 +379,23 @@
       "nombreRequerido": "Enter a name",
       "direccionRequerida": "Enter an address",
       "codigoRequerido": "Enter a code",
-      "emojiRequerido": "Enter an emoji"
+      "emojiRequerido": "Enter an emoji",
+      "obraSocialRequerida": "Select a health insurance"
     },
     "modal": {
       "crear": {
         "sedes": "New location",
         "practicas": "New generic procedure",
-        "especialidades": "New generic specialty"
+        "especialidades": "New generic specialty",
+        "obrasSociales": "New health insurance",
+        "planes": "New plan"
       },
       "editar": {
         "sedes": "Edit location",
         "practicas": "Edit generic procedure",
-        "especialidades": "Edit generic specialty"
+        "especialidades": "Edit generic specialty",
+        "obrasSociales": "Edit health insurance",
+        "planes": "Edit plan"
       },
       "eliminarTitle": "Delete",
       "eliminarContenido": "Are you sure you want to delete \"{{nombre}}\"? This action cannot be undone."
@@ -403,7 +411,9 @@
     "vacio": {
       "sedes": "No locations yet",
       "practicas": "No generic procedures yet",
-      "especialidades": "No generic specialties yet"
+      "especialidades": "No generic specialties yet",
+      "obrasSociales": "No health insurances yet",
+      "planes": "No plans yet"
     }
   }
 }
