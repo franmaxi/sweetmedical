@@ -14,6 +14,7 @@ import {
   PushpinOutlined,
   SettingOutlined,
   BellOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
 import NotificacionesDropdown from "./NotificacionesDropdown";
 import SelectorIdioma from "./SelectorIdioma";
@@ -160,6 +161,11 @@ const rol = user?.role ?? "guest";
 const items = allItems.filter(({ roles }) =>
   roles.includes("*") || roles.includes(rol));
 
+// En el drawer mobile agregamos "Mi perfil" (en desktop ya está en el dropdown de la esquina).
+const mobileItems = user
+  ? [...items, { key: "/mi-perfil", icon: <UserOutlined />, label: <Link to="/mi-perfil">{t("perfil.titulo")}</Link> }]
+  : items;
+
 // La campana solo aplica a quienes reciben notificaciones.
 const verNotificaciones = rol === "usuario" || rol === "medico";
 
@@ -207,7 +213,7 @@ const verNotificaciones = rol === "usuario" || rol === "medico";
       >
         <Menu
           mode="vertical"
-          items={items}
+          items={mobileItems}
           selectedKeys={[location.pathname]}
           onClick={() => setDrawerOpen(false)}
           style={{ borderInlineEnd: "none" }}
