@@ -303,7 +303,7 @@ export class MedicoService {
     }
     
     // ======================= DISPONIBILIDADES =============================
-    async obtenerDisponibilidades(medicoId, userId, self) {
+    async obtenerDisponibilidades(medicoId) {
         const validId = objectIdSchema.parse(String(medicoId));
         return await this.medicoRepository.getDisponibilidades(validId);
     }
@@ -316,7 +316,7 @@ export class MedicoService {
         return dispo;
     }
 
-    async crearDisponibilidad(medicoId, userId, datosDisponibilidad) {
+    async crearDisponibilidad(medicoId, datosDisponibilidad) {
         const validMedicoId = objectIdSchema.parse(String(medicoId));
         
         //Validacion de que el medico exista

@@ -347,6 +347,16 @@ export class TurnoService {
 
 
 
+    
+    async obtenerPorMedicoYFecha(medicoId, fechaHora) {
+        const turno = await this.turnoRepository.findByMedicoAndFechaHora(medicoId, fechaHora)
+
+        if(!turno) {
+            throw new NotFoundError(`No se encontró un turno para el médico con id ${medicoId} en la fecha ${fechaHora}`)
+        }
+        return turno
+    }
+
     // Solo se puede solicitar para días que el medico atiende los servicios
     async solicitarCambioDeFecha(turnoId, usuarioId, fechaPropuesta, motivo) {
         //Obtener turno
@@ -371,8 +381,26 @@ export class TurnoService {
             throw new BadRequestError(`El medico con id ${turno.medico._id} no tiene disponibilidad para ${fechaPropuesta}`)
         }
 
-        // obtener el turno con la fecha
-        const turnoSolicitado
+        if (turno.especialidad?.length>0){
+            if(dispoNueva.especialidades.some(e => e._id.toString() === turno.especialidad[0]._id.toString()) == false) {
+                throw new BadRequestError(`El medico con id ${turno.medico._id} no tiene disponibilidad para la especialidad ${turno.especialidad[0].nombre} en ${fechaPropuesta}`)
+            }
+        }
+        
+        if (turno.practica?.length>0) {
+            if(dispoNueva.practicas.some(p => p._id.toString() === turno.practica[0]._id.toString()) == false) {
+                throw new BadRequestError(`El medico con id ${turno.medico._id} no tiene disponibilidad para la practica ${turno.practica[0].nombre} en ${fechaPropuesta}`)
+            }
+        }
+
+        //busco si existe un turno para esa fecha
+        // si no existe o no esta disponible tiro error 
+        const turnoSolicitado = await this.obtenerPorMedicoYFecha(turno.medico._id, fechaPropuesta)
+        
+        if(turnoSolicitado.estado != EstadoTurno.DISPONIBLE) {
+            throw new BadRequestError(`El turno para el medico con id ${turno.medico._id} en la fecha ${fechaPropuesta} no esta disponible`)
+        }
+
         const turnoNuevo = await this.reservarTurno(turnoSolicitado._id, turno.paciente._id, turno.especialidad?.[0]?._id, turno.practica?.[0]?._id)
 
         const usuario = await this.usuarioService.obtenerPorId(usuarioId)
@@ -380,7 +408,7 @@ export class TurnoService {
         //modificar solicitudCambio en el turno
         const solicitudCambio = new SolicitudCambio({
             usuario: usuario,
-            turnoNuevo: turnoNuevo._id, // ACA TENDRIA QUE SER UN TURNO NUEVO, NO EL MISMO AL QUE LE DAS ESTA SOLICITUD
+            turnoNuevo: turnoNuevo._id,
             motivo: motivo
         })
         turno.asignarSolicitud(solicitudCambio)
