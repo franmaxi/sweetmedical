@@ -371,65 +371,30 @@ export class TurnoService {
             throw new BadRequestError(`El medico con id ${turno.medico._id} no tiene disponibilidad para ${fechaPropuesta}`)
         }
 
-        //busco si existe un turno para esa fecha
-            // si no existe o no esta disponible tiro error 
-
-        //Validar con obtenerSiguientesDisponibles
-        let duracionServicio = null
-
-        //debemos confirmar que el medico atiende esa especialidad o practica. Pero no es necesario que sea en el dia
-        if (turno.especialidad?.length) duracionServicio = turno.especialidad[0].duracionTurnoEnMins
-
-        if (turno.practica?.length) duracionServicio = turno.practica[0].duracionTurnoEnMins
-
-        if (!duracionServicio) throw new BadRequestError(`La duracion no debe ser nula`)
-
-        //fecha inicio(la tenemos), fecha fin() = fechainicio + servicioDuracionEnMins, medicoid
-        const milisegundosDuracion = duracionServicio * 60 * 1000
-
-        const fechaFin = new Date(fechaPropuesta.getTime() + milisegundosDuracion);
-
-        //Revisar que los turnos existan
-        //Revisar que todos los turnos esten en estado disponible
-        const listaTurnos = await this.turnoRepository.obtenerSiguientesDisponibles(fechaPropuesta, fechaFin, turno.medico._id)
-        const turnosNecesarios = duracionServicio / this.duracionTurnos
-        //confirmar que entre en el espacio
-        if (listaTurnos.length + 1 < turnosNecesarios) throw new UnprocessableEntityError('No hay turnos disponibles suficientes')
-
-        if (turno.especialidad?.length) {
-            const esp = turno.especialidad[0];
-            const especialidadPertenece = listaTurnos.every(n => 
-                n.especialidad.some(m => String(m) === String(turno.especialidad.especialidadGenerica._id))
-            );
-            if (!especialidadPertenece) throw new BadRequestError(`El medico no atiende la especialidad ${esp.nombre} en todos los turnos necesarios`)
-        }
-        if (turno.practica?.length) {
-            const pra = turno.practica[0];
-            const practicaPertenece = listaTurnos.every(n => 
-                n.practica.some(m => String(m) === String(turno.practica.practicaGenerica._id))
-            );
-            if (!practicaPertenece) throw new BadRequestError(`El médico no atiende la practica ${pra.nombre} en todos los turnos necesarios `)
-        }
+        // obtener el turno con la fecha
+        const turnoSolicitado
+        const turnoNuevo = await this.reservarTurno(turnoSolicitado._id, turno.paciente._id, turno.especialidad?.[0]?._id, turno.practica?.[0]?._id)
 
         const usuario = await this.usuarioService.obtenerPorId(usuarioId)
 
         //modificar solicitudCambio en el turno
         const solicitudCambio = new SolicitudCambio({
             usuario: usuario,
-            turnoNuevo: turno, // ACA TENDRIA QUE SER UN TURNO NUEVO, NO EL MISMO AL QUE LE DAS ESTA SOLICITUD
+            turnoNuevo: turnoNuevo._id, // ACA TENDRIA QUE SER UN TURNO NUEVO, NO EL MISMO AL QUE LE DAS ESTA SOLICITUD
             motivo: motivo
         })
-
         turno.asignarSolicitud(solicitudCambio)
 
-        //Poner el turno en estado por confirmación
-        turno.actualizarEstado(EstadoTurno.RESERVADO, usuario, "El turno esta pendiente de confirmacion")
         //Generar una notificación al opuesto
-        this.notificacionService.notificarCambioEstadoTurno(turno, true)
+        this.notificacionService.notificarCambioEstadoTurno(turnoNuevo, true)
             .catch(err => console.error('[Notificación] Error al notificar cambio de estado:', err))
         return await this.turnoRepository.update(turnoId, turno)
     }
 
+    // paciente -> RESERVADO - CONFIRMADO - RECHAZADO -                 Solicitudes de Cambio
+    // medico   -> RESERVADO - CONFIRMADO - RECHAZADO - REALIZADOS -    Solicitudes de Cambio
+
+    // SE ACEPTA EL TURNO CONFIRMADO CON LA SOLICITUD
     async aceptarCambioDeFecha(turnoId, usuarioId) {
         const turno = await this.obtenerPorId(turnoId)
         if (turno.estado != EstadoTurno.RESERVADO) {
@@ -449,11 +414,8 @@ export class TurnoService {
             throw new BadRequestError(`El turno ${turnoId} no tiene una solicitud de cambio pendiente`)
         }
 
-        // turno -> Reservado -> Cancelado
-        // turnoNuevo -> Disponible -> Reservado -> Confirmado directamente
+        const turnoNuevo = await this.turnoRepository.findById(turno.solicitudCambio.turnoNuevo)
 
-            // aca tendrias que reservar el turno NUEVO de la solicitud, pero en la solicitud te guardas a vos mismo
-        const turnoNuevo = await this.reservarTurno(turnoId, turno.paciente._id, turno.especialidad?.[0]?._id, turno.practica?.[0]?._id)
         turnoNuevo.actualizarEstado(EstadoTurno.CONFIRMADO, usuario, "Turno confirmado por el usuario")
         await this.turnoRepository.update(turnoNuevo._id, turnoNuevo);
         
@@ -482,14 +444,13 @@ export class TurnoService {
             throw new BadRequestError(`El turno ${turnoId} no tiene una solicitud de cambio pendiente`)
         }
 
+        const turnoEliminado = await this.cancelar(turno.solicitudCambio.turnoNuevo, usuarioId, turno.solicitudCambio.motivo)
+
         //Poner en null el solicitud cambio
         turno.eliminarSolicitud()
 
         //Si se rechaza -> Se queda con la fecha actual
         const usuario = await this.usuarioService.obtenerPorId(usuarioId)
-
-        //Poner el turno en estado confirmado
-        turno.actualizarEstado(EstadoTurno.CONFIRMADO, usuario, "Se rechazó la modificación de fecha, quedará la fecha actual.")
 
         //Generar una notificación al opuesto
         this.notificacionService.notificarCambioEstadoTurno(turno, true)
