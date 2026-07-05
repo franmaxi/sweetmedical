@@ -103,6 +103,22 @@
     "serviciosDesc": "Manage the practices and specialties you offer.",
     "sedesDesc": "Manage the locations where you work."
   },
+  "carrito": {
+    "titulo": "My cart",
+    "subtitulo": "Review the appointments you want to book and confirm them all together.",
+    "vacio": "Your cart is empty",
+    "buscarTurnos": "Search appointments",
+    "total": "Total",
+    "vaciar": "Empty cart",
+    "confirmar": "Confirm bookings",
+    "verMisTurnos": "View my appointments",
+    "agregar": "Add to cart",
+    "agregado": "Appointment added to cart",
+    "yaEnCarrito": "That appointment is already in the cart",
+    "resultadoReservados": "{{count}} appointment(s) booked successfully",
+    "resultadoConflictos": "{{count}} appointment(s) were no longer available and were removed from the cart",
+    "resultadoErrores": "{{count}} appointment(s) could not be booked, please try again"
+  },
   "turno": {
     "titleLine1": "Book your appointment",
     "titleLine2": "in less than 1 minute",

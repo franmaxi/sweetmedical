@@ -4,6 +4,7 @@ import esES from "antd/locale/es_ES";
 import enUS from "antd/locale/en_US";
 import { useTranslation } from "react-i18next";
 import { AuthProvider, RequireRole, useAuth } from "./context/AuthContext";
+import { CartProvider } from "./context/CartContext";
 import Home from "./pages/Home";
 import BuscarTurnos from "./pages/Usuario/BuscarTurnos";
 import MisTurnos from "./pages/Usuario/MisTurnos";
@@ -17,6 +18,7 @@ import AdminPanel from "./pages/Admin/AdminPanel";
 import MiPerfil from "./pages/MiPerfil";
 import Notificaciones from "./pages/Notificaciones";
 import HomeMedico from "./pages/Medico/HomeMedico";
+import Carrito from "./pages/Usuario/Carrito";
 
 const theme = {
   token: {
@@ -58,6 +60,7 @@ function App() {
     <ConfigProvider locale={idioma} theme={theme}>
       <AntApp>
         <AuthProvider>
+          <CartProvider>
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<HomeRoute />} />
@@ -69,6 +72,7 @@ function App() {
               <Route element={<RequireRole role="usuario" />}>
                 <Route path="/buscar" element={<BuscarTurnos />} />
                 <Route path="/mis-turnos" element={<MisTurnos />} />
+                <Route path="/carrito" element={<Carrito />} />
               </Route>
 
               <Route element={<RequireRole role="medico" />}>
@@ -85,6 +89,7 @@ function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </BrowserRouter>
+          </CartProvider>
         </AuthProvider>
       </AntApp>
     </ConfigProvider>

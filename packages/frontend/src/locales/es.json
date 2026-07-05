@@ -102,6 +102,22 @@
     "serviciosDesc": "Gestioná las prácticas y especialidades que ofrecés.",
     "sedesDesc": "Administrá las sedes donde trabajás."
   },
+  "carrito": {
+    "titulo": "Mi carrito",
+    "subtitulo": "Revisá los turnos que querés reservar y confirmalos todos juntos.",
+    "vacio": "Tu carrito está vacío",
+    "buscarTurnos": "Buscar turnos",
+    "total": "Total",
+    "vaciar": "Vaciar carrito",
+    "confirmar": "Confirmar reservas",
+    "verMisTurnos": "Ver mis turnos",
+    "agregar": "Agregar al carrito",
+    "agregado": "Turno agregado al carrito",
+    "yaEnCarrito": "Ese turno ya está en el carrito",
+    "resultadoReservados": "{{count}} turno(s) reservado(s) correctamente",
+    "resultadoConflictos": "{{count}} turno(s) ya no estaban disponibles y se quitaron del carrito",
+    "resultadoErrores": "{{count}} turno(s) no se pudieron reservar, intentá de nuevo"
+  },
   "turno": {
     "titleLine1": "Reservá tu turno",
     "titleLine2": "en menos de 1 minuto",

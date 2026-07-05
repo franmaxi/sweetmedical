@@ -4,7 +4,8 @@ import { Agenda } from "../domain/Turno/Agenda.js"
 import {
     BadRequestError,
     NotFoundError,
-    UnprocessableEntityError
+    UnprocessableEntityError,
+    ConflictError
 } from "../errors/AppErrors.js"
 
 import { TurnoRepository } from "../repositories/TurnoRespository.js"
@@ -248,13 +249,27 @@ export class TurnoService {
             turno.practica = [practicaId];
             turno.especialidad = [];
         }
-        await this.turnoRepository.update(turno._id, turno);
+        // CONTROL DE CONCURRENCIA: reservamos el turno de forma atómica sólo si
+        // sigue DISPONIBLE. Si otro paciente lo tomó primero, findOneAndUpdate
+        // devuelve null y abortamos con un 409 (Conflict).
+        const reservado = await this.turnoRepository.updateSiDisponible(turno._id, turno);
+        if (!reservado) {
+            throw new ConflictError("El turno ya fue reservado por otra persona");
+        }
 
-        // marcamos los siguientes como combinados y updateamos si existen 
+        // marcamos los siguientes como combinados, también de forma atómica.
+        // Si alguno ya no está disponible, revertimos todo lo reservado (all-or-nothing por turno).
         if (turnosNecesarios > 1) {
+            const combinadosReservados = [];
             for (const t of turnosSiguientes) {
                 t.actualizarEstado(EstadoTurno.COMBINADO, paciente.usuario, "El turno fue reservado, este turno se combina para el original")
-                await this.turnoRepository.update(t._id, t)
+                const combinado = await this.turnoRepository.updateSiDisponible(t._id, t)
+                if (!combinado) {
+                    // Revertimos el turno principal + los combinados ya tomados
+                    await this.turnoRepository.liberarTurnos([turno._id, ...combinadosReservados])
+                    throw new ConflictError("El turno ya no está disponible por el tiempo necesario para el servicio")
+                }
+                combinadosReservados.push(t._id)
             }
         }
 
