@@ -8,6 +8,7 @@
     "disponibilidades": "Disponibilidades",
     "misSedes": "Mis sedes",
     "misServicios": "Mis servicios",
+    "notificaciones": "Notificaciones",
     "admin": "Administración",
     "menu": "Menú",
     "ingresar": "Ingresar",
@@ -17,6 +18,7 @@
   "perfil": {
     "titulo": "Mi perfil",
     "descripcion": "Administrá tus datos de cuenta y sesión.",
+    "datos": "Datos personales",
     "nombre": "Nombre",
     "usuario": "Usuario",
     "password": "Contraseña",
@@ -33,7 +35,12 @@
     "passwordPlaceholder": "Dejar vacío para no cambiarla",
     "errorPassword": "Ingresá una contraseña",
     "loginRequired": "Debes iniciar sesión para ver tu perfil.",
-    "editar": "Editar perfil",
+    "editar": "Editar",
+    "cambiarPassword": "Cambiar contraseña",
+    "errorNombreRequerido": "Por favor ingresá tu nombre",
+    "errorUsuarioRequerido": "Por favor ingresá tu nombre de usuario",
+    "errorDniInvalido": "El DNI debe ser un número mayor a 0",
+    "errorMatriculaRequerida": "Por favor ingresá tu matrícula",
     "editarTitulo": "Editar mi perfil",
     "guardar": "Guardar",
     "cancelar": "Cancelar",
@@ -227,6 +234,7 @@
   },
   "notificaciones": {
     "titulo": "Notificaciones",
+    "subtitulo": "Acá vas a ver los avisos sobre tus turnos y tu actividad.",
     "marcarTodas": "Marcar todas como leídas",
     "emptyText": "No tenés notificaciones",
     "marcarLeida": "Marcar leída"

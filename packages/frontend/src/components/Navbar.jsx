@@ -13,6 +13,7 @@ import {
   LogoutOutlined,
   PushpinOutlined,
   SettingOutlined,
+  BellOutlined,
 } from "@ant-design/icons";
 import NotificacionesDropdown from "./NotificacionesDropdown";
 import SelectorIdioma from "./SelectorIdioma";
@@ -103,7 +104,7 @@ const allItems = [
     key: "/",
     icon: <HomeOutlined />,
     label: <Link to="/">{t("navbar.inicio")}</Link>,
-    roles: ["*"],
+    roles: ["guest", "usuario", "medico"],
   },
   {
     key: "/buscar",
@@ -142,6 +143,12 @@ const allItems = [
     roles: ["medico"],
   },    
   {
+    key: "/notificaciones",
+    icon: <BellOutlined />,
+    label: <Link to="/notificaciones">{t("navbar.notificaciones")}</Link>,
+    roles: ["usuario", "medico"],
+  },
+  {
     key: "/admin",
     icon: <SettingOutlined />,
     label: <Link to="/admin">{t("navbar.admin")}</Link>,
@@ -150,8 +157,11 @@ const allItems = [
 ];
 
 const rol = user?.role ?? "guest";
-const items = allItems.filter(({ roles }) => 
+const items = allItems.filter(({ roles }) =>
   roles.includes("*") || roles.includes(rol));
+
+// La campana solo aplica a quienes reciben notificaciones.
+const verNotificaciones = rol === "usuario" || rol === "medico";
 
   return (
     <Header
@@ -181,7 +191,7 @@ const items = allItems.filter(({ roles }) =>
 
       <Space size="small" style={{ marginLeft: "auto" }}>
         <SelectorIdioma />
-        <NotificacionesDropdown />
+        {verNotificaciones && <NotificacionesDropdown />}
         {esMobile
           ? <Button type="text" icon={<MenuOutlined />} onClick={() => setDrawerOpen(true)} />
           : <AuthButtons user={user} onLogout={handleLogout} />

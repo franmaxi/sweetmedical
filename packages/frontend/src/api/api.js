@@ -36,8 +36,14 @@ apiClient.interceptors.response.use(
         return response;
     },
     (error) => {
-        // 401 → sesión expirada o token inválido: limpiar y redirigir al login
-        if (error.response?.status === 401) {
+        // El 401 del propio login son credenciales incorrectas: no redirigimos,
+        // lo maneja la pantalla de login mostrando el mensaje de error.
+        const requestUrl = error.config?.url ?? '';
+        const esIntentoDeLogin =
+            error.config?.method === 'post' && requestUrl.endsWith('/auth');
+
+        // 401 en una sesión existente → token expirado o inválido: limpiar y redirigir al login
+        if (error.response?.status === 401 && !esIntentoDeLogin) {
             storage.remove(TOKEN_KEY);
             storage.remove(STORAGE_KEY);
             window.location.href = '/login';

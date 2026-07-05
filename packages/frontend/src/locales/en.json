@@ -9,6 +9,7 @@
     "misSedes": "My locations",
     "misEspecialidades": "My specialties",
     "misServicios": "My services",
+    "notificaciones": "Notifications",
     "admin": "Administration",
     "menu": "Menu",
     "ingresar": "Log in",
@@ -18,6 +19,7 @@
     "perfil": {
     "titulo": "My profile",
     "descripcion": "Manage your account and session details.",
+    "datos": "Personal details",
     "nombre": "Name",
     "usuario": "Username",
     "password": "Password",
@@ -34,7 +36,12 @@
     "passwordPlaceholder": "Leave blank to keep current password",
     "errorPassword": "Enter a password",
     "loginRequired": "You must be logged in to view your profile.",
-    "editar": "Edit profile",
+    "editar": "Edit",
+    "cambiarPassword": "Change password",
+    "errorNombreRequerido": "Please enter your name",
+    "errorUsuarioRequerido": "Please enter your username",
+    "errorDniInvalido": "The ID number must be greater than 0",
+    "errorMatriculaRequerida": "Please enter your license number",
     "editarTitulo": "Edit my profile",
     "guardar": "Save",
     "cancelar": "Cancel",
@@ -228,6 +235,7 @@
   },
   "notificaciones": {
     "titulo": "Notifications",
+    "subtitulo": "Here you'll see updates about your appointments and activity.",
     "marcarTodas": "Mark all as read",
     "emptyText": "You have no notifications",
     "marcarLeida": "Mark as read"

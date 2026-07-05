@@ -3,7 +3,7 @@ import { ConfigProvider, App as AntApp } from "antd";
 import esES from "antd/locale/es_ES";
 import enUS from "antd/locale/en_US";
 import { useTranslation } from "react-i18next";
-import { AuthProvider, RequireRole } from "./context/AuthContext";
+import { AuthProvider, RequireRole, useAuth } from "./context/AuthContext";
 import Home from "./pages/Home";
 import BuscarTurnos from "./pages/Usuario/BuscarTurnos";
 import MisTurnos from "./pages/Usuario/MisTurnos";
@@ -15,6 +15,7 @@ import MisServicios from "./pages/Medico/MisServicios";
 import MisSedes from "./pages/Medico/MisSedes";
 import AdminPanel from "./pages/Admin/AdminPanel";
 import MiPerfil from "./pages/MiPerfil";
+import Notificaciones from "./pages/Notificaciones";
 
 const theme = {
   token: {
@@ -26,6 +27,15 @@ const theme = {
       '"Inter", system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif',
   },
 };
+
+// El admin no ve la página de inicio: al entrar a "/" va directo al panel.
+function HomeRoute() {
+  const { user } = useAuth();
+  if (user?.role === "admin") {
+    return <Navigate to="/admin" replace />;
+  }
+  return <Home />;
+}
 
 function App() {
   const { i18n } = useTranslation();
@@ -43,10 +53,11 @@ function App() {
         <AuthProvider>
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<Home />} />
+              <Route path="/" element={<HomeRoute />} />
               <Route path="/login" element={<Login />} />
               <Route path="/registro" element={<Registro />} />
               <Route path="/mi-perfil" element={<MiPerfil />} />
+              <Route path="/notificaciones" element={<Notificaciones />} />
 
               <Route element={<RequireRole role="usuario" />}>
                 <Route path="/buscar" element={<BuscarTurnos />} />

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
-import { App as AntApp, Button, Card, Descriptions, Form, Input, Layout, Modal, Select, Space, Typography } from "antd";
-import { EditOutlined, KeyOutlined } from "@ant-design/icons";
+import { App as AntApp, Button, Card, Descriptions, Form, Input, Layout, Modal, Select, Space, Tooltip, Typography } from "antd";
+import { EditOutlined, KeyOutlined, CheckOutlined, CloseOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
@@ -26,7 +26,6 @@ function MiPerfilInner() {
   const { t } = useTranslation();
   const { message } = AntApp.useApp();
   
-  const [formDatos] = Form.useForm();
   const [formPassword] = Form.useForm();
 
   const [loading, setLoading] = useState(true);
@@ -35,8 +34,11 @@ function MiPerfilInner() {
   const [obrasSociales, setObrasSociales] = useState([]);
   const [planes, setPlanes] = useState([]);
   const [obraSocialIdSeleccionada, setObraSocialIdSeleccionada] = useState(null);
-  
-  const [modalDatosAbierto, setModalDatosAbierto] = useState(false);
+
+  // Edición inline: qué campo se está editando y su valor temporal.
+  const [campoEditando, setCampoEditando] = useState(null);
+  const [valorTemporal, setValorTemporal] = useState(undefined);
+
   const [modalPasswordAbierto, setModalPasswordAbierto] = useState(false);
 
   const isMedico = useMemo(() => user?.role === "medico", [user]);
@@ -144,64 +146,75 @@ function MiPerfilInner() {
     }
   };
 
-  const abrirEdicionDatos = () => {
-    const obraSocialId = profile?.obraSocial?._id || profile?.obraSocial || undefined;
-
-    formDatos.resetFields();
-    formDatos.setFieldsValue({
-      nombre: profile?.nombre || "",
-      nombreUsuario: profile?.usuario?.nombreUsuario || user.username || "",
-      ...(isPaciente
-        ? {
-            dni: profile?.dni,
-            obraSocialId,
-            planId: profile?.plan?._id || profile?.plan || undefined,
-          }
-        : {}),
-      ...(isMedico ? { matricula: profile?.matricula || "" } : {}),
-    });
-
-    if (isPaciente && obraSocialId) {
-      setObraSocialIdSeleccionada(obraSocialId);
-    }
-
-    setModalDatosAbierto(true);
+  const iniciarEdicion = (campo, valorInicial) => {
+    setCampoEditando(campo);
+    setValorTemporal(valorInicial);
   };
 
-  const cerrarModalDatos = () => {
-    setModalDatosAbierto(false);
-    formDatos.resetFields();
+  const cancelarEdicion = () => {
+    setCampoEditando(null);
+    setValorTemporal(undefined);
   };
 
-  const guardarEdicionDatos = async () => {
-    let values;
-    try {
-      values = await formDatos.validateFields();
-    } catch {
-      return;
-    }
-
-    const payload = {};
-    if (values.nombre?.trim() !== undefined) payload.nombre = values.nombre.trim();
-    if (values.nombreUsuario?.trim() !== undefined) payload.nombreUsuario = values.nombreUsuario.trim();
-    
-    if (isPaciente) {
-      if (values.dni !== undefined && values.dni !== "") payload.dni = Number(values.dni);
-      payload.obraSocialId = values.obraSocialId || null;
-      payload.planId = values.planId || null;
-    }
-    if (isMedico) {
-      payload.matricula = values.matricula?.trim() || "";
-    }
-
+  const guardarCampo = async (payload) => {
     setGuardando(true);
     const guardo = await persistirPerfil(payload);
     setGuardando(false);
-
     if (guardo) {
-      setModalDatosAbierto(false);
-      formDatos.resetFields();
+      setCampoEditando(null);
+      setValorTemporal(undefined);
     }
+  };
+
+  const renderBotonEditar = (campo, valorInicial) => (
+    <Tooltip title={t("perfil.editar")}>
+      <Button
+        type="text"
+        size="small"
+        icon={<EditOutlined />}
+        onClick={() => iniciarEdicion(campo, valorInicial)}
+        aria-label={t("perfil.editar")}
+      />
+    </Tooltip>
+  );
+
+  const renderAcciones = (onGuardar) => (
+    <>
+      <Button
+        type="text"
+        size="small"
+        icon={<CheckOutlined />}
+        loading={guardando}
+        onClick={onGuardar}
+        aria-label={t("perfil.guardar")}
+      />
+      <Button
+        type="text"
+        size="small"
+        icon={<CloseOutlined />}
+        onClick={cancelarEdicion}
+        disabled={guardando}
+        aria-label={t("perfil.cancelar")}
+      />
+    </>
+  );
+
+  // Muestra el valor con un botón de editar, o un editor inline si está en edición.
+  const renderCampoEditable = ({ campo, valor, valorInicial, onGuardar, editor }) => {
+    if (campoEditando === campo) {
+      return (
+        <Space size={4} wrap>
+          {editor}
+          {renderAcciones(onGuardar)}
+        </Space>
+      );
+    }
+    return (
+      <Space size={4}>
+        <span>{valor}</span>
+        {renderBotonEditar(campo, valorInicial)}
+      </Space>
+    );
   };
 
   const abrirEdicionPassword = () => {
@@ -283,150 +296,192 @@ function MiPerfilInner() {
             <Text type="secondary">{t("perfil.descripcion")}</Text>
           </div>
           <Space wrap>
-            <Button type="primary" icon={<EditOutlined />} onClick={abrirEdicionDatos}>
-              {t("perfil.editar")}
-            </Button>
-            {!isAdmin && (
-              <Button icon={<KeyOutlined />} onClick={abrirEdicionPassword}>
-                Cambiar contraseña
-              </Button>
-            )}
             <Button danger onClick={handleLogout}>
               {t("navbar.logout")}
             </Button>
           </Space>
         </Space>
 
-        <Card style={{ marginTop: 16 }} loading={loading}>
+        <Card
+          style={{ marginTop: 16 }}
+          loading={loading}
+          title={t("perfil.datos")}
+        >
           <Descriptions column={1} labelStyle={{ fontWeight: 600, width: 200 }}>
             <Descriptions.Item label={t("perfil.rol")}>
               {t(`perfil.role.${roleKey}`) || t("perfil.role.default")}
             </Descriptions.Item>
 
             <Descriptions.Item label={t("perfil.nombre")}>
-              {profile?.nombre || profile?.usuario?.nombreUsuario || user.username}
+              {renderCampoEditable({
+                campo: "nombre",
+                valor: profile?.nombre || profile?.usuario?.nombreUsuario || user.username,
+                valorInicial: profile?.nombre || "",
+                onGuardar: () => {
+                  const v = (valorTemporal ?? "").trim();
+                  if (!v) return message.warning(t("perfil.errorNombreRequerido"));
+                  guardarCampo({ nombre: v });
+                },
+                editor: (
+                  <Input
+                    autoFocus
+                    value={valorTemporal}
+                    onChange={(e) => setValorTemporal(e.target.value)}
+                    onPressEnter={() => {
+                      const v = (valorTemporal ?? "").trim();
+                      if (v) guardarCampo({ nombre: v });
+                    }}
+                    style={{ width: 220 }}
+                  />
+                ),
+              })}
             </Descriptions.Item>
 
             <Descriptions.Item label={t("perfil.usuario")}>
-              {profile?.usuario?.nombreUsuario || user.username}
+              {renderCampoEditable({
+                campo: "nombreUsuario",
+                valor: profile?.usuario?.nombreUsuario || user.username,
+                valorInicial: profile?.usuario?.nombreUsuario || user.username || "",
+                onGuardar: () => {
+                  const v = (valorTemporal ?? "").trim();
+                  if (!v) return message.warning(t("perfil.errorUsuarioRequerido"));
+                  guardarCampo({ nombreUsuario: v });
+                },
+                editor: (
+                  <Input
+                    autoFocus
+                    autoComplete="username"
+                    value={valorTemporal}
+                    onChange={(e) => setValorTemporal(e.target.value)}
+                    onPressEnter={() => {
+                      const v = (valorTemporal ?? "").trim();
+                      if (v) guardarCampo({ nombreUsuario: v });
+                    }}
+                    style={{ width: 220 }}
+                  />
+                ),
+              })}
             </Descriptions.Item>
 
             {!isAdmin && (
               <Descriptions.Item label={t("perfil.password")}>
-                ••••••••
+                <Space size={4}>
+                  <span>••••••••</span>
+                  <Tooltip title={t("perfil.cambiarPassword")}>
+                    <Button
+                      type="text"
+                      size="small"
+                      icon={<KeyOutlined />}
+                      onClick={abrirEdicionPassword}
+                      aria-label={t("perfil.cambiarPassword")}
+                    />
+                  </Tooltip>
+                </Space>
               </Descriptions.Item>
             )}
 
             {isPaciente && (
               <>
                 <Descriptions.Item label={t("registro.paciente.dniLabel")}>
-                  {profile?.dni ?? "—"}
+                  {renderCampoEditable({
+                    campo: "dni",
+                    valor: profile?.dni ?? "—",
+                    valorInicial: profile?.dni ?? "",
+                    onGuardar: () => {
+                      const n = Number(valorTemporal);
+                      if (!valorTemporal || Number.isNaN(n) || n <= 0) {
+                        return message.warning(t("perfil.errorDniInvalido"));
+                      }
+                      guardarCampo({ dni: n });
+                    },
+                    editor: (
+                      <Input
+                        autoFocus
+                        type="number"
+                        value={valorTemporal}
+                        onChange={(e) => setValorTemporal(e.target.value)}
+                        style={{ width: 220 }}
+                      />
+                    ),
+                  })}
                 </Descriptions.Item>
 
                 <Descriptions.Item label={t("registro.paciente.obraSocialLabel")}>
-                  {obraSocialLabel || "—"}
+                  {renderCampoEditable({
+                    campo: "obraSocial",
+                    valor: obraSocialLabel || "—",
+                    valorInicial: profile?.obraSocial?._id || profile?.obraSocial || undefined,
+                    onGuardar: () => guardarCampo({ obraSocialId: valorTemporal || null, planId: null }),
+                    editor: (
+                      <Select
+                        autoFocus
+                        style={{ width: 220 }}
+                        value={valorTemporal}
+                        placeholder={t("registro.paciente.placeholderObraSocial")}
+                        options={obrasSociales.map((o) => ({ value: o._id, label: o.nombre }))}
+                        onChange={(v) => {
+                          setValorTemporal(v);
+                          setObraSocialIdSeleccionada(v ?? null);
+                        }}
+                        allowClear
+                      />
+                    ),
+                  })}
                 </Descriptions.Item>
 
                 <Descriptions.Item label={t("registro.paciente.planLabel")}>
-                  {planLabel || "—"}
+                  {renderCampoEditable({
+                    campo: "plan",
+                    valor: planLabel || "—",
+                    valorInicial: profile?.plan?._id || profile?.plan || undefined,
+                    onGuardar: () => guardarCampo({ planId: valorTemporal || null }),
+                    editor: (
+                      <Select
+                        autoFocus
+                        style={{ width: 220 }}
+                        value={valorTemporal}
+                        placeholder={planes.length ? t("registro.paciente.placeholderPlan") : t("registro.paciente.placeholderPlanFirst")}
+                        disabled={!planes.length}
+                        options={planes.map((p) => ({ value: p._id, label: p.nombre }))}
+                        onChange={(v) => setValorTemporal(v)}
+                        allowClear
+                      />
+                    ),
+                  })}
                 </Descriptions.Item>
               </>
             )}
 
             {isMedico && (
               <Descriptions.Item label={t("registro.medico.matriculaLabel")}>
-                {profile?.matricula || "—"}
+                {renderCampoEditable({
+                  campo: "matricula",
+                  valor: profile?.matricula || "—",
+                  valorInicial: profile?.matricula || "",
+                  onGuardar: () => {
+                    const v = (valorTemporal ?? "").trim();
+                    if (!v) return message.warning(t("perfil.errorMatriculaRequerida"));
+                    guardarCampo({ matricula: v });
+                  },
+                  editor: (
+                    <Input
+                      autoFocus
+                      value={valorTemporal}
+                      onChange={(e) => setValorTemporal(e.target.value)}
+                      onPressEnter={() => {
+                        const v = (valorTemporal ?? "").trim();
+                        if (v) guardarCampo({ matricula: v });
+                      }}
+                      style={{ width: 220 }}
+                    />
+                  ),
+                })}
               </Descriptions.Item>
             )}
           </Descriptions>
         </Card>
 
-        {/* Modal 1: Editar Datos Personales */}
-        <Modal
-          title={t("perfil.editarTitulo")}
-          open={modalDatosAbierto}
-          onOk={guardarEdicionDatos}
-          onCancel={cerrarModalDatos}
-          okText={t("perfil.guardar")}
-          cancelText={t("perfil.cancelar")}
-          confirmLoading={guardando}
-          maskClosable={!guardando}
-          destroyOnClose
-        >
-          <Form form={formDatos} layout="vertical" preserve={false}>
-            <Form.Item
-              name="nombre"
-              label={t("perfil.nombre")}
-              rules={[{ required: true, message: "Por favor ingresá tu nombre" }]}
-            >
-              <Input />
-            </Form.Item>
-
-            <Form.Item
-              name="nombreUsuario"
-              label={t("perfil.usuario")}
-              rules={[{ required: true, message: "Por favor ingresá tu nombre de usuario" }]}
-            >
-              <Input autoComplete="username" />
-            </Form.Item>
-
-            {isPaciente && (
-              <Form.Item
-                name="dni"
-                label={t("registro.paciente.dniLabel")}
-                rules={[
-                  { required: true, message: "Por favor ingresá tu DNI" },
-                  {
-                    validator(_, val) {
-                      if (val !== undefined && val !== "" && Number(val) <= 0) {
-                        return Promise.reject(new Error("El DNI debe ser un número mayor a 0"));
-                      }
-                      return Promise.resolve();
-                    }
-                  }
-                ]}
-              >
-                <Input type="number" />
-              </Form.Item>
-            )}
-
-            {isMedico && (
-              <Form.Item
-                name="matricula"
-                label={t("registro.medico.matriculaLabel")}
-                rules={[{ required: true, message: "Por favor ingresá tu matrícula" }]}
-              >
-                <Input />
-              </Form.Item>
-            )}
-
-            {isPaciente && (
-              <>
-                <Form.Item name="obraSocialId" label={t("registro.paciente.obraSocialLabel")}>
-                  <Select
-                    placeholder={t("registro.paciente.placeholderObraSocial")}
-                    options={obrasSociales.map((o) => ({ value: o._id, label: o.nombre }))}
-                    onChange={(v) => {
-                      setObraSocialIdSeleccionada(v ?? null);
-                      formDatos.setFieldValue("planId", undefined);
-                    }}
-                    allowClear
-                  />
-                </Form.Item>
-                <Form.Item name="planId" label={t("registro.paciente.planLabel")}>
-                  <Select
-                    placeholder={planes.length ? t("registro.paciente.placeholderPlan") : t("registro.paciente.placeholderPlanFirst")}
-                    disabled={!planes.length}
-                    options={planes.map((p) => ({ value: p._id, label: p.nombre }))}
-                    allowClear
-                  />
-                </Form.Item>
-              </>
-            )}
-          </Form>
-        </Modal>
-
-        {/* Modal 2: Cambiar Contraseña */}
+        {/* Modal: Cambiar Contraseña */}
         {!isAdmin && (
           <Modal
             title="Cambiar contraseña"
