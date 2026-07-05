@@ -102,6 +102,13 @@ export class TurnoRepository {
         return await this.model.findByIdAndUpdate(id, persistenceTurno, { new: true });
     }
 
+        async findByMedicoAndFechaHora(medicoId, fechaHora) {
+        return await this.model.findOne({
+            medico: medicoId,
+            fechaHora: fechaHora
+        });
+    }
+
     /**
      * Update ATÓMICO condicionado a que el turno siga DISPONIBLE.
      * Devuelve el turno actualizado, o null si otro proceso ya lo tomó
