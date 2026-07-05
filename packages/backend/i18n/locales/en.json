@@ -9,6 +9,15 @@
       },
       "cancelado": {
         "destinatario": "Hello {{nombre}}, your appointment on {{fechaHora}} has been canceled. Reason: {{motivo}}"
+      },
+      "cambioTurno": {
+        "destinatario": "Hello {{nombre}}, there has been a request to change the date in one of your turns"
+      },
+      "rechazarCambioTurno": {
+        "destinatario": "Hello {{nombre}}, your request to change the date of your turn has been rejected. Reason: {{motivo}}"
+      },
+      "aceptarCambioTurno": {
+        "destinatario": "Hello {{nombre}}, your request to change the date of your turn has been acepted."
       }
     },
     "recordatorio": {

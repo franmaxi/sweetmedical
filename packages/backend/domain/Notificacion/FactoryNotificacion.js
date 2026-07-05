@@ -5,9 +5,22 @@ import i18next from '../../i18n/i18n.js'
 
 export class FactoryNotificacion {
     
-    crearSegunEstadoTurno(turno){   
+    crearSegunEstadoTurno(turno, cambioFecha){   
         switch(turno.estado){
-            case EstadoTurno.RESERVADO:
+            case EstadoTurno.RESERVADO :
+                // si hubo un cambio de fecha, significa que anteriormente estabamos en CONFIRMADO
+                if(cambioFecha) {
+                    const usuarioContrario = this.obtenerContrario(turno)
+                    return new Notificacion({
+                        destinatario: usuarioContrario.usuario, 
+                        remitente: null,
+                        mensaje: i18next.t('notificaciones.turno.cambioTurno.destinatario', {
+                            lng:       usuarioContrario.usuario.idioma,
+                            nombre:    usuarioContrario.nombreUsuario,
+                            fechaHora: turno.fechaHora
+                        })
+                    })
+                } 
                 return new Notificacion({
                     destinatario: turno.medico.usuario, 
                     remitente: null,
@@ -15,10 +28,23 @@ export class FactoryNotificacion {
                         lng:       turno.medico.usuario.idioma,
                         nombre:    turno.medico.nombre,
                         fechaHora: turno.fechaHora,
-                        paciente:  turno.paciente.nombre,
+                        paciente:  turno.paciente.nombre
                     })
                 })
             case EstadoTurno.CONFIRMADO:
+                if(cambioFecha){
+                    const usuarioContrario = this.obtenerContrario(turno)
+                    return new Notificacion({
+                        destinatario: usuarioContrario.usuario, 
+                        remitente: null,
+                        mensaje: i18next.t('notificaciones.turno.rechazarCambioTurno.destinatario', {
+                            lng:       usuarioContrario.usuario.idioma,
+                            nombre:    usuarioContrario.nombreUsuario,
+                            fechaHora: turno.fechaHora,
+                            motivo: turno.ultimoHistorialEstado().motivo
+                        })
+                    })
+                }
                 return new Notificacion({
                     destinatario: turno.paciente.usuario, 
                     remitente: null,
@@ -26,12 +52,23 @@ export class FactoryNotificacion {
                         lng:       turno.paciente.usuario.idioma,
                         nombre:    turno.paciente.nombre,
                         fechaHora: turno.fechaHora,
-                        medico:    turno.medico.nombre,
+                        medico:    turno.medico.nombre
                     })
-            })
+                })
             case EstadoTurno.CANCELADO: {
                 const usuarioContrario = this.obtenerContrario(turno)
                 const ultimoCambio = turno.ultimoHistorialEstado()
+                if(cambioFecha){
+                    return new Notificacion({
+                        destinatario: usuarioContrario.usuario, 
+                        remitente: null,
+                        mensaje: i18next.t('notificaciones.turno.aceptarCambioTurno.destinatario', {
+                            lng:       usuarioContrario.usuario.idioma,
+                            nombre:    usuarioContrario.nombreUsuario,
+                            fechaHora: turno.fechaHora
+                        })
+                    })
+                }
                 return new Notificacion({
                     destinatario: usuarioContrario.usuario,
                     remitente: null, 
@@ -39,7 +76,7 @@ export class FactoryNotificacion {
                         lng:       usuarioContrario.usuario.idioma,
                         nombre:    usuarioContrario.nombreUsuario,
                         fechaHora: turno.fechaHora,
-                        motivo:    ultimoCambio.motivo,
+                        motivo:    ultimoCambio.motivo
                     }) 
                 })
             }
