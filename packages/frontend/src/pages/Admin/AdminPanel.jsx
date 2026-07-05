@@ -8,8 +8,10 @@ import {
   Input,
   Layout,
   Modal,
+  Popover,
   Space,
   Table,
+  Tabs,
   Typography,
 } from "antd";
 import {
@@ -19,6 +21,7 @@ import {
   PlusOutlined,
   PushpinOutlined,
   SettingOutlined,
+  SmileOutlined,
 } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
 import Navbar from "../../components/Navbar";
@@ -34,10 +37,101 @@ import {
   crearEspecialidadGenerica,
   actualizarEspecialidadGenerica,
 } from "../../api/api";
+import { extraerMensajeError } from "../../api/errorUtils";
+import { CATEGORIAS_COMPLETAS, validarUnicoEmoji } from "../../utils/emojis";
 
 const { Title, Text } = Typography;
 
 const idDe = (x) => String(x?._id ?? x?.id ?? x);
+
+function EmojiInput({ value, onChange, placeholder }) {
+  const [visible, setVisible] = useState(false);
+
+  const seleccionarEmoji = (emoji) => {
+    onChange?.(emoji);
+    setVisible(false);
+  };
+
+  const gridStyle = {
+    display: "grid",
+    gridTemplateColumns: "repeat(8, 1fr)",
+    gap: 6,
+    maxHeight: 220,
+    overflowY: "auto",
+    padding: "8px 4px",
+  };
+
+  const emojiBtnStyle = {
+    fontSize: 20,
+    padding: 0,
+    height: 34,
+    width: 34,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    borderRadius: 8,
+    transition: "all 0.15s ease",
+  };
+
+  const renderEmojiGrid = (emojis) => (
+    <div style={gridStyle}>
+      {emojis.map((emoji, index) => (
+        <Button
+          key={`${emoji}-${index}`}
+          size="middle"
+          type="text"
+          style={emojiBtnStyle}
+          onClick={() => seleccionarEmoji(emoji)}
+        >
+          {emoji}
+        </Button>
+      ))}
+    </div>
+  );
+
+  const tabItems = CATEGORIAS_COMPLETAS.map((cat) => ({
+    key: cat.key,
+    label: cat.label,
+    children: renderEmojiGrid(cat.emojis),
+  }));
+
+  const contenidoPopover = (
+    <div style={{ width: 360 }}>
+      <Tabs
+        defaultActiveKey="medicina"
+        size="small"
+        items={tabItems}
+        tabBarStyle={{ marginBottom: 4 }}
+      />
+    </div>
+  );
+
+  return (
+    <Popover
+      content={contenidoPopover}
+      title={<Text strong style={{ fontSize: 13, padding: "8px 16px 0 16px", display: "block" }}>Seleccionar Emoji</Text>}
+      trigger="click"
+      open={visible}
+      onOpenChange={setVisible}
+      placement="bottomLeft"
+      overlayStyle={{ zIndex: 1050 }}
+      overlayInnerStyle={{ padding: "0 12px 12px 12px" }}
+    >
+      <Input
+        value={value}
+        readOnly
+        placeholder={placeholder || "Haz clic aquí para seleccionar un emoji..."}
+        style={{
+          borderRadius: 8,
+          cursor: "pointer",
+          fontSize: value ? 20 : 14,
+          textAlign: value ? "center" : "left",
+          backgroundColor: "#fff"
+        }}
+      />
+    </Popover>
+  );
+}
 
 export default function AdminPanel() {
   return (
@@ -284,11 +378,11 @@ function CrudTab({
   const { message } = AntApp.useApp();
   const [form] = Form.useForm();
 
-  const [items, setItems] = useState([]);
-  const [cargando, setCargando] = useState(true);
-  const [modalAbierto, setModalAbierto] = useState(false);
-  const [guardando, setGuardando] = useState(false);
-  const [enEdicion, setEnEdicion] = useState(null); // item que se está editando (null = alta)
+  const [ items, setItems ] = useState([]);
+  const [ cargando, setCargando ] = useState(true);
+  const [ modalAbierto, setModalAbierto ] = useState(false);
+  const [ guardando, setGuardando ] = useState(false);
+  const [ enEdicion, setEnEdicion ] = useState(null); // item que se está editando (null = alta)
 
   const recargar = () => {
     setCargando(true);
@@ -297,7 +391,7 @@ function CrudTab({
         const data = Array.isArray(res?.data) ? res.data : [];
         setItems(data);
       })
-      .catch(() => message.error(textos.errorCargar))
+      .catch((err) => message.error(extraerMensajeError(err, textos.errorCargar)))
       .finally(() => setCargando(false));
   };
 
@@ -306,19 +400,27 @@ function CrudTab({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  useEffect(() => {
+    if (modalAbierto) {
+      if (enEdicion) {
+        const valores = {};
+        fields.forEach((f) => {
+          valores[f.name] = enEdicion[f.name];
+        });
+        form.setFieldsValue(valores);
+      } else {
+        form.resetFields();
+      }
+    }
+  }, [modalAbierto, enEdicion, fields, form]);
+
   const abrirAlta = () => {
     setEnEdicion(null);
-    form.resetFields();
     setModalAbierto(true);
   };
 
   const abrirEdicion = (item) => {
     setEnEdicion(item);
-    const valores = {};
-    fields.forEach((f) => {
-      valores[f.name] = item[f.name];
-    });
-    form.setFieldsValue(valores);
     setModalAbierto(true);
   };
 
@@ -349,8 +451,7 @@ function CrudTab({
       recargar();
       onChanged?.();
     } catch (error) {
-      const detalle = error?.response?.data?.message;
-      message.error(detalle || textos.errorGuardar);
+      message.error(extraerMensajeError(error, textos.errorGuardar));
     } finally {
       setGuardando(false);
     }
@@ -419,19 +520,30 @@ function CrudTab({
         maskClosable={!guardando}
         destroyOnClose
       >
-        <Form form={form} layout="vertical" preserve={false}>
-          {fields.map((f) => (
-            <Form.Item
-              key={f.name}
-              name={f.name}
-              label={f.label}
-              rules={f.rules}
-              extra={f.extra}
-            >
-              <Input placeholder={f.placeholder} maxLength={f.maxLength} />
-            </Form.Item>
-          ))}
-        </Form>
+        {modalAbierto && (
+          <Form
+            form={form}
+            layout="vertical"
+            key={enEdicion ? idDe(enEdicion) : "nuevo"}
+            initialValues={enEdicion || {}}
+          >
+            {fields.map((f) => (
+              <Form.Item
+                key={f.name}
+                name={f.name}
+                label={f.label}
+                rules={f.rules}
+                extra={f.extra}
+              >
+                {f.type === "emoji" ? (
+                  <EmojiInput placeholder={f.placeholder} />
+                ) : (
+                  <Input placeholder={f.placeholder} maxLength={f.maxLength} />
+                )}
+              </Form.Item>
+            ))}
+          </Form>
+        )}
       </Modal>
     </>
   );
@@ -486,9 +598,12 @@ function PracticasTab({ onChanged }) {
           name: "emoji",
           label: t("admin.campos.emoji"),
           width: 90,
-          maxLength: 4,
+          type: "emoji",
           extra: t("admin.hints.emoji"),
-          rules: [{ required: true, message: t("admin.validacion.emojiRequerido") }],
+          rules: [
+            { required: true, message: t("admin.validacion.emojiRequerido") },
+            { validator: validarUnicoEmoji }
+          ],
         },
       ]}
       textos={buildTextos(t, "practicas")}
@@ -514,9 +629,12 @@ function EspecialidadesTab({ onChanged }) {
           name: "emoji",
           label: t("admin.campos.emoji"),
           width: 90,
-          maxLength: 4,
+          type: "emoji",
           extra: t("admin.hints.emoji"),
-          rules: [{ required: true, message: t("admin.validacion.emojiRequerido") }],
+          rules: [
+            { required: true, message: t("admin.validacion.emojiRequerido") },
+            { validator: validarUnicoEmoji }
+          ],
         },
       ]}
       textos={buildTextos(t, "especialidades")}
