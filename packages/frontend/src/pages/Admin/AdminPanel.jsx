@@ -1,27 +1,33 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   App as AntApp,
   Button,
   Card,
+  Divider,
   Empty,
   Form,
   Input,
+  InputNumber,
   Layout,
   Modal,
   Popover,
+  Select,
   Space,
   Table,
   Tabs,
+  Tag,
   Typography,
 } from "antd";
 import {
   DashboardOutlined,
+  DeleteOutlined,
   EditOutlined,
   MedicineBoxOutlined,
   PlusOutlined,
   PushpinOutlined,
   SettingOutlined,
   SmileOutlined,
+  FileTextOutlined,
 } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
 import Navbar from "../../components/Navbar";
@@ -36,6 +42,10 @@ import {
   getEspecialidadesGenericas,
   crearEspecialidadGenerica,
   actualizarEspecialidadGenerica,
+  getObrasSociales,
+  crearObraSocial,
+  getPlanes,
+  crearPlan,
 } from "../../api/api";
 import { extraerMensajeError } from "../../api/errorUtils";
 import { CATEGORIAS_COMPLETAS, validarUnicoEmoji } from "../../utils/emojis";
@@ -162,6 +172,20 @@ const SECCIONES = [
     accent: "#7d5bd6",
     loadFn: () => getEspecialidadesGenericas({ limit: 100 }),
     render: (props) => <EspecialidadesTab {...props} />,
+  },
+  {
+    key: "obrasSociales",
+    icon: <SmileOutlined />,
+    accent: "#ea580c",
+    loadFn: () => getObrasSociales(),
+    render: (props) => <ObrasSocialesTab {...props} />,
+  },
+  {
+    key: "planes",
+    icon: <FileTextOutlined />,
+    accent: "#0284c7",
+    loadFn: () => getPlanes(),
+    render: (props) => <PlanesTab {...props} />,
   },
 ];
 
@@ -462,8 +486,12 @@ function CrudTab({
       title: f.label,
       dataIndex: f.name,
       width: f.width,
+      render: f.render,
     })),
-    {
+  ];
+
+  if (updateFn) {
+    columns.push({
       title: textos.acciones,
       width: 120,
       render: (_, item) => (
@@ -475,8 +503,8 @@ function CrudTab({
           {textos.editar}
         </Button>
       ),
-    },
-  ];
+    });
+  }
 
   const dataSource = items.map((it) => ({ ...it, key: idDe(it) }));
 
@@ -537,6 +565,8 @@ function CrudTab({
               >
                 {f.type === "emoji" ? (
                   <EmojiInput placeholder={f.placeholder} />
+                ) : f.type === "select" ? (
+                  <Select placeholder={f.placeholder} options={f.options} loading={f.loading} />
                 ) : (
                   <Input placeholder={f.placeholder} maxLength={f.maxLength} />
                 )}
@@ -639,6 +669,476 @@ function EspecialidadesTab({ onChanged }) {
       ]}
       textos={buildTextos(t, "especialidades")}
     />
+  );
+}
+
+function ObrasSocialesTab({ onChanged }) {
+  const { t } = useTranslation();
+  return (
+    <CrudTab
+      loadFn={getObrasSociales}
+      createFn={crearObraSocial}
+      onChanged={onChanged}
+      fields={[
+        {
+          name: "nombre",
+          label: t("admin.campos.nombre"),
+          rules: [{ required: true, message: t("admin.validacion.nombreRequerido") }],
+        },
+      ]}
+      textos={buildTextos(t, "obrasSociales")}
+    />
+  );
+}
+
+const NIVELES_COBERTURA = [
+  { value: "TOTAL", color: "green", label: "TOTAL" },
+  { value: "PARCIAL", color: "gold", label: "PARCIAL" },
+  { value: "NO CUBIERTA", color: "red", label: "NO CUBIERTA" }
+];
+
+const getColorPorNivel = (nivel) => {
+  const n = NIVELES_COBERTURA.find(x => x.value === nivel);
+  return n ? n.color : "default";
+};
+
+/**
+ * Fila individual de cobertura (especialidad o práctica).
+ * Props:
+ *   item      – { id, especialidadGenerica|practicaGenerica, nivel, pocentajeDescuento }
+ *   opciones  – [{ label, value }]
+ *   loading   – boolean
+ *   onChange  – (id, campo, valor) => void
+ *   onRemove  – (id) => void
+ *   labelSelect – string
+ *   keyGenerica – "especialidadGenerica" | "practicaGenerica"
+ *   t         – función de traducción
+ */
+function FilaCobertura({ item, opciones, loading, onChange, onRemove, labelSelect, keyGenerica, t }) {
+  const isParcial = item.nivel === "PARCIAL";
+
+  const handleNivelChange = (val) => {
+    onChange(item.id, "nivel", val);
+    if (val === "TOTAL") {
+      onChange(item.id, "pocentajeDescuento", 100);
+    } else if (val === "NO CUBIERTA") {
+      onChange(item.id, "pocentajeDescuento", 0);
+    } else if (val === "PARCIAL") {
+      // Limpiamos el valor o lo dejamos null si no es un número válido para parcial
+      if (item.pocentajeDescuento === 100 || item.pocentajeDescuento === 0) {
+        onChange(item.id, "pocentajeDescuento", null);
+      }
+    }
+  };
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "flex-start",
+        gap: 12,
+        width: "100%",
+        boxSizing: "border-box",
+        background: "#f8fafc",
+        borderRadius: 10,
+        padding: "10px 12px",
+        border: "1px solid #e2e8f0",
+        marginBottom: 8,
+      }}
+    >
+      {/* Select especialidad o práctica */}
+      <Form.Item
+        style={{ margin: 0, flex: 2 }}
+        validateStatus={!item[keyGenerica] ? "error" : ""}
+        help={!item[keyGenerica] ? t("admin.validacion." + (keyGenerica === "especialidadGenerica" ? "especialidadRequerida" : "practicaRequerida")) : null}
+      >
+        <Select
+          placeholder={labelSelect}
+          options={opciones}
+          loading={loading}
+          value={item[keyGenerica] || undefined}
+          onChange={(val) => onChange(item.id, keyGenerica, val)}
+          style={{ width: "100%" }}
+          showSearch
+          optionFilterProp="label"
+        />
+      </Form.Item>
+
+      {/* Select nivel */}
+      <Form.Item
+        style={{ margin: 0, flex: 1.5 }}
+        validateStatus={!item.nivel ? "error" : ""}
+        help={!item.nivel ? t("admin.validacion.nivelRequerido") : null}
+      >
+        <Select
+          placeholder={t("admin.campos.nivel")}
+          value={item.nivel || undefined}
+          onChange={handleNivelChange}
+          style={{ width: "100%" }}
+          options={NIVELES_COBERTURA.map((n) => ({
+            label: <Tag color={n.color} style={{ margin: 0, display: "block", textAlign: "center" }}>{n.label}</Tag>,
+            value: n.value
+          }))}
+        />
+      </Form.Item>
+
+      {/* Input porcentaje */}
+      <Form.Item
+        style={{ margin: 0, flex: 1 }}
+        validateStatus={isParcial && (item.pocentajeDescuento == null || item.pocentajeDescuento < 1 || item.pocentajeDescuento > 99) ? "error" : ""}
+        help={isParcial && (item.pocentajeDescuento == null || item.pocentajeDescuento < 1 || item.pocentajeDescuento > 99) ? t("admin.validacion.porcentajeInvalido") : null}
+      >
+        <InputNumber
+          placeholder="%"
+          min={1}
+          max={99}
+          step={1}
+          disabled={!isParcial}
+          value={item.pocentajeDescuento}
+          onChange={(val) => onChange(item.id, "pocentajeDescuento", val)}
+          style={{ width: "100%" }}
+          addonAfter="%"
+        />
+      </Form.Item>
+
+      {/* Botón eliminar */}
+      <Button
+        type="text"
+        danger
+        icon={<DeleteOutlined />}
+        onClick={() => onRemove(item.id)}
+      />
+    </div>
+  );
+}
+
+let nextCobId = 1;
+const newCobertura = (extra = {}) => ({ id: nextCobId++, nivel: null, pocentajeDescuento: null, ...extra });
+
+function PlanesTab({ onChanged }) {
+  const { t } = useTranslation();
+  const { message } = AntApp.useApp();
+  const [form] = Form.useForm();
+
+  const [planes, setPlanes]                     = useState([]);
+  const [cargando, setCargando]                 = useState(true);
+  const [modalAbierto, setModalAbierto]         = useState(false);
+  const [guardando, setGuardando]               = useState(false);
+
+  // Datos para los selects
+  const [obrasSociales, setObrasSociales]       = useState([]);
+  const [loadingOS, setLoadingOS]               = useState(true);
+  const [especialidades, setEspecialidades]     = useState([]);
+  const [loadingEsp, setLoadingEsp]             = useState(true);
+  const [practicas, setPracticas]               = useState([]);
+  const [loadingPrac, setLoadingPrac]           = useState(true);
+
+  // Listas dinámicas de coberturas
+  const [cobEspecialidades, setCobEspecialidades] = useState([]);
+  const [cobPracticas, setCobPracticas]           = useState([]);
+
+  // Error de "al menos una cobertura"
+  const [errorCobertura, setErrorCobertura]     = useState(false);
+
+  const recargar = () => {
+    setCargando(true);
+    getPlanes()
+      .then((res) => setPlanes(Array.isArray(res?.data) ? res.data : []))
+      .catch((err) => message.error(extraerMensajeError(err, t("admin.mensajes.errorCargar"))))
+      .finally(() => setCargando(false));
+  };
+
+  useEffect(() => { recargar(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    getObrasSociales()
+      .then((res) => setObrasSociales(res?.data || []))
+      .catch((err) => console.error("Error cargando obras sociales", err))
+      .finally(() => setLoadingOS(false));
+
+    getEspecialidadesGenericas({ limit: 200 })
+      .then((res) => setEspecialidades(Array.isArray(res?.data) ? res.data : []))
+      .catch((err) => console.error("Error cargando especialidades", err))
+      .finally(() => setLoadingEsp(false));
+
+    getPracticasGenericas({ limit: 200 })
+      .then((res) => setPracticas(Array.isArray(res?.data) ? res.data : []))
+      .catch((err) => console.error("Error cargando prácticas", err))
+      .finally(() => setLoadingPrac(false));
+  }, []);
+
+  const abrirAlta = () => {
+    form.resetFields();
+    setCobEspecialidades([]);
+    setCobPracticas([]);
+    setErrorCobertura(false);
+    setModalAbierto(true);
+  };
+
+  const cerrarModal = () => {
+    setModalAbierto(false);
+    form.resetFields();
+    setCobEspecialidades([]);
+    setCobPracticas([]);
+    setErrorCobertura(false);
+  };
+
+  const agregarEspecialidad = () =>
+    setCobEspecialidades((prev) => [...prev, newCobertura({ especialidadGenerica: null })]);
+
+  const agregarPractica = () =>
+    setCobPracticas((prev) => [...prev, newCobertura({ practicaGenerica: null })]);
+
+  const cambiarEspecialidad = (id, campo, valor) =>
+    setCobEspecialidades((prev) => prev.map((c) => c.id === id ? { ...c, [campo]: valor } : c));
+
+  const cambiarPractica = (id, campo, valor) =>
+    setCobPracticas((prev) => prev.map((c) => c.id === id ? { ...c, [campo]: valor } : c));
+
+  const quitarEspecialidad = (id) =>
+    setCobEspecialidades((prev) => prev.filter((c) => c.id !== id));
+
+  const quitarPractica = (id) =>
+    setCobPracticas((prev) => prev.filter((c) => c.id !== id));
+
+  const validarCoberturas = () => {
+    const todasEsp = cobEspecialidades.every(
+      (c) => c.especialidadGenerica && c.nivel && c.pocentajeDescuento != null && c.pocentajeDescuento >= (c.nivel === "PARCIAL" ? 1 : 0) && c.pocentajeDescuento <= (c.nivel === "PARCIAL" ? 99 : 100)
+    );
+    const todasPrac = cobPracticas.every(
+      (c) => c.practicaGenerica && c.nivel && c.pocentajeDescuento != null && c.pocentajeDescuento >= (c.nivel === "PARCIAL" ? 1 : 0) && c.pocentajeDescuento <= (c.nivel === "PARCIAL" ? 99 : 100)
+    );
+    return todasEsp && todasPrac;
+  };
+
+  const guardar = async () => {
+    let values;
+    try {
+      values = await form.validateFields();
+    } catch {
+      return;
+    }
+
+    // Al menos una cobertura requerida
+    if (cobEspecialidades.length === 0 && cobPracticas.length === 0) {
+      setErrorCobertura(true);
+      return;
+    }
+    setErrorCobertura(false);
+
+    // Validar campos internos de cada fila
+    if (!validarCoberturas()) {
+      message.error(t("admin.mensajes.errorGuardar"));
+      return;
+    }
+
+    setGuardando(true);
+    try {
+      await crearPlan({
+        idObraSocial: values.idObraSocial,
+        nombre: values.nombre,
+        coberturasEspecialidades: cobEspecialidades.map(({ especialidadGenerica, nivel, pocentajeDescuento }) => ({
+          especialidadGenerica,
+          nivel,
+          pocentajeDescuento: pocentajeDescuento / 100,
+        })),
+        coberturasPracticas: cobPracticas.map(({ practicaGenerica, nivel, pocentajeDescuento }) => ({
+          practicaGenerica,
+          nivel,
+          pocentajeDescuento: pocentajeDescuento / 100,
+        })),
+      });
+      message.success(t("admin.mensajes.creado"));
+      cerrarModal();
+      recargar();
+      onChanged?.();
+    } catch (error) {
+      message.error(extraerMensajeError(error, t("admin.mensajes.errorGuardar")));
+    } finally {
+      setGuardando(false);
+    }
+  };
+
+  // Helpers para mostrar en tabla
+  const opcionesEsp = especialidades.map((e) => ({ label: e.nombre, value: e._id || e.id }));
+  const opcionesPrac = practicas.map((p) => ({ label: p.nombre, value: p._id || p.id }));
+
+  const columns = [
+    {
+      title: t("admin.campos.obraSocial"),
+      dataIndex: "obraSocialNombre",
+      render: (val, record) => val || record.idObraSocial || "—",
+    },
+    {
+      title: t("admin.campos.nombre"),
+      dataIndex: "nombre",
+    },
+    {
+      title: t("admin.planes.coberturasEspecialidades"),
+      dataIndex: "coberturaEspecialidad",
+      render: (list) => {
+        if (!list?.length) return <Tag color="default">{t("admin.planes.sinCoberturas")}</Tag>;
+        return (
+          <Space wrap size={4}>
+            {list.map((c, i) => (
+              <Tag key={i} color={getColorPorNivel(c.nivel)}>
+                {especialidades.find((e) => (e._id || e.id) === (c.especialidadGenerica?._id || c.especialidadGenerica))?.nombre || "—"}
+                {" · "}{c.nivel}
+                {" · "}{c.pocentajeDescuento != null ? `${Math.round(c.pocentajeDescuento * 100)}%` : ""}
+              </Tag>
+            ))}
+          </Space>
+        );
+      },
+    },
+    {
+      title: t("admin.planes.coberturasPracticas"),
+      dataIndex: "coberturaPractica",
+      render: (list) => {
+        if (!list?.length) return <Tag color="default">{t("admin.planes.sinCoberturas")}</Tag>;
+        return (
+          <Space wrap size={4}>
+            {list.map((c, i) => (
+              <Tag key={i} color={getColorPorNivel(c.nivel)}>
+                {practicas.find((p) => (p._id || p.id) === (c.practicaGenerica?._id || c.practicaGenerica))?.nombre || "—"}
+                {" · "}{c.nivel}
+                {" · "}{c.pocentajeDescuento != null ? `${Math.round(c.pocentajeDescuento * 100)}%` : ""}
+              </Tag>
+            ))}
+          </Space>
+        );
+      },
+    },
+  ];
+
+  const dataSource = planes.map((p) => ({ ...p, key: idDe(p) }));
+
+  return (
+    <>
+      <Space wrap style={{ width: "100%", justifyContent: "flex-end", marginBottom: 12 }}>
+        <Button type="primary" icon={<PlusOutlined />} onClick={abrirAlta}>
+          {t("admin.acciones.nuevo")}
+        </Button>
+      </Space>
+
+      <Card bodyStyle={{ padding: 0 }}>
+        <Table
+          loading={cargando}
+          columns={columns}
+          dataSource={dataSource}
+          pagination={false}
+          scroll={{ x: 700 }}
+          locale={{
+            emptyText: (
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description={t("admin.vacio.planes")}
+              />
+            ),
+          }}
+        />
+      </Card>
+
+      <Modal
+        title={t("admin.modal.crear.planes")}
+        open={modalAbierto}
+        onOk={guardar}
+        onCancel={cerrarModal}
+        okText={t("admin.acciones.guardar")}
+        cancelText={t("admin.acciones.cancelar")}
+        confirmLoading={guardando}
+        maskClosable={!guardando}
+        destroyOnClose
+        width={800}
+      >
+        <Form form={form} layout="vertical">
+          {/* Obra social */}
+          <Form.Item
+            name="idObraSocial"
+            label={t("admin.campos.obraSocial")}
+            rules={[{ required: true, message: t("admin.validacion.obraSocialRequerida") }]}
+          >
+            <Select
+              placeholder={t("admin.validacion.obraSocialRequerida")}
+              options={obrasSociales.map((os) => ({ label: os.nombre, value: os._id || os.id }))}
+              loading={loadingOS}
+              showSearch
+              optionFilterProp="label"
+            />
+          </Form.Item>
+
+          {/* Nombre del plan */}
+          <Form.Item
+            name="nombre"
+            label={t("admin.campos.nombre")}
+            rules={[{ required: true, message: t("admin.validacion.nombreRequerido") }]}
+          >
+            <Input placeholder={t("admin.campos.nombre")} />
+          </Form.Item>
+
+          {/* ── Coberturas de especialidades ── */}
+          <Divider orientation="left" style={{ fontSize: 13, color: "#7c3aed", borderColor: "#ede9fe" }}>
+            {t("admin.planes.coberturasEspecialidades")}
+          </Divider>
+
+          {cobEspecialidades.map((cob) => (
+            <FilaCobertura
+              key={cob.id}
+              item={cob}
+              opciones={opcionesEsp}
+              loading={loadingEsp}
+              onChange={cambiarEspecialidad}
+              onRemove={quitarEspecialidad}
+              labelSelect={t("admin.campos.especialidad")}
+              keyGenerica="especialidadGenerica"
+              t={t}
+            />
+          ))}
+          <Button
+            type="dashed"
+            icon={<PlusOutlined />}
+            onClick={agregarEspecialidad}
+            style={{ width: "100%", marginBottom: 8 }}
+          >
+            {t("admin.planes.agregarEspecialidad")}
+          </Button>
+
+          {/* ── Coberturas de prácticas ── */}
+          <Divider orientation="left" style={{ fontSize: 13, color: "#0369a1", borderColor: "#e0f2fe" }}>
+            {t("admin.planes.coberturasPracticas")}
+          </Divider>
+
+          {cobPracticas.map((cob) => (
+            <FilaCobertura
+              key={cob.id}
+              item={cob}
+              opciones={opcionesPrac}
+              loading={loadingPrac}
+              onChange={cambiarPractica}
+              onRemove={quitarPractica}
+              labelSelect={t("admin.campos.practica")}
+              keyGenerica="practicaGenerica"
+              t={t}
+            />
+          ))}
+          <Button
+            type="dashed"
+            icon={<PlusOutlined />}
+            onClick={agregarPractica}
+            style={{ width: "100%", marginBottom: 8 }}
+          >
+            {t("admin.planes.agregarPractica")}
+          </Button>
+
+          {/* Alerta de "al menos una cobertura" */}
+          {errorCobertura && (
+            <div style={{ color: "#dc2626", fontSize: 13, marginTop: 4 }}>
+              {t("admin.validacion.alMenosUnaCobertura")}
+            </div>
+          )}
+        </Form>
+      </Modal>
+    </>
   );
 }
 

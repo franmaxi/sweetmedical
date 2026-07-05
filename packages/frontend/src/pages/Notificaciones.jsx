@@ -15,13 +15,10 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../context/AuthContext";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
-import { getNotificaciones, marcarComoLeida, marcarTodasComoLeidas } from "../mocks";
+import { getNotificaciones, marcarComoLeida, marcarTodasComoLeidas } from "../api/api";
 
 const { Title, Text } = Typography;
 const { Content } = Layout;
-
-// Fallback de demo (Ana García) cuando no hay id de usuario en el token.
-const USUARIO_DEMO_ID = 201;
 
 const fmtFecha = (iso, locale) => {
   if (!iso) return "";
@@ -45,16 +42,25 @@ export default function Notificaciones() {
 function NotificacionesInner() {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
-  const destinatarioId = user?.userId ?? USUARIO_DEMO_ID;
+  const destinatarioId = user?.userId;
   const locale = i18n.language === "en" ? "en-US" : "es-AR";
 
   const [notificaciones, setNotificaciones] = useState([]);
   const [cargando, setCargando] = useState(true);
 
   const recargar = useCallback(() => {
+    if (!destinatarioId) {
+      setCargando(false);
+      return;
+    }
     setCargando(true);
     getNotificaciones({ destinatarioId })
-      .then(setNotificaciones)
+      .then((res) => {
+        setNotificaciones(res?.data || []);
+      })
+      .catch((err) => {
+        console.error("Error al cargar notificaciones en la página", err);
+      })
       .finally(() => setCargando(false));
   }, [destinatarioId]);
 
@@ -65,13 +71,22 @@ function NotificacionesInner() {
   const noLeidas = notificaciones.filter((n) => !n.leida).length;
 
   const onMarcar = async (id) => {
-    await marcarComoLeida(id);
-    recargar();
+    try {
+      await marcarComoLeida(id);
+      recargar();
+    } catch (err) {
+      console.error("No se pudo marcar la notificación como leída", err);
+    }
   };
 
   const onMarcarTodas = async () => {
-    await marcarTodasComoLeidas(destinatarioId);
-    recargar();
+    if (!destinatarioId) return;
+    try {
+      await marcarTodasComoLeidas(destinatarioId);
+      recargar();
+    } catch (err) {
+      console.error("No se pudieron marcar todas como leídas", err);
+    }
   };
 
   return (
@@ -164,7 +179,7 @@ function NotificacionesInner() {
               dataSource={notificaciones}
               renderItem={(n) => (
                 <List.Item
-                  key={n.id}
+                  key={n._id || n.id}
                   style={{
                     padding: "14px 12px",
                     background: n.leida ? "transparent" : "#fff1f0",
@@ -180,7 +195,7 @@ function NotificacionesInner() {
                             type="link"
                             size="small"
                             icon={<CheckOutlined />}
-                            onClick={() => onMarcar(n.id)}
+                            onClick={() => onMarcar(n._id || n.id)}
                           >
                             {t("notificaciones.marcarLeida")}
                           </Button>,
