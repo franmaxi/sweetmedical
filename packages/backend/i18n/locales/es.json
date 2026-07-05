@@ -9,6 +9,15 @@
       },
       "cancelado": {
         "destinatario": "Hola {{nombre}}, su turno el {{fechaHora}} ha sido cancelado. Motivo: {{motivo}}"
+      },
+      "cambioTurno": {
+        "destinatario": "Hola {{nombre}}, se ha solicitado un cambio de fecha para uno de tus turnos"
+      },
+      "rechazarCambioTurno": {
+        "destinatario": "Hola {{nombre}}, tu solicitud de cambio de turno ha sido rechazada. Motivo: {{motivo}}"
+      },
+      "aceptarCambioTurno": {
+        "destinatario": "Hola {{nombre}}, tu solicitud de cambio de turno ha sido aceptada."
       }
     },
     "recordatorio": {
