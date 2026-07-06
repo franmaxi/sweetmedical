@@ -29,6 +29,16 @@ export class FactoryNotificacion {
     
     crearSegunEstadoTurno(turno, cambioFecha){   
         switch(turno.estado){
+            case EstadoTurno.DISPONIBLE : 
+                return new Notificacion({
+                    destinatario: turno.paciente.usuario, 
+                    remitente: null,
+                    mensaje: i18next.t('notificaciones.turno.disponible.paciente', {
+                        lng:       turno.paciente.usuario.idioma,
+                        nombre:    turno.paciente.nombre,
+                        fechaHora: formatearFechaHora(turno.fechaHora),
+                    })
+                })
             case EstadoTurno.RESERVADO :
                 // si hubo un cambio de fecha, significa que anteriormente estabamos en CONFIRMADO
                 if(cambioFecha) {

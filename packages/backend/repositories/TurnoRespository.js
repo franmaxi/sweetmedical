@@ -17,6 +17,7 @@ export class TurnoRepository {
             .populate("sede")
             .populate('especialidad')
             .populate('practica')
+            .populate('historialEstados')
     }
 
     async findAll(filtros = {}) {
@@ -86,7 +87,7 @@ export class TurnoRepository {
             historialEstados: turno.historialEstados,
             costo: turno.costo,
             disponibilidad: getId(turno.disponibilidad),
-            refrescarAnteriores: turno.refrescarAnteriores,
+            modificado: turno.modificado,
             solicitudCambio: turno.solicitudCambio
         };
     }
@@ -326,7 +327,14 @@ export class TurnoRepository {
             match.fechaHora = {};
             if (filtros.desde) match.fechaHora.$gte = filtros.desde;
             if (filtros.hasta) match.fechaHora.$lte = filtros.hasta;
-            }
+        }
+
+        // Filtro adicional: solo devolver turnos que tengan al menos una especialidad o una práctica
+        match.$or = [
+            { 'especialidad.0': { $exists: true } },
+            { 'practica.0': { $exists: true } }
+        ];
+
         return match;
     }
     async obtenerCombinados(turno) {
@@ -346,5 +354,15 @@ export class TurnoRepository {
         if (!turnos || turnos.length === 0) return [];
         const persistenceTurnos = turnos.map(t => this._toPersistence(t));
         return await this.model.insertMany(persistenceTurnos);
+    }
+
+    async deleteAllDisponiblesBefore(fecha){
+        // me tiene que llegar la fecha con la hora en 23:59 para que borre ese dia incluido
+        const resultado = await this.model.deleteMany({
+            estado: EstadoTurno.DISPONIBLE,
+            fechaHora: { $lt: fecha } // menor que pero no inclusive
+        });
+        // resultado devolverá un objeto con este formato: { acknowledged: true, deletedCount: 50 }
+        return resultado;
     }
 }

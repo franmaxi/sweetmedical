@@ -52,7 +52,7 @@ const turnoSchema = new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         required: true
     },
-    refrescarAnteriores:{
+    modificado:{
         type: Boolean,
         default: false
     },

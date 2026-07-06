@@ -118,9 +118,7 @@ const especialidadElemento = z.union([objectIdSchema, especialidadDomainSchema])
 export const turnoDomainSchema = z.object({
     medico: z.union([objectIdSchema, medicoDomainSchema]),
     fechaHora: crearFechaSchema(true, "La fecha y hora del turno deben ser válidas (formato ISO o timestamp)."),
-
     sede: z.union([objectIdSchema, sedeDomainSchema]),
-
     practica: z.array(practicaElemento).optional().default([]),
     especialidad: z.array(especialidadElemento).optional().default([]),
     disponibilidad: z.union([objectIdSchema, disponibilidadDomainSchema]).nullable().optional().default(null),

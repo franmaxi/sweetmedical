@@ -33,6 +33,18 @@ function iniciarTurnosCron() {
     timezone: "America/Argentina/Buenos_Aires"
   });
 
+  // Sintaxis: '0 * * * *' -> Minuto 0, Cualquier Hora de Cualquier Dia
+  cron.schedule('0 * * * *', async () => {
+    try {
+      await turnoService.cronEliminacionTurnos();
+      console.log('[CRON ELIMINACION] Eliminacion de turnos completada con éxito.')
+    } catch (error) {
+      console.error('[CRON ELIMINACION ERROR] Falló la eliminacion de turnos:', error)
+    }
+  }, {
+    timezone: "America/Argentina/Buenos_Aires"
+  });
+
 }
 
 export default iniciarTurnosCron; // Esto nos permite llamarlo desde al app.js /index.js

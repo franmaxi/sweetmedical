@@ -55,12 +55,17 @@ function MisTurnosInner() {
   const navigate = useNavigate();
   const { message, modal } = AntApp.useApp();
   const [historialTurnos, setHistorialTurnos] = useState([]);
-  const [proximosTurnos, setProximosTurnos] = useState([]);
-  
-  const [paginaActualProximos, setPaginaActualProximos] = useState(1);
-  const [paginasTotalesProximos, setPaginasTotalesProximos] = useState(1);
-  const [totalProximos, setTotalProximos] = useState(0);
-  const [cargandoProximos, setCargandoProximos] = useState(true);
+  const [reservadosTurnos, setReservadosTurnos] = useState([]);
+  const [paginaActualReservados, setPaginaActualReservados] = useState(1);
+  const [paginasTotalesReservados, setPaginasTotalesReservados] = useState(1);
+  const [totalReservados, setTotalReservados] = useState(0);
+  const [cargandoReservados, setCargandoReservados] = useState(true);
+
+  const [confirmadosTurnos, setConfirmadosTurnos] = useState([]);
+  const [paginaActualConfirmados, setPaginaActualConfirmados] = useState(1);
+  const [paginasTotalesConfirmados, setPaginasTotalesConfirmados] = useState(1);
+  const [totalConfirmados, setTotalConfirmados] = useState(0);
+  const [cargandoConfirmados, setCargandoConfirmados] = useState(true);
 
   const [paginaActualHistorial, setPaginaActualHistorial] = useState(1);
   const [paginasTotalesHistorial, setPaginasTotalesHistorial] = useState(1);
@@ -86,28 +91,46 @@ function MisTurnosInner() {
       });
   };
 
-  const fetchProximos = () => {
-    setCargandoProximos(true);
-    getTurnos({ filtrarPaciente: true, estado: "RESERVADO", ordenarPor: "fechaHora", ordenDireccion: "asc", page: paginaActualProximos, limit: 10 })
+  const fetchReservados = () => {
+    setCargandoReservados(true);
+    getTurnos({ filtrarPaciente: true, estado: "RESERVADO", ordenarPor: "fechaHora", ordenDireccion: "asc", page: paginaActualReservados, limit: 10 })
       .then((res) => {
-        setProximosTurnos(res.data || []);
-        setPaginasTotalesProximos(res.paginacion?.totalPaginas || 1);
-        setTotalProximos(res.paginacion?.total || res.data?.length || 0);
-        setCargandoProximos(false);
+        setReservadosTurnos(res.data || []);
+        setPaginasTotalesReservados(res.paginacion?.totalPaginas || 1);
+        setTotalReservados(res.paginacion?.total || res.data?.length || 0);
+        setCargandoReservados(false);
       })
       .catch((err) => {
         console.error(err);
-        setCargandoProximos(false);
-        message.error(extraerMensajeError(err, "Error al obtener los próximos turnos"));
+        setCargandoReservados(false);
+        message.error(extraerMensajeError(err, "Error al obtener los turnos reservados"));
+      });
+  };
+
+  const fetchConfirmados = () => {
+    setCargandoConfirmados(true);
+    getTurnos({ filtrarPaciente: true, estado: "CONFIRMADO", ordenarPor: "fechaHora", ordenDireccion: "asc", page: paginaActualConfirmados, limit: 10 })
+      .then((res) => {
+        setConfirmadosTurnos(res.data || []);
+        setPaginasTotalesConfirmados(res.paginacion?.totalPaginas || 1);
+        setTotalConfirmados(res.paginacion?.total || res.data?.length || 0);
+        setCargandoConfirmados(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setCargandoConfirmados(false);
+        message.error(extraerMensajeError(err, "Error al obtener los turnos confirmados"));
       });
   };
 
   useEffect(fetchHistorial, [paginaActualHistorial]);
-  useEffect(fetchProximos, [paginaActualProximos]);
+  useEffect(fetchReservados, [paginaActualReservados]);
+  useEffect(fetchConfirmados, [paginaActualConfirmados]);
 
   const recargar = () => {
     fetchHistorial();
-    fetchProximos();
+    fetchReservados();
+    fetchConfirmados();
   };
 
   const hidratarTurno = (t) => {
@@ -126,9 +149,14 @@ function MisTurnosInner() {
     };
   };
 
-  const proximos = useMemo(
-    () => proximosTurnos.map(hidratarTurno),
-    [proximosTurnos]
+  const reservados = useMemo(
+    () => reservadosTurnos.map(hidratarTurno),
+    [reservadosTurnos]
+  );
+
+  const confirmados = useMemo(
+    () => confirmadosTurnos.map(hidratarTurno),
+    [confirmadosTurnos]
   );
 
   const historicos = useMemo(
@@ -199,13 +227,18 @@ function MisTurnosInner() {
         <Text type="secondary">{t("misTurnos.subtitulo")}</Text>
 
         <Tabs
-          defaultActiveKey="proximos"
+          defaultActiveKey="confirmados"
           style={{ marginTop: 16 }}
           items={[
             { 
-              key: "proximos", 
-              label: `${t("misTurnos.proximos")} (${totalProximos})`, 
-              children: renderLista(proximos, cargandoProximos, paginaActualProximos, paginasTotalesProximos, setPaginaActualProximos) 
+              key: "confirmados", 
+              label: `${t("misTurnos.confirmados", "Confirmados")} (${totalConfirmados})`, 
+              children: renderLista(confirmados, cargandoConfirmados, paginaActualConfirmados, paginasTotalesConfirmados, setPaginaActualConfirmados) 
+            },
+            { 
+              key: "reservados", 
+              label: `${t("misTurnos.reservados", "Reservados")} (${totalReservados})`, 
+              children: renderLista(reservados, cargandoReservados, paginaActualReservados, paginasTotalesReservados, setPaginaActualReservados) 
             },
             { 
               key: "historicos", 

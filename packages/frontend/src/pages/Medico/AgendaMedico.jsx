@@ -60,8 +60,7 @@ const getParamsPorFiltro = (filtro) => {
   const ahora = new Date().toISOString();
   if (filtro === "proximos") return { desde: ahora, estado: EstadoTurno.CONFIRMADO };
   if (filtro === "porConfirmar") return { desde: ahora, estado: EstadoTurno.RESERVADO };
-  // un turno REALIZADO siempre corresponde a una fecha pasada, asi que "hasta: ahora" ya lo cubre
-  if (filtro === "historico") return { hasta: ahora };
+  if (filtro === "historico") return { estado: [EstadoTurno.REALIZADO, EstadoTurno.CANCELADO].join(",") };
   return {};
 };
 

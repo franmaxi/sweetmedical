@@ -1,6 +1,9 @@
 {
   "notificaciones": {
     "turno": {
+      "disponible": {
+        "paciente": "Hello {{nombre}}, your request to book an appointment on the day {{fechaHora}} has been rejected."
+      },
       "reservado": {
         "medico": "Hello {{nombre}}, we inform you that the patient {{paciente}} has requested to book an appointment on {{fechaHora}}"
       },

@@ -1,6 +1,9 @@
 {
   "notificaciones": {
     "turno": {
+      "disponible": {
+        "paciente": "Hola {{nombre}}, su solicitud de reserva para el turno del dia {{fechaHora}} ha sido rechazado."
+      },
       "reservado": {
         "medico": "Hola {{nombre}}, te informamos que el paciente {{paciente}} solicito reservar un turno el día {{fechaHora}}"
       },

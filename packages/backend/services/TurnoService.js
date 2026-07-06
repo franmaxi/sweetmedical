@@ -312,11 +312,12 @@ export class TurnoService {
 
         const usuario = await this.usuarioService.obtenerPorId(turno.paciente.usuario._id)
 
-        // si se rechaza lo devolvemos a disponible
-        await this.setearTurnoDisponible(turno, usuario, motivoRechazo)
-
         this.notificacionService.notificarCambioEstadoTurno(turno)
             .catch(err => console.error('[Notificación] Error al notificar cambio de estado:', err))
+
+        // si se rechaza lo devolvemos a disponible
+        await this.setearTurnoDisponible(turno, usuario, motivoRechazo)
+        
         return turno
     }
 
@@ -324,7 +325,7 @@ export class TurnoService {
         turno.actualizarEstado(EstadoTurno.DISPONIBLE, usuario, motivoCambio)
         turno.paciente = null
         turno.costo = null
-        turno.refrescarAnteriores = true
+        turno.modificado = true
 
         const turnosCombinados = await this.turnoRepository.obtenerCombinados(turno)
 
@@ -489,7 +490,8 @@ export class TurnoService {
 
     async cancelar(turnoId, usuarioId, motivo) {
         const horasMinimasParaCancelar = parseInt(process.env.HORAS_MINIMAS_CANCELAR)
-        let notificar = true
+        let notificar
+        notificar = true
 
         const turno = await this.obtenerPorId(turnoId)
 
@@ -497,7 +499,7 @@ export class TurnoService {
             throw new UnprocessableEntityError(`El turno debe cancelarse con al menos ${horasMinimasParaCancelar} hora/s de anticipación`)
         }
 
-        if(turno.estado == EstadoTurno.RESERVADO && usuarioId == this.getIdDocument(turno.paciente)) {
+        if(turno.estado == EstadoTurno.RESERVADO && usuarioId.toString() == this.getIdDocument(turno.paciente)) {
             //se puede cancelar de una sin drama
             notificar = false
         } else {
@@ -724,17 +726,21 @@ export class TurnoService {
 
     async refrescarTurnosBatch() {
         //console.log("Iniciamos Proceso Refresco Turnos Batch");
-        const turnosModificados = await this.turnoRepository.findAllDispoPopulado({ refrescarAnteriores: true })
-        if (turnosModificados == null || turnosModificados.length == 0) {
+        const turnosModificados = await this.turnoRepository.findAllDispoPopulado({ modificado: true })
+        if (turnosModificados == undefined ||turnosModificados == null || turnosModificados.length == 0 ) {
             console.log('[REFRESH] No se encontraron turnos modificados para refrescar')
             return
         }
         // si se reservo un turno, lo marcamos con un boolean y despues lo agarramos acá.
         for (const t of turnosModificados) {
             const duracionMaxima = Math.max(
-                ...(t.disponibilidad.especialidades.map(e => e.duracionTurnoEnMins)),
-                ...(t.disponibilidad.practicas.map(p => p.duracionTurnoEnMins))
+                0, // Evita que retorne -Infinity si no hay especialidades ni practicas
+                ...(t.disponibilidad?.especialidades?.map(e => e.duracionTurnoEnMins) || []),
+                ...(t.disponibilidad?.practicas?.map(p => p.duracionTurnoEnMins) || [])
             )
+            if (!duracionMaxima || duracionMaxima <= 0) {
+                continue
+            }
 
             if (t.estado == EstadoTurno.RESERVADO) {
                 await this.refrescarTurnosAnteriores(t, this.duracionTurnos, duracionMaxima)
@@ -791,8 +797,9 @@ export class TurnoService {
             turnosAModificar.push(ta)
         }
 
-        t.refrescarAnteriores = false
-        await this.turnoRepository.updateAll(t, ...turnosAModificar)
+        t.modificado = false
+        await this.turnoRepository.updateAll([t, ...turnosAModificar])
+        //await this.turnoRepository.updateAll(t, ...turnosAModificar)
     }
 
     async modificarTurnosPorDisponibilidadModificada(disponibilidad, session = null) {
@@ -1040,4 +1047,16 @@ export class TurnoService {
         console.log("[Batch] Se generaron exitosamente " + turnosAGuardar.length + " turnos");
     }
 
+
+    async cronEliminacionTurnos(){
+        try {
+            const fechaLimite = new Date()
+            // fechaLimite.setDate(fechaLimite.getDate() + 1);
+            fechaLimite.setHours(fechaLimite.getHours() + 24)
+            console.log(`[CRON ELIMINACION] fecha limite considerada: ${fechaLimite.toISOString()}`);
+            await this.turnoRepository.deleteAllDisponiblesBefore(fechaLimite)
+        } catch (error) {
+            console.error("Error en el cron de eliminación de turnos:", error);
+        }
+    }
 }
