@@ -49,7 +49,7 @@ export class PracticaRepository {
     }
 
     async update(id, practica, session = null) {
-        return await this.model.findByIdAndUpdate(id, practica, { new: true , session}).populate('practicaGenerica') ;
+        return await this.model.findByIdAndUpdate(id, practica, { returnDocument: 'after' , session}).populate('practicaGenerica') ;
     }
 
     async countDocuments(filtros = {}) {
@@ -66,7 +66,7 @@ export class PracticaRepository {
     }
 
     async delete(id, session = null) {
-        return await this.model.findByIdAndUpdate(id, { eliminado: true }, { new: true , session}).populate('practicaGenerica');
+        return await this.model.findByIdAndUpdate(id, { eliminado: true }, { returnDocument: 'after' , session}).populate('practicaGenerica');
     }
 
     async deleteMany(ids, session = null) {

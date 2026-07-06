@@ -200,7 +200,7 @@ function DisponibilidadesInner() {
           disponibilidadId: disponibilidadEnEdicion._id,
           especialidades: especialidadesIds,
           practicas: practicasIds,
-          sedeId: values.sedeId,
+          sede: values.sedeId,
         });
         message.success(t("disponibilidades.successEditada"));
       } else {

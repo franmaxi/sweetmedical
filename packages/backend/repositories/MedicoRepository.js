@@ -63,13 +63,13 @@ export class MedicoRepository{
             this.model.findByIdAndUpdate(
                 id, 
                 medico, 
-                { new: true, session }
+                { returnDocument: 'after', session }
             )
         );
     }
     
     async delete(id) {
-        return await this.model.findByIdAndUpdate(id, { eliminado: true }, { new: true });
+        return await this.model.findByIdAndUpdate(id, { eliminado: true }, { returnDocument: 'after' });
     }
     async obtenerPorMatricula(matricula) {
         return await MedicoModel.findOne({ matricula, eliminado: false })
@@ -96,7 +96,7 @@ export class MedicoRepository{
             this.model.findByIdAndUpdate(
                 medicoId,
                 { $push: { disponibilidades: disponibilidad} },
-                { new: true }
+                { returnDocument: 'after' }
             )
         );
     }
@@ -117,7 +117,7 @@ export class MedicoRepository{
             this.model.findByIdAndUpdate(
                 medicoId,
                 { $pull: { disponibilidades: { _id: dispoId } } },
-                { new: true, session }
+                { returnDocument: 'after', session }
             )
         );
     }

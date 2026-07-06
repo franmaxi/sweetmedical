@@ -25,7 +25,7 @@ export class ObraSocialRepository{
         return await nuevaObraSocial.save();
     }
     async update(id, obraSocial) {
-        return await this.#populate(this.model.findByIdAndUpdate(id, obraSocial, { new: true }))
+        return await this.#populate(this.model.findByIdAndUpdate(id, obraSocial, { returnDocument: 'after' }))
     }
     async delete(id) {
         return await this.#populate(this.model.findByIdAndDelete(id));

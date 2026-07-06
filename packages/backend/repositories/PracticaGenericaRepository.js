@@ -49,11 +49,11 @@ export class PracticaGenericaRepository {
     }
 
     async update(id, PracticaGenerica) {
-        return await this.model.findByIdAndUpdate(id, PracticaGenerica, { new: true });
+        return await this.model.findByIdAndUpdate(id, PracticaGenerica, { returnDocument: 'after' });
     }
 
     async delete(id) {
-        return await this.model.findByIdAndUpdate(id, { eliminado: true }, { new: true });
+        return await this.model.findByIdAndUpdate(id, { eliminado: true }, { returnDocument: 'after' });
     }
     async obtenerPracticaIds() {
         return await this.model.distinct('_id');

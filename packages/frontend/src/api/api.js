@@ -638,13 +638,14 @@ export const modificarDisponibilidad = async ({
     disponibilidadId,
     especialidades,
     practicas,
-    sede
+    sede,
+    sedeId
 } = {}) => {
     try {
         const response = await apiClient.patch(`/medicos/${medicoId}/disponibilidades/${disponibilidadId}`, {
             especialidades,
             practicas,
-            sede
+            sede: sede || sedeId
         });
         return response.data;
     } catch (error) {

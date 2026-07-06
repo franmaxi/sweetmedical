@@ -15,7 +15,7 @@ export class UsuarioRepository{
     }
     
     async delete(id) {
-        return await this.model.findByIdAndUpdate(id, { eliminado: true }, { new: true });
+        return await this.model.findByIdAndUpdate(id, { eliminado: true }, { returnDocument: 'after' });
     }
 
     
@@ -26,7 +26,7 @@ export class UsuarioRepository{
     async update(id, usuarioModificado) {
         return await this.model.findByIdAndUpdate(
             id, { $set: usuarioModificado },    
-                { new: true, runValidators: true }
+                { returnDocument: 'after', runValidators: true }
         );
     }
 }

@@ -47,12 +47,12 @@ export class PacienteRepository {
     }
 
     async update(id, paciente) {
-        return await this.model.findByIdAndUpdate(id, paciente, { new: true })
+        return await this.model.findByIdAndUpdate(id, paciente, { returnDocument: 'after' })
             .populate("usuario","-password")
             .populate("obraSocial");
     }
 
     async delete(id) {
-        return await this.model.findByIdAndUpdate(id, { eliminado: true }, { new: true });
+        return await this.model.findByIdAndUpdate(id, { eliminado: true }, { returnDocument: 'after' });
     }
 }

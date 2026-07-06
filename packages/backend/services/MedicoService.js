@@ -367,7 +367,7 @@ export class MedicoService {
 
         // Asignar Sede
         if (datosDisponibilidad.sede !== undefined) {
-            if (String(dispo.sede) === String(datosDisponibilidad.sede)) {
+            if (String(dispo.sede._id || dispo.sede) === String(datosDisponibilidad.sede)) {
                 throw new BadRequestError("La disponibilidad ya tiene asignada esta sede.");
             }
             

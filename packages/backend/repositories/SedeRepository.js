@@ -44,7 +44,7 @@ export class SedeRepository {
     }
 
     async update(id, Sede) {
-        return await this.model.findByIdAndUpdate(id, Sede, { new: true });
+        return await this.model.findByIdAndUpdate(id, Sede, { returnDocument: 'after' });
     }
 
     //Datos a actualizar tendrá unicamente los datos q se modificaran, por ej nombre y codigo.
@@ -56,7 +56,7 @@ export class SedeRepository {
     }
 
     async delete(id) {
-        return await this.model.findByIdAndUpdate(id, { eliminado: true }, { new: true });
+        return await this.model.findByIdAndUpdate(id, { eliminado: true }, { returnDocument: 'after' });
     }
 
     //auxiliar

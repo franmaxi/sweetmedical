@@ -100,7 +100,7 @@ export class TurnoRepository {
 
     async update(id, turnoModificado) {
         const persistenceTurno = this._toPersistence(turnoModificado);
-        return await this.model.findByIdAndUpdate(id, persistenceTurno, { new: true });
+        return await this.model.findByIdAndUpdate(id, persistenceTurno, { returnDocument: 'after' });
     }
 
         async findByMedicoAndFechaHora(medicoId, fechaHora) {
@@ -120,7 +120,7 @@ export class TurnoRepository {
         return await this.model.findOneAndUpdate(
             { _id: id, estado: EstadoTurno.DISPONIBLE },
             persistenceTurno,
-            { new: true }
+            { returnDocument: 'after' }
         );
     }
 

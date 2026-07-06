@@ -43,11 +43,11 @@ export class EspecialidadGenericaRepository{
     }
 
     async update(id, especialidadG) {
-        return await this.model.findByIdAndUpdate(id, especialidadG, { new: true })
+        return await this.model.findByIdAndUpdate(id, especialidadG, { returnDocument: 'after' })
     }
 
     async delete(id) {
-        return await this.model.findByIdAndUpdate(id, { eliminado: true }, { new: true });
+        return await this.model.findByIdAndUpdate(id, { eliminado: true }, { returnDocument: 'after' });
     }
 
     async obtenerEspecialidadIds() {

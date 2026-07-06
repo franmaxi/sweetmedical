@@ -52,7 +52,7 @@ export class EspecialidadRepository{
     }
 
     async update(id, especialidad, session = null) {
-        return await this.model.findByIdAndUpdate(id, especialidad, { new: true , session}).populate('especialidadGenerica');
+        return await this.model.findByIdAndUpdate(id, especialidad, { returnDocument: 'after' , session}).populate('especialidadGenerica');
     }
 
     async updateManyNombres(ids, nuevoNombre) {
@@ -63,7 +63,7 @@ export class EspecialidadRepository{
     }
 
     async delete(id, session = null) {
-        return await this.model.findByIdAndUpdate(id, { eliminado: true }, { new: true , session});
+        return await this.model.findByIdAndUpdate(id, { eliminado: true }, { returnDocument: 'after' , session});
     }
 
     async deleteMany(ids, session = null) {
