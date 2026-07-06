@@ -92,12 +92,10 @@ function filtrosAParams(filtros, page = 1) {
 
 // ─── Componente raíz ─────────────────────────────────────────────────────────
 
+// Usamos el <App> global de App.jsx (vive por encima del router) para que el
+// mensaje de "¡Turno reservado!" sobreviva al navigate("/mis-turnos").
 export default function BuscarTurnos() {
-  return (
-    <AntApp>
-      <BuscarTurnosInner />
-    </AntApp>
-  );
+  return <BuscarTurnosInner />;
 }
 
 // ─── Componente interno ───────────────────────────────────────────────────────
