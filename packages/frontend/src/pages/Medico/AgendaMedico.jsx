@@ -102,7 +102,7 @@ function AgendaMedicoInner() {
   const filtros = getFiltros(t);
   const estadoLabel = (e) => t(`estados.${nombreEstado(e).toLowerCase()}`, { defaultValue: nombreEstado(e) });
 
-  
+
   const onFiltroChange = (value) => {
     setFiltro(value);
     setPaginaActual(1);
@@ -150,7 +150,7 @@ function AgendaMedicoInner() {
       setSedesById(new Map(sedes.map((s) => [s._id || s.id, s])));
       setEspById(new Map(esps.map((e) => [e._id || e.id, e])));
       setPracticasById(new Map(practicas.map((p) => [p._id || p.id, p])));
-  
+
       setTotalTurnos(total);
 
       // si al recargar (por una accion) la pagina actual quedo vacia, volvemos a la anterior
@@ -181,12 +181,12 @@ function AgendaMedicoInner() {
           : (turno.especialidad?._id || turno.especialidad);
 
         const pracId = Array.isArray(turno.practica)
-        ? (turno.practica[0]?._id || turno.practica[0])
-        : (turno.practica?._id || turno.practica);
+          ? (turno.practica[0]?._id || turno.practica[0])
+          : (turno.practica?._id || turno.practica);
 
         const espNombre = espId ? espById.get(espId)?.nombre : null;
         const pracNombre = pracId ? practicasById.get(pracId)?.nombre : null;
-        
+
         const servicioTokens = [];
         if (espNombre) servicioTokens.push(espNombre);
         if (pracNombre) servicioTokens.push(pracNombre);
@@ -194,7 +194,7 @@ function AgendaMedicoInner() {
         return {
           ...turno,
           key: turno._id || turno.id,
-          pacienteNombre: pacId ? pacientesById.get(pacId)?.nombre ?? "—" : t("agenda.disponible"),
+          pacienteNombre: pacId ? pacientesById.get(pacId)?.nombre ?? "—" : "",
           sedeNombre: sedesById.get(sdId)?.nombre ?? "—",
           servicioNombre: servicioTokens.length > 0 ? servicioTokens.join(" / ") : "—",
         };
@@ -202,7 +202,7 @@ function AgendaMedicoInner() {
     [turnos, pacientesById, sedesById, espById, practicasById, t],
   );
 
-  
+
   const onConfirmar = async (turno) => {
     try {
       await confirmarTurno(turno._id || turno.id, { usuarioId });
@@ -212,7 +212,7 @@ function AgendaMedicoInner() {
       message.error(extraerMensajeError(err, "Error al confirmar el turno"));
     }
   };
-  
+
   const onRechazar = async (turno) => {
     try {
       await rechazarTurno(turno._id || turno.id, { usuarioId });
