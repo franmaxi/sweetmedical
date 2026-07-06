@@ -31,8 +31,6 @@ import Footer from "../../components/Footer";
 
 const { Title, Text } = Typography;
 
-
-
 const COLOR_ESTADO = {
   [EstadoTurno.DISPONIBLE]: "default",
   [EstadoTurno.RESERVADO]: "blue",
@@ -102,7 +100,6 @@ function AgendaMedicoInner() {
   const filtros = getFiltros(t);
   const estadoLabel = (e) => t(`estados.${nombreEstado(e).toLowerCase()}`, { defaultValue: nombreEstado(e) });
 
-  
   const onFiltroChange = (value) => {
     setFiltro(value);
     setPaginaActual(1);
@@ -117,7 +114,6 @@ function AgendaMedicoInner() {
       setPaginaActual(paginationInfo.current);
     }
   };
-
 
   const recargar = useCallback(() => {
     if (!medicoId) {
@@ -145,12 +141,11 @@ function AgendaMedicoInner() {
       const turnosLista = turnosData?.data || turnosData || [];
       const total = turnosData?.paginacion?.totalTurnos ?? 0;
 
-
       setPacientesById(new Map(pacientes.map((p) => [p._id || p.id, p])));
       setSedesById(new Map(sedes.map((s) => [s._id || s.id, s])));
       setEspById(new Map(esps.map((e) => [e._id || e.id, e])));
       setPracticasById(new Map(practicas.map((p) => [p._id || p.id, p])));
-  
+
       setTotalTurnos(total);
 
       // si al recargar (por una accion) la pagina actual quedo vacia, volvemos a la anterior
@@ -212,7 +207,6 @@ function AgendaMedicoInner() {
     [turnos, pacientesById, sedesById, espById, practicasById],
   );
 
-  
   const onConfirmar = async (turno) => {
     try {
       await confirmarTurno(turno._id || turno.id, { usuarioId });
@@ -222,7 +216,7 @@ function AgendaMedicoInner() {
       message.error(extraerMensajeError(err, "Error al confirmar el turno"));
     }
   };
-  
+
   const onRechazar = async (turno) => {
     try {
       await rechazarTurno(turno._id || turno.id, { usuarioId });
