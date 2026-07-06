@@ -3,30 +3,30 @@ import { z } from "zod"
 
 //----- CONTROLLER Y SERVICE -----
 const practicaBaseBodySchema = z.object({
-    codigo: z.string({ required_error: "El campo codigo es requerido." })
-        .trim().min(1, "El campo codigo no puede estar vacío."),
-    nombre: z.string({ required_error: "El campo nombre es requerido." })
-        .trim().min(1, "El campo nombre no puede estar vacío.")
+    codigo: z.string({ required_error: "El código es requerido." })
+        .trim().min(1, "El código no puede estar vacío."),
+    nombre: z.string({ required_error: "El nombre es requerido." })
+        .trim().min(1, "El nombre no puede estar vacío.")
 });
 
 export const practicaGenericaBodySchema = practicaBaseBodySchema.extend({
     emoji: z.string({
-        required_error: "El campo emoji es requerido.",
-        invalid_type_error: "El campo emoji debe ser un texto."
-    }).emoji("El campo debe contener un emoji válido.")
+        required_error: "El emoji es requerido.",
+        invalid_type_error: "El emoji debe ser un texto."
+    }).emoji("Debe contener un emoji válido.")
 }).strict("No se permiten campos adicionales en la solicitud.");
 
 export const practicaBodySchema = practicaBaseBodySchema.extend({
     practicaGenericaId: z.string({
-        required_error: "El ID de la práctica genérica es requerido."
+        required_error: "La práctica genérica es requerida."
     }).refine(val => Types.ObjectId.isValid(val), {
-        message: "El practicaGenericaId debe ser un ID válido de Mongoose."
+        message: "La práctica genérica debe ser un ID válido."
     }),
-    duracionTurnoEnMins: z.number({ required_error: "El campo duracionTurnoEnMins es requerido." })
+    duracionTurnoEnMins: z.number({ required_error: "La duración del turno es requerida." })
         .int("La duración debe ser un número entero.")
         .positive("La duración debe ser un número mayor a 0.")
         .multipleOf(15, "La duración del turno debe ser múltiplo de 15 minutos"),
-    costo: z.number({ required_error: "El campo costo es requerido." })
+    costo: z.number({ required_error: "El costo es requerido." })
         .positive("El costo debe ser un número mayor a 0."),
 }).strict("No se permiten campos adicionales en la solicitud.");
 
@@ -35,48 +35,48 @@ export const practicaBodySchema = practicaBaseBodySchema.extend({
 export const practicaBaseDomainSchema = z.object({
     _id: z.any().optional(),
     nombre: z.string({
-        required_error: "El nombre de la practica debe ser un string no vacío",
-        invalid_type_error: "El nombre de la practica debe ser un string no vacío"
-    }).trim().min(1, "El nombre de la practica debe ser un string no vacío"),
+        required_error: "El nombre de la práctica debe ser un texto no vacío.",
+        invalid_type_error: "El nombre de la práctica debe ser un texto válido."
+    }).trim().min(1, "El nombre de la práctica no puede estar vacío."),
     codigo: z.string({
-        required_error: "El codigo de la practica debe ser un string no vacío",
-        invalid_type_error: "El codigo de la practica debe ser un string no vacío"
-    }).trim().min(1, "El codigo de la practica debe ser un string no vacío"),
+        required_error: "El código de la práctica debe ser un texto no vacío.",
+        invalid_type_error: "El código de la práctica debe ser un texto válido."
+    }).trim().min(1, "El código de la práctica no puede estar vacío."),
 });
 
 // Schema de la genérica: agrega emoji requerido
 export const practicaGenericaDomainSchema = practicaBaseDomainSchema.extend({
     emoji: z.string({
-        required_error: "El campo emoji es requerido.",
-        invalid_type_error: "El campo emoji debe ser un texto."
-    }).emoji("El campo debe contener un emoji válido.")
+        required_error: "El emoji es requerido.",
+        invalid_type_error: "El emoji debe ser un texto."
+    }).emoji("Debe contener un emoji válido.")
 })
 
 // La practica hija extiende del base (sin emoji, ya que el emoji proviene de la genérica)
 export const practicaDomainSchema = practicaBaseDomainSchema.extend({
     _id: z.any().optional(),
     practicaGenerica: z.any().refine(val => Types.ObjectId.isValid(val), {
-        message: "El parámetro id practicaGenerica debe ser un ID válido de Mongoose."
+        message: "La práctica genérica debe ser un ID válido."
     }),
     duracionTurnoEnMins: z.number({
-        required_error: "duración del turno en minutos debe ser un número positivo",
-        invalid_type_error: "duración del turno en minutos debe ser un número positivo"
+        required_error: "La duración del turno es requerida.",
+        invalid_type_error: "La duración del turno debe ser un número."
     })
-    .positive("duración del turno en minutos debe ser un número positivo")
+    .positive("La duración del turno debe ser un número positivo.")
     .multipleOf(15, "La duración del turno debe ser múltiplo de 15 minutos"),
     costo: z.number({
-        required_error: "costo de la práctica debe ser un número positivo",
-        invalid_type_error: "costo de la práctica debe ser un número positivo"
-    }).positive("costo de la práctica debe ser un número positivo")
+        required_error: "El costo es requerido.",
+        invalid_type_error: "El costo debe ser un número."
+    }).positive("El costo debe ser un número positivo.")
 })
 
 // Schema para ACTUALIZAR una práctica hija (solo campos modificables, nombre/codigo son inmutables)
 export const practicaUpdateBodySchema = z.object({
     duracionTurnoEnMins: z.number({
-        invalid_type_error: "El campo duracionTurnoEnMins debe ser un número."
+        invalid_type_error: "La duración del turno debe ser un número."
     }).int().positive().multipleOf(15).optional(),
     costo: z.number({
-        invalid_type_error: "El campo costo debe ser un número."
+        invalid_type_error: "El costo debe ser un número."
     }).positive().optional()
 });
 

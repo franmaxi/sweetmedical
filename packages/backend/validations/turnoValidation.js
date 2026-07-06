@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { EstadoTurno } from "../domain/Enumerados/EstadoTurno.js";
-import { objectIdSchema } from "./commonValidations.js";
+import { objectIdSchema, crearIdSchema, crearFechaSchema } from "./commonValidations.js";
 import { medicoDomainSchema, disponibilidadDomainSchema } from "./medicoValidation.js";
 import { sedeDomainSchema } from "./sedeValidation.js";
 import { practicaDomainSchema } from "./practicaValidation.js";
@@ -11,34 +11,28 @@ import { especialidadDomainSchema } from "./especialidadValidation.js";
 
 // POST /turnos — crear turno
 export const turnoBodySchema = z.object({
-    medicoId: objectIdSchema,
-    fechaHora: z.coerce.date({
-        required_error: "La fecha/hora es requerida.",
-        invalid_type_error: "La fecha/hora debe ser una fecha válida."
-    }),
-    sedeId: objectIdSchema,
-    especialidadId: objectIdSchema.optional().nullable(),
-    practicaId: objectIdSchema.optional().nullable(),
+    medicoId: crearIdSchema("médico"),
+    fechaHora: crearFechaSchema(true, "La fecha y hora del turno deben ser válidas."),
+    sedeId: crearIdSchema("sede"),
+    especialidadId: crearIdSchema("especialidad").optional().nullable(),
+    practicaId: crearIdSchema("práctica").optional().nullable(),
     costo: z.number().nonnegative("El costo no puede ser negativo.").optional()
 }).strict("No se permiten campos adicionales en la solicitud.");
 
 // PATCH /turnos/:id/ (reservar, cancelar, realizar)
 export const estadosBodySchema = z.object({
     estado: z.string().optional(),
-    pacienteId: objectIdSchema.optional().nullable().default(null),
-    medicoId: objectIdSchema.optional().nullable().default(null),
-    especialidadId: objectIdSchema.optional().nullable().default(null),
-    practicaId: objectIdSchema.optional().nullable().default(null),
-    usuarioId: objectIdSchema.optional().nullable().default(null),
+    pacienteId: crearIdSchema("paciente").optional().nullable().default(null),
+    medicoId: crearIdSchema("médico").optional().nullable().default(null),
+    especialidadId: crearIdSchema("especialidad").optional().nullable().default(null),
+    practicaId: crearIdSchema("práctica").optional().nullable().default(null),
+    usuarioId: crearIdSchema("usuario").optional().nullable().default(null),
     motivo: z.string().trim().nullable().default(null),
 }).strict("No se permiten campos adicionales en la solicitud.");
 
 // PATCH /turnos/:id/solicitar-cambio-fecha
 export const solicitudFechaCambioBodySchema = z.object({
-    fechaPropuesta: z.coerce.date({
-        required_error: "La fecha y hora propuesta son requeridas.",
-        invalid_type_error: "Debe ser una fecha y hora válida (formato ISO 8601 o timestamp)."
-    }),
+    fechaPropuesta: crearFechaSchema(true, "La fecha y hora propuestas deben ser válidas."),
     motivo: z
         .string({ required_error: "El motivo es obligatorio." })
         .min(5, "El motivo debe tener al menos 5 caracteres.")
@@ -47,9 +41,9 @@ export const solicitudFechaCambioBodySchema = z.object({
 
 //ESTO SIRVE UNICAMENTE PARA LA CLASE SOLICITUDCAMBIO.JS
 export const solicitudCambioSchema = z.object({
-  usuario: objectIdSchema,
+  usuario: crearIdSchema("usuario"),
   
-  turnoNuevo: objectIdSchema,
+  turnoNuevo: crearIdSchema("nuevo turno"),
     
   motivo: z
     .string({ required_error: "El motivo es obligatorio." })
@@ -64,22 +58,22 @@ export const responderReserva = z.object({
         .min(5, "El motivo debe tener al menos 5 caracteres.")
         .trim(),
     reservaAceptada: z.boolean({
-        required_error: "El campo reservaAceptada es requerido.",
-        invalid_type_error: "El campo reservaAceptada debe ser true o false."
+        required_error: "La respuesta de la reserva es requerida.",
+        invalid_type_error: "La aceptación de la reserva debe ser sí o no."
     })
 }).strict("No se permiten campos adicionales en la solicitud.");
 
 // PATCH /turnos/:id/responder-cambio-fecha
 export const responderCambioDeFecha = z.object({
     cambioAceptado: z.boolean({
-        required_error: "El campo cambioAceptado es requerido.",
-        invalid_type_error: "El campo cambioAceptado debe ser true o false."
+        required_error: "La respuesta del cambio de fecha es requerida.",
+        invalid_type_error: "La aceptación del cambio debe ser sí o no."
     })
 }).strict("No se permiten campos adicionales en la solicitud.");
 
 // Filtros de query para GET /turnos (sin paginación, se combinan con turnoQuerySchema)
 export const turnoFiltrosSchema = z.object({
-    medicoId: objectIdSchema.optional(),
+    medicoId: crearIdSchema("médico").optional(),
     estado: z.preprocess(
         (val) => (typeof val === 'string' && val.includes(',') ? val.split(',') : val),
         z.union([
@@ -87,11 +81,11 @@ export const turnoFiltrosSchema = z.object({
             z.array(z.enum(Object.values(EstadoTurno)))
         ])
     ).optional(),
-    especialidadId: objectIdSchema.optional(),
-    practicaId: objectIdSchema.optional(),
-    sedeId: objectIdSchema.optional(),
-    desde: z.coerce.date().optional(),
-    hasta: z.coerce.date().optional(),
+    especialidadId: crearIdSchema("especialidad").optional(),
+    practicaId: crearIdSchema("práctica").optional(),
+    sedeId: crearIdSchema("sede").optional(),
+    desde: crearFechaSchema(false, "La fecha de inicio (desde) debe ser una fecha válida.").optional(),
+    hasta: crearFechaSchema(false, "La fecha de finalización (hasta) debe ser una fecha válida.").optional(),
     filtrarPaciente: z.preprocess((val) => val === 'true' || val === true, z.boolean()).optional() // si esta en true se traen los turnos que tengan al paciente registrado
 });
 
@@ -99,13 +93,13 @@ export const turnoFiltrosSchema = z.object({
 export const turnoQuerySchema = z.object({
     page: z.coerce.number().int().min(1).default(1),
     limit: z.coerce.number().int().positive().default(10),
-    pacienteId: objectIdSchema.optional(),
-    ordenarPor: z.enum(['fechaHora', 'costoFinal'], {
-        invalid_type_error: "El campo ordenarPor debe ser 'fechaHora' o 'costoFinal'."
-    }).optional(),
-    ordenDireccion: z.enum(['asc', 'desc'], {
-        invalid_type_error: "El campo ordenDireccion debe ser 'asc' o 'desc'."
-    }).optional().default('asc'),
+    pacienteId: crearIdSchema("paciente").optional(),
+    ordenarPor: z.string().optional().refine(val => val === undefined || val === 'fechaHora' || val === 'costoFinal', {
+        message: "El criterio de ordenamiento debe ser por fecha y hora o costo final."
+    }),
+    ordenDireccion: z.string().optional().refine(val => val === undefined || val === 'asc' || val === 'desc', {
+        message: "La dirección de ordenamiento debe ser ascendente (asc) o descendente (desc)."
+    }).default('asc'),
 }).merge(turnoFiltrosSchema);
 
 
@@ -117,10 +111,7 @@ const especialidadElemento = z.union([objectIdSchema, especialidadDomainSchema])
 
 export const turnoDomainSchema = z.object({
     medico: z.union([objectIdSchema, medicoDomainSchema]),
-    fechaHora: z.coerce.date({
-        required_error: "La fecha/hora es requerida.",
-        invalid_type_error: "La fecha/hora debe ser una fecha válida (formato ISO o timestamp)."
-    }),
+    fechaHora: crearFechaSchema(true, "La fecha y hora del turno deben ser válidas (formato ISO o timestamp)."),
 
     sede: z.union([objectIdSchema, sedeDomainSchema]),
 
@@ -143,7 +134,7 @@ export const cambioEstadoDomainSchema = z.object({
 // generar batch forzado
 
 export const batchForzadoQuerySchema = z.object({
-    medicoId: objectIdSchema.optional().nullable().default(null),
-    fechaInicio: z.coerce.date().optional(),
-    fechaFin: z.coerce.date().optional(),
+    medicoId: crearIdSchema("médico").optional().nullable().default(null),
+    fechaInicio: crearFechaSchema(false, "La fecha de inicio debe ser una fecha válida.").optional(),
+    fechaFin: crearFechaSchema(false, "La fecha de finalización debe ser una fecha válida.").optional(),
 });

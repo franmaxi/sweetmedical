@@ -46,8 +46,12 @@ export const coberturaEspecialidadDomainSchema = z.object({
         required_error: "La especialidad genérica es requerida."
     }),
     nivel: z.enum(Object.values(NivelCobertura), {
-        required_error: "El nivel de cobertura es requerido.",
-        message: `El nivel de cobertura debe ser uno de: ${Object.values(NivelCobertura).join(", ")}`
+        errorMap: (issue, ctx) => {
+            if (issue.code === "invalid_enum_value" || issue.code === "invalid_type") {
+                return { message: `El nivel de cobertura debe ser uno de: ${Object.values(NivelCobertura).join(", ")}` };
+            }
+            return { message: ctx.defaultError };
+        }
     }),
     pocentajeDescuento: z.coerce.number({
         required_error: "El porcentaje de descuento es requerido",
@@ -61,8 +65,12 @@ export const coberturaPracticaDomainSchema = z.object({
         required_error: "La práctica genérica es requerida."
     }),
     nivel: z.enum(Object.values(NivelCobertura), {
-        required_error: "El nivel de cobertura es requerido.",
-        message: `El nivel de cobertura debe ser uno de: ${Object.values(NivelCobertura).join(", ")}`
+        errorMap: (issue, ctx) => {
+            if (issue.code === "invalid_enum_value" || issue.code === "invalid_type") {
+                return { message: `El nivel de cobertura debe ser uno de: ${Object.values(NivelCobertura).join(", ")}` };
+            }
+            return { message: ctx.defaultError };
+        }
     }),
     pocentajeDescuento: z.coerce.number({
         required_error: "El porcentaje de descuento es requerido",

@@ -45,6 +45,7 @@ const fmtHora = (iso) => {
   const d = getUTC3Date(iso);
   return `${d.getUTCHours().toString().padStart(2, '0')}:${d.getUTCMinutes().toString().padStart(2, '0')}`;
 };
+
 const mesAbrev = (iso) => MESES[getUTC3Date(iso).getUTCMonth()] ?? "";
 const dia = (iso) => getUTC3Date(iso).getUTCDate().toString().padStart(2, '0');
 
@@ -61,7 +62,6 @@ const FILTROS_DEFAULT = {
   direccion:              "asc",
 };
 
-/** Lee los filtros desde un objeto URLSearchParams y los devuelve. */
 function parsearFiltrosURL(params) {
   return {
     especialidadGenericaId: params.get("especialidadGenericaId") || undefined,
@@ -82,8 +82,8 @@ function filtrosAParams(filtros, page = 1) {
   if (filtros.practicaGenericaId)     params.practicaGenericaId     = filtros.practicaGenericaId;
   if (filtros.sedeId)                 params.sedeId                 = filtros.sedeId;
   if (filtros.medicoId)               params.medicoId               = filtros.medicoId;
-  if (filtros.fechaDesde)             params.fechaDesde             = filtros.fechaDesde.format("YYYY-MM-DD");
-  if (filtros.fechaHasta)             params.fechaHasta             = filtros.fechaHasta.format("YYYY-MM-DD");
+  if (filtros.fechaDesde && filtros.fechaDesde.isValid()) params.fechaDesde = filtros.fechaDesde.format("YYYY-MM-DD");
+  if (filtros.fechaHasta && filtros.fechaHasta.isValid()) params.fechaHasta = filtros.fechaHasta.format("YYYY-MM-DD");
   if (filtros.ordenarPor && filtros.ordenarPor !== "fechaHora") params.ordenarPor = filtros.ordenarPor;
   if (filtros.direccion  && filtros.direccion  !== "asc")       params.direccion  = filtros.direccion;
   if (page > 1) params.page = String(page);

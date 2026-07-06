@@ -288,6 +288,8 @@ export class TurnoRepository {
             } else {
                 match.estado = filtros.estado;
             }
+        } else {
+            match.estado = { $ne: EstadoTurno.COMBINADO };
         }
 
         if (filtros.paciente) {

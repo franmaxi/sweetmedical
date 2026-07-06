@@ -5,15 +5,17 @@ export const notificacionQuerySchema = z.object({
     usuarioId: z.string({
         invalid_type_error: "El campo usuarioId debe ser un texto."
     }).refine(val => Types.ObjectId.isValid(val), {
-        message: "Debe ser un ID de usuario válido de Mongoose."
+        message: "Debe ser un ID de usuario válido."
     }).optional(),
     usuario: z.string({
         invalid_type_error: "El campo usuario debe ser un texto."
     }).refine(val => Types.ObjectId.isValid(val), {
-        message: "Debe ser un ID de usuario válido de Mongoose."
+        message: "Debe ser un ID de usuario válido."
     }).optional(),
     leida: z.enum(["true", "false"], {
-        invalid_type_error: "'leida' debe ser true o false."
+        errorMap: (issue, ctx) => {
+            return { message: "El filtro 'leida' debe ser 'true' o 'false'." };
+        }
     }).optional()
         .transform(val => val === "true" ? true : val === "false" ? false : undefined)
 }).refine(data => data.usuarioId || data.usuario, {
@@ -28,12 +30,12 @@ export const marcarLeidaQuerySchema = z.object({
     usuarioId: z.string({
         invalid_type_error: "El parámetro usuarioId debe ser un texto."
     }).refine(val => Types.ObjectId.isValid(val), {
-        message: "Debe ser un ID de usuario válido de Mongoose."
+        message: "Debe ser un ID de usuario válido."
     }).optional(),
     usuario: z.string({
         invalid_type_error: "El parámetro usuario debe ser un texto."
     }).refine(val => Types.ObjectId.isValid(val), {
-        message: "Debe ser un ID de usuario válido de Mongoose."
+        message: "Debe ser un ID de usuario válido."
     }).optional()
 }).refine(data => data.usuarioId || data.usuario, {
     message: "El parámetro usuarioId (o usuario) es obligatorio en la query.",

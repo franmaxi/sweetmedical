@@ -101,16 +101,26 @@ export class PacienteService {
         if (datosPaciente.dni !== undefined) datosPacienteParaActualizar.dni = datosPaciente.dni;
         if (datosPaciente.nombre !== undefined) datosPacienteParaActualizar.nombre = datosPaciente.nombre;
 
-        if (datosPaciente.obraSocialId) {
-            const obraSocial = await this.obraSocialRepository.findById(datosPaciente.obraSocialId);
-            if (!obraSocial) throw new NotFoundError(`No se encontró una obraSocial con el id ${datosPaciente.obraSocialId}`);
-            datosPacienteParaActualizar.obraSocial = obraSocial._id;
+        if (datosPaciente.obraSocialId !== undefined) {
+            if (datosPaciente.obraSocialId) {
+                const obraSocial = await this.obraSocialRepository.findById(datosPaciente.obraSocialId);
+                if (!obraSocial) throw new NotFoundError(`No se encontró una obraSocial con el id ${datosPaciente.obraSocialId}`);
+                datosPacienteParaActualizar.obraSocial = obraSocial._id;
+            } else {
+                // Sin obra social no puede quedar un plan asignado
+                datosPacienteParaActualizar.obraSocial = null;
+                datosPacienteParaActualizar.plan = null;
+            }
         }
 
-        if (datosPaciente.planId) {
-            const plan = await this.obraSocialRepository.findPlanById(datosPaciente.planId);
-            if (!plan) throw new NotFoundError(`No se encontró un plan con el id ${datosPaciente.planId}`);
-            datosPacienteParaActualizar.plan = plan._id;
+        if (datosPaciente.planId !== undefined && !("plan" in datosPacienteParaActualizar)) {
+            if (datosPaciente.planId) {
+                const plan = await this.obraSocialRepository.findPlanById(datosPaciente.planId);
+                if (!plan) throw new NotFoundError(`No se encontró un plan con el id ${datosPaciente.planId}`);
+                datosPacienteParaActualizar.plan = plan._id;
+            } else {
+                datosPacienteParaActualizar.plan = null;
+            }
         }
 
         if (Object.keys(datosPacienteParaActualizar).length === 0) {

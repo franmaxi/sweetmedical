@@ -22,7 +22,7 @@ import {
   marcarRealizado,
   getPacientes,
   getSedes,
-  getEspecialidades,
+  getServicios,
 } from "../../api/api";
 import { EstadoTurno, nombreEstado } from "../../utils/turnos";
 import { extraerMensajeError } from "../../api/errorUtils";
@@ -42,11 +42,30 @@ const COLOR_ESTADO = {
 };
 
 const getFiltros = (t) => [
-  { label: t("agenda.filtros.proximos"), value: "proximos" },
   { label: t("agenda.filtros.porConfirmar"), value: "porConfirmar" },
+  { label: t("agenda.filtros.proximos"), value: "proximos" },
   { label: t("agenda.filtros.historico"), value: "historico" },
   { label: t("agenda.filtros.todos"), value: "todos" },
 ];
+
+
+const PAGE_SIZE = 10;
+
+const ESTADOS_NO_CANCELADO = [
+  EstadoTurno.DISPONIBLE,
+  EstadoTurno.RESERVADO,
+  EstadoTurno.CONFIRMADO,
+  EstadoTurno.REALIZADO,
+].join(",");
+
+const getParamsPorFiltro = (filtro) => {
+  const ahora = new Date().toISOString();
+  if (filtro === "proximos") return { desde: ahora, estado: ESTADOS_NO_CANCELADO };
+  if (filtro === "porConfirmar") return { desde: ahora, estado: EstadoTurno.RESERVADO };
+  // un turno REALIZADO siempre corresponde a una fecha pasada, asi que "hasta: ahora" ya lo cubre
+  if (filtro === "historico") return { hasta: ahora };
+  return {};
+};
 
 const fmt = (iso) =>
   new Date(iso).toLocaleString("es-AR", {
@@ -74,10 +93,31 @@ function AgendaMedicoInner() {
   const [pacientesById, setPacientesById] = useState(new Map());
   const [sedesById, setSedesById] = useState(new Map());
   const [espById, setEspById] = useState(new Map());
+  const [practicasById, setPracticasById] = useState(new Map());
   const [cargando, setCargando] = useState(true);
-  const [filtro, setFiltro] = useState("proximos");
+  const [filtro, setFiltro] = useState("porConfirmar");
+  const [paginaActual, setPaginaActual] = useState(1);
+  const [totalTurnos, setTotalTurnos] = useState(0);
+  const [ordenDireccion, setOrdenDireccion] = useState("asc");
   const filtros = getFiltros(t);
   const estadoLabel = (e) => t(`estados.${nombreEstado(e).toLowerCase()}`, { defaultValue: nombreEstado(e) });
+
+  
+  const onFiltroChange = (value) => {
+    setFiltro(value);
+    setPaginaActual(1);
+  };
+
+  const onTableChange = (paginationInfo, _filters, sorterInfo) => {
+    const nuevaDireccion = sorterInfo?.order === "descend" ? "desc" : "asc";
+    if (nuevaDireccion !== ordenDireccion) {
+      setOrdenDireccion(nuevaDireccion);
+      setPaginaActual(1);
+    } else {
+      setPaginaActual(paginationInfo.current);
+    }
+  };
+
 
   const recargar = useCallback(() => {
     if (!medicoId) {
@@ -86,26 +126,46 @@ function AgendaMedicoInner() {
     }
     setCargando(true);
     Promise.all([
-      getTurnos({ medicoId }),
+      getTurnos({
+        medicoId,
+        page: paginaActual,
+        limit: PAGE_SIZE,
+        ordenarPor: "fechaHora",
+        ordenDireccion,
+        ...getParamsPorFiltro(filtro),
+      }),
       getPacientes(),
       getSedes(),
-      getEspecialidades(),
-    ]).then(([turnosData, pacientesRes, sedesRes, espsRes]) => {
+      getServicios({ medicoId }),
+    ]).then(([turnosData, pacientesRes, sedesRes, serviciosRes]) => {
       const pacientes = pacientesRes?.data || pacientesRes || [];
       const sedes = sedesRes?.data || sedesRes || [];
-      const esps = espsRes?.data || espsRes || [];
+      const esps = serviciosRes?.data?.especialidades || [];
+      const practicas = serviciosRes?.data?.practicas || [];
       const turnosLista = turnosData?.data || turnosData || [];
+      const total = turnosData?.paginacion?.totalTurnos ?? 0;
+
 
       setPacientesById(new Map(pacientes.map((p) => [p._id || p.id, p])));
       setSedesById(new Map(sedes.map((s) => [s._id || s.id, s])));
       setEspById(new Map(esps.map((e) => [e._id || e.id, e])));
+      setPracticasById(new Map(practicas.map((p) => [p._id || p.id, p])));
+  
+      setTotalTurnos(total);
+
+      // si al recargar (por una accion) la pagina actual quedo vacia, volvemos a la anterior
+      if (Array.isArray(turnosLista) && turnosLista.length === 0 && paginaActual > 1) {
+        setPaginaActual((p) => p - 1);
+        return;
+      }
+
       setTurnos(Array.isArray(turnosLista) ? turnosLista : []);
       setCargando(false);
     }).catch((err) => {
       message.error(extraerMensajeError(err, "Error al cargar la agenda"));
       setCargando(false);
     });
-  }, [medicoId, message]);
+  }, [medicoId, filtro, paginaActual, ordenDireccion, message]);
 
   useEffect(() => {
     recargar();
@@ -120,29 +180,29 @@ function AgendaMedicoInner() {
           ? (turno.especialidad[0]?._id || turno.especialidad[0])
           : (turno.especialidad?._id || turno.especialidad);
 
+        const pracId = Array.isArray(turno.practica)
+        ? (turno.practica[0]?._id || turno.practica[0])
+        : (turno.practica?._id || turno.practica);
+
+        const espNombre = espId ? espById.get(espId)?.nombre : null;
+        const pracNombre = pracId ? practicasById.get(pracId)?.nombre : null;
+        
+        const servicioTokens = [];
+        if (espNombre) servicioTokens.push(espNombre);
+        if (pracNombre) servicioTokens.push(pracNombre);
+
         return {
           ...turno,
           key: turno._id || turno.id,
           pacienteNombre: pacId ? pacientesById.get(pacId)?.nombre ?? "—" : t("agenda.disponible"),
           sedeNombre: sedesById.get(sdId)?.nombre ?? "—",
-          especialidadNombre: espId ? espById.get(espId)?.nombre ?? "—" : "—",
+          servicioNombre: servicioTokens.length > 0 ? servicioTokens.join(" / ") : "—",
         };
       }),
-    [turnos, pacientesById, sedesById, espById, t],
+    [turnos, pacientesById, sedesById, espById, practicasById, t],
   );
 
-  const visibles = useMemo(() => {
-    let lista = hidratados;
-    if (filtro === "proximos") {
-      lista = lista.filter((t) => esFuturo(t.fechaHora) && t.estado !== EstadoTurno.CANCELADO);
-    } else if (filtro === "porConfirmar") {
-      lista = lista.filter((t) => t.estado === EstadoTurno.RESERVADO && esFuturo(t.fechaHora));
-    } else if (filtro === "historico") {
-      lista = lista.filter((t) => !esFuturo(t.fechaHora) || t.estado === EstadoTurno.REALIZADO);
-    }
-    return lista.sort((a, b) => a.fechaHora.localeCompare(b.fechaHora));
-  }, [hidratados, filtro]);
-
+  
   const onConfirmar = async (turno) => {
     try {
       await confirmarTurno(turno._id || turno.id, { usuarioId });
@@ -207,9 +267,16 @@ function AgendaMedicoInner() {
   };
 
   const columns = [
-    { title: t("agenda.column.fecha"), dataIndex: "fechaHora", render: fmt, sorter: (a, b) => a.fechaHora.localeCompare(b.fechaHora) },
+    {
+      title: t("agenda.column.fecha"),
+      dataIndex: "fechaHora",
+      render: fmt,
+      sorter: true,
+      sortDirections: ["ascend", "descend", "ascend"],
+      defaultSortOrder: "ascend",
+    },
     { title: t("agenda.column.paciente"), dataIndex: "pacienteNombre" },
-    { title: t("agenda.column.especialidad"), dataIndex: "especialidadNombre" },
+    { title: "Servicio", dataIndex: "servicioNombre" },
     { title: t("agenda.column.sede"), dataIndex: "sedeNombre" },
     {
       title: t("agenda.column.estado"),
@@ -245,17 +312,26 @@ function AgendaMedicoInner() {
         <Text type="secondary">{t("agenda.subtitulo")}</Text>
 
         <Card style={{ marginTop: 16 }} bodyStyle={{ padding: 16 }}>
-          <Segmented options={filtros} value={filtro} onChange={setFiltro} />
+          <Segmented options={filtros} value={filtro} onChange={onFiltroChange} />
         </Card>
 
         <Card style={{ marginTop: 16 }} bodyStyle={{ padding: 0 }}>
           <Table
             loading={cargando}
             columns={columns}
-            dataSource={visibles}
+            dataSource={hidratados}
             scroll={{ x: 720 }}
             locale={{ emptyText: <Empty description={t("agenda.sinTurnos")} /> }}
-            pagination={{ pageSize: 10, hideOnSinglePage: true }}
+            onChange={onTableChange}
+            pagination={{
+              current: paginaActual,
+              pageSize: PAGE_SIZE,
+              total: totalTurnos,
+              onChange: setPaginaActual,
+              hideOnSinglePage: true,
+              showSizeChanger: false,
+              position: ["bottomCenter"],
+            }}
           />
         </Card>
       </Layout.Content>

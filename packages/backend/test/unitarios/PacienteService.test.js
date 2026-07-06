@@ -158,6 +158,25 @@ describe('PacienteService', () => {
       // nombreUsuario/password no son campos del schema de Paciente: no hay nada más para actualizar ahí
       expect(mocks.pacienteRepository.update).not.toHaveBeenCalled();
     });
+
+    test('al quitar la obra social (obraSocialId: null) también limpia el plan, aunque venga un planId', async () => {
+      mocks.pacienteRepository.findByUserId.mockResolvedValue({ _id: 'p1' });
+      mocks.pacienteRepository.update.mockResolvedValue({ _id: 'p1', obraSocial: null, plan: null });
+
+      await service.actualizar('p1', { obraSocialId: null, planId: null });
+
+      expect(mocks.pacienteRepository.update).toHaveBeenCalledWith('p1', { obraSocial: null, plan: null });
+      expect(mocks.obraSocialRepository.findPlanById).not.toHaveBeenCalled();
+    });
+
+    test('permite limpiar solo el plan (planId: null) sin tocar la obra social', async () => {
+      mocks.pacienteRepository.findByUserId.mockResolvedValue({ _id: 'p1' });
+      mocks.pacienteRepository.update.mockResolvedValue({ _id: 'p1', plan: null });
+
+      await service.actualizar('p1', { planId: null });
+
+      expect(mocks.pacienteRepository.update).toHaveBeenCalledWith('p1', { plan: null });
+    });
   });
 
   describe('eliminar', () => {

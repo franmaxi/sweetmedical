@@ -10,7 +10,7 @@ import {
 } from "@ant-design/icons";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../../context/AuthContext";
-import { getTurnos } from "../../api/api";
+import { getMedicoById, getTurnos } from "../../api/api";
 import { EstadoTurno } from "../../utils/turnos";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
@@ -35,6 +35,7 @@ function HomeMedicoInner() {
 
   const [turnos, setTurnos] = useState([]);
   const [cargando, setCargando] = useState(true);
+  const [nombreMedico, setNombreMedico] = useState("");
 
   useEffect(() => {
     if (!medicoId) {
@@ -46,6 +47,10 @@ function HomeMedicoInner() {
       .then((res) => setTurnos(res?.data || res || []))
       .catch(() => setTurnos([]))
       .finally(() => setCargando(false));
+
+    getMedicoById({ medicoId })
+      .then((res) => setNombreMedico(res?.data?.nombre || ""))
+      .catch(() => setNombreMedico(""));
   }, [medicoId]);
 
   const { proximos, porConfirmar } = useMemo(() => {
@@ -110,7 +115,7 @@ function HomeMedicoInner() {
     },
   ];
 
-  const nombre = user?.displayName || user?.username || "";
+  const nombre = nombreMedico || user?.displayName || user?.username || "";
 
   return (
     <Layout

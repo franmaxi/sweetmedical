@@ -15,13 +15,13 @@ export const pacienteBodySchema = z.object({
         if (!val) return true;
         return Types.ObjectId.isValid(val);
     }, {
-        message: "Debe ser un ID de obra social válido de Mongoose."
+        message: "Debe ser un ID de obra social válido."
     }),
     planId: z.string().optional().nullable().refine(val => {
         if (!val) return true;
         return Types.ObjectId.isValid(val);
     }, {
-        message: "Debe ser un ID de plan válido de Mongoose."
+        message: "Debe ser un ID de plan válido."
     }),
     nombreUsuario: z.string({
         required_error: "El nombre de usuario es requerido.",
@@ -46,13 +46,13 @@ export const pacienteBodyUpdateSchema = z.object({
         if (!val) return true;
         return Types.ObjectId.isValid(val);
     }, {
-        message: "Debe ser un ID de obra social válido de Mongoose."
+        message: "Debe ser un ID de obra social válido."
     }),
     planId: z.string().optional().nullable().refine(val => {
         if (!val) return true;
         return Types.ObjectId.isValid(val);
     }, {
-        message: "Debe ser un ID de plan válido de Mongoose."
+        message: "Debe ser un ID de plan válido."
     }),
     nombreUsuario: z.string({
         invalid_type_error: "El nombre de usuario debe ser un texto."

@@ -8,6 +8,9 @@ const i18n = i18next.createInstance()
 await i18n.init({
     lng: 'es', //idioma navegador - con navigator.language accedemos al idioma del usuario
     fallbackLng: 'es', //idioma respaldo
+    interpolation: {
+        escapeValue: false // no escapar HTML para notificaciones de texto plano
+    },
     resources: {
         es: { translation: es},
         en: { translation: en}

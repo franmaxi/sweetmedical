@@ -38,7 +38,7 @@ export const medicoBodyUpdateSchema = z.object({
         invalid_type_error: "practicas debe ser una lista de objetos de practicas."
     }).default([]),
     sedes: z.array(objectIdSchema, {
-        invalid_type_error: "sedes debe ser una lista de IDs de Mongoose."
+        invalid_type_error: "sedes debe ser una lista de IDs."
     }).default([]),
     disponibilidades: z.array(z.any()).default([]),
     nombreUsuario: z.string({
@@ -59,13 +59,13 @@ export const disponibilidadBodySchema = z.object({
         invalid_type_error: "El día de la semana debe ser un número."
     }).int().min(0, "El día de la semana debe ser entre 0 y 6").max(6, "El día de la semana debe ser entre 0 y 6"),
     horaDesde: z.string({
-        required_error: "La horaDesde es requerida.",
-        invalid_type_error: "La horaDesde debe ser un texto."
-    }).regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "La horaDesde debe tener el formato HH:mm (ej: 08:30)"),
+        required_error: "La hora de inicio es requerida.",
+        invalid_type_error: "La hora de inicio debe ser un texto."
+    }).regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "La hora de inicio debe tener el formato HH:mm (ej: 08:30)"),
     horaHasta: z.string({
-        required_error: "La horaHasta es requerida.",
-        invalid_type_error: "La horaHasta debe ser un texto."
-    }).regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "La horaHasta debe tener el formato HH:mm (ej: 17:00)"),
+        required_error: "La hora de finalización es requerida.",
+        invalid_type_error: "La hora de finalización debe ser un texto."
+    }).regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "La hora de finalización debe tener el formato HH:mm (ej: 17:00)"),
     sede: objectIdSchema,
     especialidades: z.array(objectIdSchema).optional().default([]),
     practicas: z.array(objectIdSchema).optional().default([])
@@ -89,24 +89,24 @@ export const updateDisponibilidadBodySchema = z.object({
 const especialidadServicioBodySchema = z.object({
     especialidadGenericaId: objectIdSchema,
     duracionTurnoEnMins: z.number({
-        required_error: "El campo duracionTurnoEnMins es requerido.",
-        invalid_type_error: "El campo duracionTurnoEnMins debe ser un número."
+        required_error: "La duración del turno es requerida.",
+        invalid_type_error: "La duración del turno debe ser un número."
     }).int().positive().multipleOf(15),
     costo: z.number({
-        required_error: "El campo costo es requerido.",
-        invalid_type_error: "El campo costo debe ser un número."
+        required_error: "El costo es requerido.",
+        invalid_type_error: "El costo debe ser un número."
     }).nonnegative()
 });
 
 const practicaServicioBodySchema = z.object({
     practicaGenericaId: objectIdSchema,
     duracionTurnoEnMins: z.number({
-        required_error: "El campo duracionTurnoEnMins es requerido.",
-        invalid_type_error: "El campo duracionTurnoEnMins debe ser un número."
+        required_error: "La duración del turno es requerida.",
+        invalid_type_error: "La duración del turno debe ser un número."
     }).int().positive().multipleOf(15),
     costo: z.number({
-        required_error: "El campo costo es requerido.",
-        invalid_type_error: "El campo costo debe ser un número."
+        required_error: "El costo es requerido.",
+        invalid_type_error: "El costo debe ser un número."
     }).positive()
 });
 
@@ -124,9 +124,9 @@ export const modificarServicioBodySchema = z.object({
     especialidadId: objectIdSchema.nullable().default(null),
     practicaId:     objectIdSchema.nullable().default(null),
     // Campos modificables (nombre y codigo no se pueden cambiar en hijas, solo en la genérica)
-    duracionTurnoEnMins: z.number({ invalid_type_error: "duracionTurnoEnMins debe ser un número." })
+    duracionTurnoEnMins: z.number({ invalid_type_error: "La duración del turno debe ser un número." })
         .int().positive().multipleOf(15).optional(),
-    costo: z.number({ invalid_type_error: "costo debe ser un número." }).nonnegative().optional()
+    costo: z.number({ invalid_type_error: "El costo debe ser un número." }).nonnegative().optional()
 }).refine(
     data => (data.especialidadId !== null) !== (data.practicaId !== null),
     { message: "Debe proporcionar exactamente uno de 'especialidadId' o 'practicaId', no ambos ni ninguno." }
@@ -171,13 +171,13 @@ export const disponibilidadDomainSchema = z.object({
         invalid_type_error: "El día de la semana debe ser un número."
     }).int().min(0, "El día de la semana debe ser entre 0 y 6").max(6, "El día de la semana debe ser entre 0 y 6"),
     horaDesde: z.string({
-        required_error: "La horaDesde es requerida.",
-        invalid_type_error: "La horaDesde debe ser un texto."
-    }).regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "La horaDesde debe tener el formato HH:mm"),
+        required_error: "La hora de inicio es requerida.",
+        invalid_type_error: "La hora de inicio debe ser un texto."
+    }).regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "La hora de inicio debe tener el formato HH:mm"),
     horaHasta: z.string({
-        required_error: "La horaHasta es requerida.",
-        invalid_type_error: "La horaHasta debe ser un texto."
-    }).regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "La horaHasta debe tener el formato HH:mm"),
+        required_error: "La hora de finalización es requerida.",
+        invalid_type_error: "La hora de finalización debe ser un texto."
+    }).regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "La hora de finalización debe tener el formato HH:mm"),
     sede: z.any({
         required_error: "La sede es requerida."
     })

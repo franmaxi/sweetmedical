@@ -123,12 +123,12 @@ export default function FiltrosTurnos({
         >
           <DatePicker
             style={{ width: "100%" }}
-            value={filtros.fechaDesde}
+            value={(filtros.fechaDesde && filtros.fechaDesde.isValid()) ? filtros.fechaDesde : undefined}
             onChange={set("fechaDesde")}
             format="DD/MM/YYYY"
             disabledDate={(current) => {
                 const antesDeHoy = current && current.isBefore(dayjs().startOf("day"));
-                const despuesDeFechaHasta = filtros.fechaHasta ? current && current.isAfter(filtros.fechaHasta, "day") : false;
+                const despuesDeFechaHasta = (filtros.fechaHasta && filtros.fechaHasta.isValid()) ? current && current.isAfter(filtros.fechaHasta, "day") : false;
                 return antesDeHoy || despuesDeFechaHasta;
               }}
           />
@@ -149,12 +149,12 @@ export default function FiltrosTurnos({
         >
           <DatePicker
             style={{ width: "100%" }}
-            value={filtros.fechaHasta}
+            value={(filtros.fechaHasta && filtros.fechaHasta.isValid()) ? filtros.fechaHasta : undefined}
             onChange={set("fechaHasta")}
             format="DD/MM/YYYY"
             disabledDate={(current) => {
                 const antesDeHoy = current && current.isBefore(dayjs().startOf("day"));
-                const antesDeFechaDesde = filtros.fechaDesde ? current && current.isBefore(filtros.fechaDesde, "day") : false;
+                const antesDeFechaDesde = (filtros.fechaDesde && filtros.fechaDesde.isValid()) ? current && current.isBefore(filtros.fechaDesde, "day") : false;
                 return antesDeHoy || antesDeFechaDesde;
               }}
           />

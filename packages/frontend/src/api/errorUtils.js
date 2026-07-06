@@ -29,13 +29,15 @@ export function extraerMensajeError(err, fallback = "Ocurrió un error inesperad
   return fallback;
 }
 
+function limpiarPrefijoTecnico(texto) {
+  return texto.replace(/^[a-zA-Z0-9_.]+\s*:\s*/, "");
+}
+
 /**
  * Si el mensaje del backend contiene múltiples errores separados por "; "
- * (formato del errorHandler de Zod), los devuelve como una lista con bullets en JSX.
- * De lo contrario devuelve el mensaje como string simple.
- *
- * Entrada:  "Error de validación: medicoId: Debe ser un ID válido.; sedeId: ..."
- * Salida:   <div>Errores de validación:<br/>· medicoId: ...<br/>· sedeId: ...</div>
+ * (formato del errorHandler de Zod), los devuelve como una lista con bullets en JSX,
+ * removiendo los identificadores técnicos de los campos.
+ * De lo contrario devuelve el mensaje limpio como string simple.
  *
  * @param {string} msg
  * @returns {React.ReactNode | string}
@@ -45,9 +47,13 @@ function formatearMensaje(msg) {
   if (!msg.startsWith(PREFIJO)) return msg;
 
   const cuerpo = msg.slice(PREFIJO.length);
-  const partes = cuerpo.split("; ").map((p) => p.trim()).filter(Boolean);
+  const partes = cuerpo.split("; ")
+    .map((p) => p.trim())
+    .filter(Boolean)
+    .map(limpiarPrefijoTecnico);
 
-  if (partes.length <= 1) return msg;
+  if (partes.length === 0) return msg;
+  if (partes.length === 1) return partes[0];
 
   return (
     <div style={{ textAlign: "left" }}>

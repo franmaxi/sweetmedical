@@ -5,8 +5,14 @@ import { CalendarOutlined, ClockCircleOutlined, EnvironmentOutlined, SafetyCerti
 
 const { Title, Text, Paragraph } = Typography;
 
-const fmtFecha = (iso) => iso.slice(0, 10);
-const fmtHora = (iso) => iso.slice(11, 16);
+const fmtFecha = (iso) => {
+  if (!iso) return "";
+  return new Date(iso).toLocaleDateString("es-AR", { timeZone: "America/Argentina/Buenos_Aires" });
+};
+const fmtHora = (iso) => {
+  if (!iso) return "";
+  return new Date(iso).toLocaleTimeString("es-AR", { timeZone: "America/Argentina/Buenos_Aires", hour: "2-digit", minute: "2-digit", hour12: false });
+};
 const fmtMoneda = (n) => {
   if (n === 0 || n === "Sin costo" || !n) return "Sin costo";
   return new Intl.NumberFormat("es-AR", { style: "currency", currency: "ARS", maximumFractionDigits: 0 }).format(n);

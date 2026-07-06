@@ -6,21 +6,47 @@ export const paginacionSchema = z.object({
     limit: z.coerce.number().int().positive().default(10)
 })
 
-export const objectIdSchema = z.union([
+export const crearIdSchema = (recurso) => z.union([
     z.string(),
     z.instanceof(Types.ObjectId)
 ], { 
-    required_error: "El ID es requerido.",
-    invalid_type_error: "El formato inicial no es válido." 
+    required_error: `El campo es requerido.`,
+    invalid_type_error: `El valor proporcionado no es válido.` 
 })
 .refine(val => Types.ObjectId.isValid(val), {
-    message: "Debe ser un ID válido de Mongoose."
+    message: `Debe seleccionar un/a ${recurso} válido/a.`
 })
 .transform(val => String(val));
+
+export const objectIdSchema = crearIdSchema("identificador");
 
 export const paramsIdSchema = z.object({
     id: objectIdSchema
 });
+
+export const crearFechaSchema = (requerido = false, mensajeError = "Debe ser una fecha válida.") => {
+    return z.any().transform((val, ctx) => {
+        if (val === undefined || val === null || val === '') {
+            if (requerido) {
+                ctx.addIssue({
+                    code: z.ZodIssueCode.custom,
+                    message: "La fecha y hora son requeridas."
+                });
+                return z.NEVER;
+            }
+            return undefined;
+        }
+        const d = new Date(val);
+        if (isNaN(d.getTime())) {
+            ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: mensajeError
+            });
+            return z.NEVER;
+        }
+        return d;
+    });
+};
 
 export const stringNoNuloSchema = z.string({
     required_error: "El texto es requerido.",
