@@ -1013,14 +1013,14 @@ export class TurnoService {
             fechaInicio.setUTCDate(fechaInicio.getUTCDate() + diasAntelacionTurno)
             fechaInicio.setUTCHours(0, 0, 0, 0)
         }
-        console.log(fechaInicio)
+        //console.log(fechaInicio)
 
         let fechaFin = fechaFinSolicitada
         if (fechaFin == null) {
             fechaFin = new Date(fechaInicio.getTime() + 6 * 24 * 60 * 60 * 1000) //sumo 6 dias en milisegundos
             fechaFin.setUTCHours(23, 59, 59, 999)
         }
-        console.log(fechaFin)
+        //console.log(fechaFin)
 
         // obtenemos medicos
         let medicos = null

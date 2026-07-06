@@ -5,8 +5,50 @@ import { BadRequestError, ConflictError, NotFoundError } from '../../errors/AppE
 import mongoose from "mongoose";
 import { MongoMemoryServer } from "mongodb-memory-server";//sacar cuando funcion la conexion a mongo real
 import dotenv from "dotenv";
+import jwt from "jsonwebtoken";
+import { EspecialidadGenericaModel } from "../../schemas/especialidadGenericaSchema.js";
+import { SedeModel } from "../../schemas/sedeSchema.js";
 
 dotenv.config();
+
+// Algunos entornos locales no tienen JWT_SECRET_KEY en el .env cargado por los tests;
+// como acá sólo firmamos/verificamos tokens dentro del mismo proceso, un valor de fallback alcanza.
+process.env.JWT_SECRET_KEY = process.env.JWT_SECRET_KEY || "test-secret-key-integracion";
+
+// El router de médicos exige verificarToken para POST/PUT/DELETE de servicios y disponibilidades;
+// generamos el mismo payload que UsuarioService.login para simular al médico autenticado.
+const generarTokenMedico = (medicoId) => jwt.sign(
+    { userId: medicoId, userRol: "MEDICO", userName: "house" },
+    process.env.JWT_SECRET_KEY,
+    { expiresIn: "10m" }
+);
+
+// crearDisponibilidad exige que la sede ya esté asignada al perfil del médico
+const crearYAsignarSede = async (app, medicoId, token, nombre = 'Sede Central') => {
+    const sede = await SedeModel.create({ nombre, direccion: 'Calle Falsa 123' });
+    await request(app)
+        .post(`/medicos/${medicoId}/sedes`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ sedesId: [sede._id.toString()] });
+    return sede._id.toString();
+};
+
+// crearDisponibilidad exige al menos una especialidad o práctica propia del médico
+const crearYAsignarEspecialidad = async (app, medicoId, token, nombre = 'Cardiología') => {
+    const especialidadGenerica = await EspecialidadGenericaModel.create({ nombre, emoji: '🩺' });
+    const servRes = await request(app)
+        .post(`/medicos/${medicoId}/servicios`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({
+            especialidad: {
+                especialidadGenericaId: especialidadGenerica._id.toString(),
+                duracionTurnoEnMins: 30,
+                costo: 5000
+            }
+        });
+    const especialidades = servRes.body.data.especialidades;
+    return especialidades[especialidades.length - 1]._id;
+};
 
 describe("Medicos API - Integración", () => {
     let app;
@@ -174,20 +216,16 @@ beforeAll(async () => {
 
         const response = await request(app)
             .put(`/medicos/${medicoId}`)
+            .set('Authorization', `Bearer ${generarTokenMedico(medicoId)}`)
             .send({
                 nombre: 'Dr. House Updated',
                 matricula: 'M-00123',
                 nombreUsuario: 'house_updated',
-                password: 'newpass123456',
                 especialidades: [],
                 practicas: [],
                 sedes: [],
                 disponibilidades: []
             });
-        
-        console.log(response)
-            
-        console.log("PUT /medicos/:id response.body:", response.body);
 
         expect(response.status).toBe(200);
         expect(response.body.status).toBe('success');
@@ -207,10 +245,9 @@ beforeAll(async () => {
         const medicoId = createRes.body.data._id;
 
         const deleteRes = await request(app)
-            .delete(`/medicos/${medicoId}`);
-            
-        console.log("DELETE /medicos/:id response.body:", deleteRes.body);
-        console.log(deleteRes.body)
+            .delete(`/medicos/${medicoId}`)
+            .set('Authorization', `Bearer ${generarTokenMedico(medicoId)}`);
+
         expect(deleteRes.status).toBe(200);
         expect(deleteRes.body.status).toBe('success');
 
@@ -232,25 +269,30 @@ beforeAll(async () => {
             });
 
         const medicoId = createRes.body.data._id;
+        const token = generarTokenMedico(medicoId);
+        const sedeId = await crearYAsignarSede(app, medicoId, token);
+        const especialidadId = await crearYAsignarEspecialidad(app, medicoId, token);
 
         const response = await request(app)
             .post(`/medicos/${medicoId}/disponibilidades`)
+            .set('Authorization', `Bearer ${token}`)
             .send({
                 diaSemana: 1,
                 horaDesde: '10:00',
                 horaHasta: '11:00',
-                sede: {
-                    _id: new mongoose.Types.ObjectId(),
-                    nombre: 'Sede Central'
-                }
+                sede: sedeId,
+                especialidades: [especialidadId]
             });
 
+        // crearDisponibilidad devuelve al médico actualizado, con la disponibilidad recién creada anidada
         expect(response.status).toBe(201);
         expect(response.body.status).toBe('success');
-        expect(response.body.data).toHaveProperty('_id');
-        expect(response.body.data.diaSemana).toBe(1);
-        expect(response.body.data.horaDesde).toBe('10:00');
-        expect(response.body.data.horaHasta).toBe('11:00');
+        expect(response.body.data.disponibilidades).toHaveLength(1);
+        const dispoCreada = response.body.data.disponibilidades[0];
+        expect(dispoCreada).toHaveProperty('_id');
+        expect(dispoCreada.diaSemana).toBe(1);
+        expect(dispoCreada.horaDesde).toBe('10:00');
+        expect(dispoCreada.horaHasta).toBe('11:00');
     });
 
     test('GET /medicos/:id/disponibilidades - lista disponibilidades', async () => {
@@ -264,18 +306,20 @@ beforeAll(async () => {
             });
 
         const medicoId = createRes.body.data._id;
+        const token = generarTokenMedico(medicoId);
+        const sedeId = await crearYAsignarSede(app, medicoId, token);
+        const especialidadId = await crearYAsignarEspecialidad(app, medicoId, token);
 
         // Crear disponibilidad
         await request(app)
             .post(`/medicos/${medicoId}/disponibilidades`)
+            .set('Authorization', `Bearer ${token}`)
             .send({
                 diaSemana: 1,
                 horaDesde: '10:00',
                 horaHasta: '11:00',
-                sede: {
-                    _id: new mongoose.Types.ObjectId(),
-                    nombre: 'Sede Central'
-                }
+                sede: sedeId,
+                especialidades: [especialidadId]
             });
 
         const response = await request(app)
@@ -298,23 +342,22 @@ beforeAll(async () => {
             });
 
         const medicoId = createRes.body.data._id;
+        const token = generarTokenMedico(medicoId);
+        const sedeId = await crearYAsignarSede(app, medicoId, token);
+        const especialidadId = await crearYAsignarEspecialidad(app, medicoId, token);
 
         const dispoRes = await request(app)
             .post(`/medicos/${medicoId}/disponibilidades`)
+            .set('Authorization', `Bearer ${token}`)
             .send({
                 diaSemana: 1,
                 horaDesde: '10:00',
                 horaHasta: '11:00',
-                sede: {
-                    _id: new mongoose.Types.ObjectId(),
-                    nombre: 'Sede Central'
-                }
+                sede: sedeId,
+                especialidades: [especialidadId]
             });
-        
-        console.log("dispoRes.body:", dispoRes.body);
 
-
-        const dispoId = dispoRes.body.data._id;
+        const dispoId = dispoRes.body.data.disponibilidades[0]._id;
 
         const response = await request(app)
             .get(`/medicos/${medicoId}/disponibilidades/${dispoId}`);
@@ -335,37 +378,135 @@ beforeAll(async () => {
             });
 
         const medicoId = createRes.body.data._id;
+        const token = generarTokenMedico(medicoId);
+        const sedeId = await crearYAsignarSede(app, medicoId, token, 'Sede Central');
+        const otraSedeId = await crearYAsignarSede(app, medicoId, token, 'Sede Norte');
+        const especialidadId = await crearYAsignarEspecialidad(app, medicoId, token);
 
         const dispoRes = await request(app)
             .post(`/medicos/${medicoId}/disponibilidades`)
+            .set('Authorization', `Bearer ${token}`)
             .send({
                 diaSemana: 1,
                 horaDesde: '10:00',
                 horaHasta: '11:00',
-                sede: {
-                    _id: new mongoose.Types.ObjectId(),
-                    nombre: 'Sede Central'
-                }
+                sede: sedeId,
+                especialidades: [especialidadId]
             });
 
-        const dispoId = dispoRes.body.data._id;
+        const dispoId = dispoRes.body.data.disponibilidades[0]._id;
+
+        // El router sólo registra .patch para esta ruta (no .put); modificarDisponibilidad
+        // tampoco permite reasignar el mismo dia/hora, sólo sede/especialidades/practicas
+        const response = await request(app)
+            .patch(`/medicos/${medicoId}/disponibilidades/${dispoId}`)
+            .set('Authorization', `Bearer ${token}`)
+            .send({
+                sede: otraSedeId
+            });
+
+        // modificarDisponibilidad también devuelve al médico actualizado completo
+        expect(response.status).toBe(200);
+        expect(response.body.status).toBe('success');
+        const dispoModificada = response.body.data.disponibilidades.find((d) => d._id === dispoId);
+        expect(dispoModificada.sede._id).toBe(otraSedeId);
+    });
+
+    test('GET /medicos/:id/servicios - médico recién creado no tiene servicios', async () => {
+        const createRes = await request(app)
+            .post('/medicos')
+            .send({
+                nombre: 'Dr. House',
+                matricula: 'M-00123',
+                nombreUsuario: 'house',
+                password: 'pass123456'
+            });
+
+        const medicoId = createRes.body.data._id;
 
         const response = await request(app)
-            .put(`/medicos/${medicoId}/disponibilidades/${dispoId}`)
-            .send({
-                diaSemana: 2,
-                horaDesde: '14:00',
-                horaHasta: '15:00',
-                sede: {
-                    _id: new mongoose.Types.ObjectId(),
-                    nombre: 'Sede Central'
-                }
-            });
+            .get(`/medicos/${medicoId}/servicios`);
 
         expect(response.status).toBe(200);
         expect(response.body.status).toBe('success');
-        expect(response.body.data.diaSemana).toBe(2);
-        expect(response.body.data.horaDesde).toBe('14:00');
+        expect(response.body.data.especialidades).toEqual([]);
+        expect(response.body.data.practicas).toEqual([]);
+    });
+
+    test('POST /medicos/:id/servicios - agrega una especialidad y GET /servicios la refleja', async () => {
+        const createRes = await request(app)
+            .post('/medicos')
+            .send({
+                nombre: 'Dr. House',
+                matricula: 'M-00123',
+                nombreUsuario: 'house',
+                password: 'pass123456'
+            });
+
+        const medicoId = createRes.body.data._id;
+
+        const especialidadGenerica = await EspecialidadGenericaModel.create({
+            nombre: 'Cardiología',
+            emoji: '❤️'
+        });
+
+        const token = generarTokenMedico(medicoId);
+
+        const postRes = await request(app)
+            .post(`/medicos/${medicoId}/servicios`)
+            .set('Authorization', `Bearer ${token}`)
+            .send({
+                especialidad: {
+                    especialidadGenericaId: especialidadGenerica._id.toString(),
+                    duracionTurnoEnMins: 30,
+                    costo: 5000
+                }
+            });
+
+        expect(postRes.status).toBe(201);
+        expect(postRes.body.status).toBe('success');
+
+        const getRes = await request(app)
+            .get(`/medicos/${medicoId}/servicios`);
+
+        expect(getRes.status).toBe(200);
+        expect(getRes.body.data.especialidades).toHaveLength(1);
+        expect(getRes.body.data.especialidades[0].nombre).toBe('Cardiología');
+        expect(getRes.body.data.practicas).toEqual([]);
+    });
+
+    test('POST /medicos/:id/servicios - rechaza si el token no pertenece al médico', async () => {
+        const createRes = await request(app)
+            .post('/medicos')
+            .send({
+                nombre: 'Dr. House',
+                matricula: 'M-00123',
+                nombreUsuario: 'house',
+                password: 'pass123456'
+            });
+
+        const medicoId = createRes.body.data._id;
+
+        const especialidadGenerica = await EspecialidadGenericaModel.create({
+            nombre: 'Cardiología',
+            emoji: '❤️'
+        });
+
+        const tokenDeOtroMedico = generarTokenMedico(new mongoose.Types.ObjectId().toString());
+
+        const response = await request(app)
+            .post(`/medicos/${medicoId}/servicios`)
+            .set('Authorization', `Bearer ${tokenDeOtroMedico}`)
+            .send({
+                especialidad: {
+                    especialidadGenericaId: especialidadGenerica._id.toString(),
+                    duracionTurnoEnMins: 30,
+                    costo: 5000
+                }
+            });
+
+        expect(response.status).toBe(403);
+        expect(response.body.status).toBe('fail');
     });
 
     test('POST /medicos - rechaza datos inválidos', async () => {
@@ -396,14 +537,12 @@ beforeAll(async () => {
 
         const response = await request(app)
             .post(`/medicos/${medicoId}/disponibilidades`)
+            .set('Authorization', `Bearer ${generarTokenMedico(medicoId)}`)
             .send({
                 diaSemana: 1,
                 horaDesde: '15:00',
                 horaHasta: '14:00',  // Hora final antes que inicial
-                sede: {
-                    _id: new mongoose.Types.ObjectId(),
-                    nombre: 'Sede Central'
-                }
+                sede: new mongoose.Types.ObjectId().toString()
             });
 
         expect(response.status).toBe(400);
