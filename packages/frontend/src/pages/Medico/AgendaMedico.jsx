@@ -60,7 +60,7 @@ const ESTADOS_NO_CANCELADO = [
 
 const getParamsPorFiltro = (filtro) => {
   const ahora = new Date().toISOString();
-  if (filtro === "proximos") return { desde: ahora, estado: ESTADOS_NO_CANCELADO };
+  if (filtro === "proximos") return { desde: ahora, estado: EstadoTurno.CONFIRMADO };
   if (filtro === "porConfirmar") return { desde: ahora, estado: EstadoTurno.RESERVADO };
   // un turno REALIZADO siempre corresponde a una fecha pasada, asi que "hasta: ahora" ya lo cubre
   if (filtro === "historico") return { hasta: ahora };
@@ -176,30 +176,40 @@ function AgendaMedicoInner() {
       turnos.map((turno) => {
         const pacId = turno.paciente?._id || turno.paciente;
         const sdId = turno.sede?._id || turno.sede;
-        const espId = Array.isArray(turno.especialidad)
-          ? (turno.especialidad[0]?._id || turno.especialidad[0])
-          : (turno.especialidad?._id || turno.especialidad);
 
-        const pracId = Array.isArray(turno.practica)
-        ? (turno.practica[0]?._id || turno.practica[0])
-        : (turno.practica?._id || turno.practica);
+        const especialidadesArray = Array.isArray(turno.especialidad)
+          ? turno.especialidad
+          : (turno.especialidad ? [turno.especialidad] : []);
 
-        const espNombre = espId ? espById.get(espId)?.nombre : null;
-        const pracNombre = pracId ? practicasById.get(pracId)?.nombre : null;
-        
-        const servicioTokens = [];
-        if (espNombre) servicioTokens.push(espNombre);
-        if (pracNombre) servicioTokens.push(pracNombre);
+        const practicasArray = Array.isArray(turno.practica)
+          ? turno.practica
+          : (turno.practica ? [turno.practica] : []);
+
+        const espNombres = especialidadesArray
+          .map((e) => {
+            const id = e?._id || e;
+            return espById.get(id)?.nombre;
+          })
+          .filter(Boolean);
+
+        const pracNombres = practicasArray
+          .map((p) => {
+            const id = p?._id || p;
+            return practicasById.get(id)?.nombre;
+          })
+          .filter(Boolean);
+
+        const servicioTokens = [...espNombres, ...pracNombres];
 
         return {
           ...turno,
           key: turno._id || turno.id,
-          pacienteNombre: pacId ? pacientesById.get(pacId)?.nombre ?? "—" : t("agenda.disponible"),
+          pacienteNombre: pacId ? (pacientesById.get(pacId)?.nombre ?? "—") : "",
           sedeNombre: sedesById.get(sdId)?.nombre ?? "—",
           servicioNombre: servicioTokens.length > 0 ? servicioTokens.join(" / ") : "—",
         };
       }),
-    [turnos, pacientesById, sedesById, espById, practicasById, t],
+    [turnos, pacientesById, sedesById, espById, practicasById],
   );
 
   

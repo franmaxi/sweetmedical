@@ -57,7 +57,7 @@ function HomeMedicoInner() {
     const lista = Array.isArray(turnos) ? turnos : [];
     return {
       proximos: lista.filter(
-        (turno) => esFuturo(turno.fechaHora) && turno.estado !== EstadoTurno.CANCELADO,
+        (turno) => esFuturo(turno.fechaHora) && turno.estado === EstadoTurno.CONFIRMADO,
       ).length,
       porConfirmar: lista.filter(
         (turno) => turno.estado === EstadoTurno.RESERVADO && esFuturo(turno.fechaHora),

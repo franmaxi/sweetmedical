@@ -284,7 +284,7 @@ export class TurnoService {
     //El médico debe confirmar los turnos cuando se reservan
     async confirmarReserva(turnoId, usuarioId) {
         const turno = await this.obtenerPorId(turnoId)
-        this.verificarTurnoExistente(turno, EstadoTurno.CONFIRMADO, `El turno id ${turnoId} esta en estado ${turno.estado}, deberia ser ${EstadoTurno.CONFIRMADO}`)
+        this.verificarTurnoExistente(turno, EstadoTurno.RESERVADO, `El turno id ${turnoId} esta en estado ${turno.estado}, deberia ser ${EstadoTurno.RESERVADO}`)
 
         //El usuario debe ser el médico, sino dar error
         if (turno.medico.usuario._id.toString() !== usuarioId) {
@@ -303,7 +303,7 @@ export class TurnoService {
     //El médico puede rechazar los turnos cuando se reservan
     async rechazarReserva(turnoId, usuarioId, motivoRechazo) {
         const turno = await this.obtenerPorId(turnoId)
-        this.verificarTurnoExistente(turno, EstadoTurno.CONFIRMADO, `El turno id ${turnoId} esta en estado ${turno.estado}, deberia ser ${EstadoTurno.CONFIRMADO}`)
+        this.verificarTurnoExistente(turno, EstadoTurno.RESERVADO, `El turno id ${turnoId} esta en estado ${turno.estado}, deberia ser ${EstadoTurno.RESERVADO}`)
 
         //El usuario debe ser el médico, sino dar error
         if (turno.medico.usuario._id.toString() !== usuarioId) {
