@@ -312,8 +312,7 @@ export class TurnoService {
 
         const usuario = await this.usuarioService.obtenerPorId(turno.paciente.usuario._id)
 
-        this.notificacionService.notificarCambioEstadoTurno(turno)
-            .catch(err => console.error('[Notificación] Error al notificar cambio de estado:', err))
+        
 
         // si se rechaza lo devolvemos a disponible
         await this.setearTurnoDisponible(turno, usuario, motivoRechazo)
@@ -323,6 +322,10 @@ export class TurnoService {
 
     async setearTurnoDisponible(turno, usuario, motivoCambio) {
         turno.actualizarEstado(EstadoTurno.DISPONIBLE, usuario, motivoCambio)
+
+        this.notificacionService.notificarCambioEstadoTurno(turno)
+            .catch(err => console.error('[Notificación] Error al notificar cambio de estado:', err))
+
         turno.paciente = null
         turno.costo = null
         turno.modificado = true
@@ -1010,12 +1013,14 @@ export class TurnoService {
             fechaInicio.setUTCDate(fechaInicio.getUTCDate() + diasAntelacionTurno)
             fechaInicio.setUTCHours(0, 0, 0, 0)
         }
+        console.log(fechaInicio)
 
         let fechaFin = fechaFinSolicitada
         if (fechaFin == null) {
             fechaFin = new Date(fechaInicio.getTime() + 6 * 24 * 60 * 60 * 1000) //sumo 6 dias en milisegundos
             fechaFin.setUTCHours(23, 59, 59, 999)
         }
+        console.log(fechaFin)
 
         // obtenemos medicos
         let medicos = null

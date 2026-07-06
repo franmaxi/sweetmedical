@@ -33,7 +33,8 @@ function HomeMedicoInner() {
   const { user } = useAuth();
   const medicoId = user?.userId;
 
-  const [turnos, setTurnos] = useState([]);
+  const [proximos, setProximos] = useState(0);
+  const [porConfirmar, setPorConfirmar] = useState(0);
   const [cargando, setCargando] = useState(true);
   const [nombreMedico, setNombreMedico] = useState("");
 
@@ -43,27 +44,26 @@ function HomeMedicoInner() {
       return;
     }
     setCargando(true);
-    getTurnos({ medicoId })
-      .then((res) => setTurnos(res?.data || res || []))
-      .catch(() => setTurnos([]))
+    const ahora = new Date().toISOString();
+
+    Promise.all([
+      getTurnos({ medicoId, estado: EstadoTurno.CONFIRMADO, desde: ahora, limit: 1 }),
+      getTurnos({ medicoId, estado: EstadoTurno.RESERVADO, desde: ahora, limit: 1 }),
+      getMedicoById({ medicoId })
+    ])
+      .then(([resProximos, resPorConfirmar, resMedico]) => {
+        setProximos(resProximos?.paginacion?.totalTurnos ?? resProximos?.paginacion?.total ?? resProximos?.data?.length ?? 0);
+        setPorConfirmar(resPorConfirmar?.paginacion?.totalTurnos ?? resPorConfirmar?.paginacion?.total ?? resPorConfirmar?.data?.length ?? 0);
+        setNombreMedico(resMedico?.data?.nombre || "");
+      })
+      .catch((err) => {
+        console.error(err);
+        setProximos(0);
+        setPorConfirmar(0);
+        setNombreMedico("");
+      })
       .finally(() => setCargando(false));
-
-    getMedicoById({ medicoId })
-      .then((res) => setNombreMedico(res?.data?.nombre || ""))
-      .catch(() => setNombreMedico(""));
   }, [medicoId]);
-
-  const { proximos, porConfirmar } = useMemo(() => {
-    const lista = Array.isArray(turnos) ? turnos : [];
-    return {
-      proximos: lista.filter(
-        (turno) => esFuturo(turno.fechaHora) && turno.estado === EstadoTurno.CONFIRMADO,
-      ).length,
-      porConfirmar: lista.filter(
-        (turno) => turno.estado === EstadoTurno.RESERVADO && esFuturo(turno.fechaHora),
-      ).length,
-    };
-  }, [turnos]);
 
   const stats = [
     {

@@ -13,7 +13,9 @@ export class Agenda {
         }
 
         const inicio = new Date(fechaInicial)
+        console.log(inicio)
         const fin = new Date(fechaFinal)
+        console.log(fin)
 
         if (isNaN(inicio) || isNaN(fin)) {
             throw new BadRequestError('Las fechas inicial y final deben ser objetos Date válidos');
@@ -56,10 +58,12 @@ export class Agenda {
         const matrizOpcionesTurno = this.obtenerMatrizEspecialidadPracticaDuracion(disponibilidad.especialidades, disponibilidad.practicas, duracionesUnicas)
 
         const diaDesde = new Date(inicio)
-        diaDesde.setHours(0, 0, 0, 0)
+        diaDesde.setUTCHours(0, 0, 0, 0)
+        console.log(diaDesde)
 
         const diaHasta = new Date(fin)
-        diaHasta.setHours(23, 59, 59, 999)
+        diaHasta.setUTCHours(23, 59, 59, 999)
+        console.log(diaHasta)
 
         // recorro cada dia entre el inicio y el fin
         for (let fecha = new Date(diaDesde); fecha <= diaHasta; fecha.setUTCDate(fecha.getUTCDate() + 1)) {

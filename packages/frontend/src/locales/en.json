@@ -220,6 +220,7 @@
     "cancelarErrorMotivo": "You must provide a reason",
     "canceladoOk": "Appointment cancelled",
     "confirmadoOk": "Appointment confirmed",
+    "rechazadoOk": "Appointment rejected successfully",
     "realizadoOk": "Appointment marked as completed",
     "column": {
       "fecha": "Date",

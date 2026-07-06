@@ -272,7 +272,8 @@ export class TurnoController {
     generarBatchForzado = async(req, res, next) => {
         try {
             const { medicoId, fechaInicio, fechaFin } = batchForzadoQuerySchema.parse(req.body ?? {})
-            
+            console.log(fechaInicio)
+            console.log(fechaFin)
             await this.turnoService.generarTurnosBatchForzado(medicoId, fechaInicio, fechaFin);
 
             return res.status(200).json({

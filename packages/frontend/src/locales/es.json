@@ -219,6 +219,7 @@
     "cancelarErrorMotivo": "Tenés que indicar un motivo",
     "canceladoOk": "Turno cancelado",
     "confirmadoOk": "Turno confirmado",
+    "rechazadoOk": "Turno rechazado con éxito",
     "realizadoOk": "Turno marcado como realizado",
     "column": {
       "fecha": "Fecha",

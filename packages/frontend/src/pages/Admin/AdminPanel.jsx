@@ -130,7 +130,17 @@ function EmojiInput({ value, onChange, placeholder }) {
       <Input
         value={value}
         readOnly
+        role = "button"
+        tabIndex = {0}
+        aria-haspopup="dialog"
+        aria-expanded={visible}
         placeholder={placeholder || "Haz clic aquí para seleccionar un emoji..."}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            setVisible(true);
+          }
+        }}
         style={{
           borderRadius: 8,
           cursor: "pointer",
@@ -257,7 +267,7 @@ function AdminPanelInner() {
               textTransform: "uppercase",
             }}
           >
-            <DashboardOutlined />
+            <DashboardOutlined aria-hidden/>
             {t("admin.titulo")}
           </Space>
           <Title level={2} style={{ margin: "14px 0 4px", color: "#fff" }}>
@@ -283,8 +293,17 @@ function AdminPanelInner() {
               <Card
                 key={seccion.key}
                 hoverable
+                role = "button"
+                tabIndex = {0}
+                aria-pressed={activa}
                 bordered={false}
                 onClick={() => setSeccionActiva(seccion.key)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    setSeccionActiva(seccion.key);
+                  }
+                }}
                 style={{
                   borderRadius: 20,
                   cursor: "pointer",

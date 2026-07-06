@@ -386,19 +386,22 @@ export class MedicoService {
                 throw new BadRequestError("La lista de especialidades enviada contiene elementos repetidos.");
             }
 
-            const especialidadesNuevas = datosDisponibilidad.especialidades.map(String);
-            const actuales = dispo.especialidades.map(String);
+            const especialidadesNuevasIds = datosDisponibilidad.especialidades.map(String);
+            const actualesIds = dispo.especialidades.map(e => String(e._id || e));
 
-            if (!this.arraysSonIguales(actuales, especialidadesNuevas)) {
-                const todasPertenecen = especialidadesNuevas.every(espId => 
-                    medico.especialidades.some(me => String(me._id || me) === String(espId))
-                );
+            if (!this.arraysSonIguales(actualesIds, especialidadesNuevasIds)) {
+                const especialidadesObjetos = [];
+                const todasPertenecen = especialidadesNuevasIds.every(espId => {
+                    const me = medico.especialidades.find(me => String(me._id || me) === String(espId));
+                    if (me) especialidadesObjetos.push(me);
+                    return !!me;
+                });
 
                 if (!todasPertenecen) {
                     throw new BadRequestError("Una o más especialidades enviadas no están asignadas al perfil de este médico.");
                 }
 
-                dispo.especialidades = especialidadesNuevas;
+                dispo.especialidades = especialidadesObjetos;
                 hayCambios = true;
             }
         }
@@ -409,19 +412,22 @@ export class MedicoService {
                 throw new BadRequestError("La lista de prácticas enviada contiene elementos repetidos.");
             }
 
-            const practicasNuevas = datosDisponibilidad.practicas.map(String);
-            const actuales = dispo.practicas.map(String);
+            const practicasNuevasIds = datosDisponibilidad.practicas.map(String);
+            const actualesIds = dispo.practicas.map(p => String(p._id || p));
 
-            if (!this.arraysSonIguales(actuales, practicasNuevas)) {
-                const todasPertenecen = practicasNuevas.every(pracId => 
-                    medico.practicas.some(mp => String(mp._id || mp) === String(pracId))
-                );
+            if (!this.arraysSonIguales(actualesIds, practicasNuevasIds)) {
+                const practicasObjetos = [];
+                const todasPertenecen = practicasNuevasIds.every(pracId => {
+                    const mp = medico.practicas.find(mp => String(mp._id || mp) === String(pracId));
+                    if (mp) practicasObjetos.push(mp);
+                    return !!mp;
+                });
 
                 if (!todasPertenecen) {
                     throw new BadRequestError("Una o más prácticas enviadas no están asignadas al perfil de este médico.");
                 }
 
-                dispo.practicas = practicasNuevas;
+                dispo.practicas = practicasObjetos;
                 hayCambios = true;
             }
         }
